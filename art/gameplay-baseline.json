@@ -1,0 +1,17 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "0D248F57F4112F47211F78CC64109172DDF4A311B0DA0E71DF200B5D34295F56",
+    "Path": "C:\\Users\\toast\\Desktop\\Coding\\Crosswalker\\app\\src\\main\\java\\com\\example\\crosswalker\\game\\Simulation.kt"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "9E217C848300DE96B4FB3B5191831CDE4BBE4C2D3A5AB28EFB95FB256A9230BA",
+    "Path": "C:\\Users\\toast\\Desktop\\Coding\\Crosswalker\\app\\src\\main\\java\\com\\example\\crosswalker\\data\\GameRepository.kt"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "23D42F81FF12C2CEE531948A6F8FC8187126DDF847D8261723EE57FC419621BF",
+    "Path": "C:\\Users\\toast\\Desktop\\Coding\\Crosswalker\\app\\src\\main\\assets\\campaign.json"
+  }
+]

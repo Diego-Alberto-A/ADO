@@ -1,0 +1,30 @@
+import subprocess, pathlib, xml.etree.ElementTree as ET, re, time
+adb=r'C:\Users\toast\AppData\Local\Android\Sdk\platform-tools\adb.exe'
+out=pathlib.Path('art/screenshots')
+def run(*a): return subprocess.check_output([adb,*a],text=True,encoding='utf-8')
+def dump():
+ run('shell','uiautomator','dump','/sdcard/crosswalker-ui.xml')
+ run('pull','/sdcard/crosswalker-ui.xml',str(out/'current.xml'))
+ return ET.parse(out/'current.xml')
+def tap(label):
+ root=dump()
+ n=next(n for n in root.iter('node') if label in n.get('text',''))
+ b=list(map(int,re.findall(r'\d+',n.get('bounds'))))
+ run('shell','input','tap',str((b[0]+b[2])//2),str((b[1]+b[3])//2))
+ time.sleep(.4)
+def capture(name):
+ dump();time.sleep(.7)
+ run('shell','screencap','-p','/sdcard/crosswalker-shot.png')
+ run('pull','/sdcard/crosswalker-shot.png',str(out/(name+'.png')))
+ subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(out/(name+'.png')),'-vf','scale=640:-1',str(out/(name+'-preview.jpg'))],check=True)
+ print('Captured',name,flush=True)
+capture('home')
+tap('JUGAR');capture('map')
+tap('Primeros pasos');capture('level-card')
+tap('PREPARAR EL PLAN');capture('game')
+tap('Contacto');capture('selected')
+tap('Ⅱ');capture('pause')
+tap('CONTINUAR');tap('PONER EL PLAN');time.sleep(9);capture('result')
+tap('VOLVER AL MAPA');capture('map')
+tap('INICIO');capture('home')
+print('Visual navigation and selected action verified.',flush=True)

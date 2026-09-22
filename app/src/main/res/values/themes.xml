@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.Crosswalker" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">#F5E6C5</item>
+        <item name="android:navigationBarColor">#F5E6C5</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">#F5E6C5</item>
+    </style>
+</resources>

@@ -1,0 +1,47 @@
+import fs from 'node:fs/promises';
+import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
+const d=JSON.parse(await fs.readFile('tmp/uat/data.json','utf8'));
+const w=await SpreadsheetFile.importXlsx(await FileBlob.load('tmp/uat/template_plain.xlsx'));
+const s=w.worksheets.getItem('Sheet1');
+s.getRange('C3:P34').clear({applyTo:'contents'});
+s.getRange('C3:P34').values=d.cases.map(c=>c.row);
+s.getRange('C1').values=[['Crosswalker · Pruebas de aceptación · Diseño al 01/10/2026']];
+s.getRange('C1:P1').merge();
+s.getRange('C1:P1').format.font={name:'Arial',size:14,bold:true};
+s.getRange('C1:P1').format.rowHeight=30;
+s.getRange('C2:P34').format.font={name:'Arial',size:11};
+s.getRange('C2:P34').format.wrapText=true;
+s.getRange('C2:P34').format.verticalAlignment='top';
+s.getRange('C2:P2').format.fill='#E7EDF5';
+s.getRange('C2:P2').format.font.bold=true;
+s.getRange('C2:P2').format.rowHeight=42;
+const widths=[21,49,32,52,60,43,45,58,55,47,44,12,40,47];
+widths.forEach((v,i)=>s.getRangeByIndexes(1,i+2,33,1).format.columnWidth=v);
+s.getRange('C3:P34').format.rowHeight=205;
+// Observations remain in the original combined template field; validation allows later status selection.
+s.freezePanes.freezeRows(2);
+const cr=w.worksheets.add('Criterios y trazabilidad'); cr.showGridLines=false;
+const rows=d.requirements.flatMap(r=>r.criteria.map((v,i)=>[r.id,r.text,`CA-${r.id}-${String(i+1).padStart(2,'0')}`,v,`UAT-${r.id}-${String(i+1).padStart(2,'0')}`,r.refs,`Etapa 1, pp. ${r.pages}`]));
+cr.getRange('A2:G2').values=[['Requerimiento','Descripción de usuario','Criterio','Criterio de aceptación diseñado','Caso asociado','Referencias asociadas','Fuente']];
+cr.getRange('A3:G26').values=rows;
+cr.getRange('A1:G1').merge(); cr.getRange('A1').values=[['12 requerimientos · 24 criterios · 2 casos por requerimiento']];
+cr.getRange('A1:G1').format.font={name:'Arial',size:14,bold:true};
+cr.getRange('A2:G26').format.font={name:'Arial',size:11}; cr.getRange('A2:G26').format.wrapText=true; cr.getRange('A2:G26').format.verticalAlignment='top';
+cr.getRange('A2:G2').format.fill='#E7EDF5'; cr.getRange('A2:G2').format.font.bold=true; cr.getRange('A2:G2').format.rowHeight=40;
+[18,54,22,68,24,34,28].forEach((v,i)=>cr.getRangeByIndexes(0,i,26,1).format.columnWidth=v); cr.getRange('A3:G26').format.rowHeight=98; cr.freezePanes.freezeRows(2);
+cr.getRange('A28:G28').merge(); cr.getRange('A28').values=[['Fuente base: Etapa 1. Requerimientos-1.pdf, tabla 10 (pp. 12-13). Criterios operacionalizados para este diseño.']];
+cr.getRange('A29:G29').merge(); cr.getRange('A29').values=[['Los ocho casos UAT-TEC complementan la cobertura; no equivalen a una auditoría exhaustiva de todos los requisitos del documento.']];
+const g=w.worksheets.add('Reporte gerencial'); g.showGridLines=false;
+const report=[['Crosswalker: reporte gerencial',null],['Fecha de diseño','01/10/2026'],['Requerimientos de usuario',12],['Casos diseñados',null],['Casos de prioridad alta',null],['Casos de prioridad media',null],['Casos pendientes',null],['Cobertura de diseño de RU','12 de 12 (100%); cada RU cuenta con 2 casos.'],['Estado del producto','No evaluado. No se ejecutaron pruebas ni se recabó evidencia.'],['Responsables','Asignaciones propuestas según roles de Etapa 1. Enlace aprobador ADO por designar.'],['Dispositivos','A1: Android 7.0/API 24; A2 y A3: Android 7.0+ gama baja; I1: iOS 14. Modelos por confirmar.'],['Evidencia mínima','ID de caso, versión/build, dispositivo/OS, fecha, ejecutor, resultado observado, archivo de evidencia y defecto si aplica.'],['Criterio de salida propuesto','Ejecutar los 32 casos en su matriz aplicable, resolver defectos críticos/altos, repetir fallidos y obtener aceptación ADO. Verificar además C-01 a C-10.'],['Agenda base','S11: 26-30 oct, ejecución/usabilidad. S12: 2-6 nov, corrección/regresión. S13-S14: manuales, paquetes y aceptación formal.'],['Ambigüedad: niveles','Mínimo 7 en O-04/REQ-03 y máximo 7 en L-06. Se diseña para 7 niveles; confirmar la línea base.'],['Ambigüedad: referencias','US-07 cita REQ-11, que trata JSON. RU-09 se vincula a sección 1.5 y CU-07; se conserva la referencia original como discrepancia.'],['Ambigüedad: revisión 70%','O-06/M3: 23 oct; actividad 4.2: 26-30 oct. Confirmar fecha sin asumir equivalencia entre revisión pedagógica y usabilidad.'],['Pendientes de definición','Duración de tutorial, muestra/tasa RU-03, efectos de fichas, reglas de estrellas, calor/batería, precisión de paleta y método de provisión iOS.'],['Riesgos de ejecución','Acceso al grupo de usuarios, dispositivos y macOS; divergencia Swift/Kotlin; material pedagógico y marca pendientes de aprobación.'],['Fuera de alcance','Publicación en tiendas, backend, cuentas, monetización, web/escritorio, localización y certificación pedagógica.'],['Lectura de resultados','100% es cobertura del diseño de RU, no porcentaje de pruebas aprobadas ni garantía de calidad.'],['Guía de registro','En Sheet1, sustituir Pendiente por el resultado y conservar las observaciones. Registrar evidencia por dispositivo; no marcar Aprobado sin ejecutarlo.']];
+g.getRange('A1:B22').values=report; g.getRange('A1:B22').format.font={name:'Arial',size:11}; g.getRange('A1:B22').format.wrapText=true; g.getRange('A1:B22').format.verticalAlignment='top'; g.getRange('A1:A22').format.columnWidth=34;g.getRange('B1:B22').format.columnWidth=115;g.getRange('A1:B1').merge();g.getRange('A1:B1').format.font={name:'Arial',size:15,bold:true};g.getRange('A1:B22').format.rowHeight=45;g.getRange('A1:B7').format.rowHeight=28;g.getRange('A2:A22').format.font.bold=true;
+g.getRange('B4').formulas=[['=COUNTA(Sheet1!C3:C34)']];g.getRange('B5').formulas=[['=COUNTIF(Sheet1!N3:N34,"Alta")']];g.getRange('B6').formulas=[['=COUNTIF(Sheet1!N3:N34,"Media")']];g.getRange('B7').formulas=[['=SUMPRODUCT(--(LEFT(Sheet1!P3:P34,9)="Pendiente"))']];
+w.recalculate();
+g.getRange('A7').values=[['Pendientes al cierre del diseño']];
+g.getRange('B7').values=[[d.cases.filter(c=>c.row[13].startsWith('Pendiente')).length]];
+w.recalculate();
+console.log((await w.inspect({kind:'table',range:"'Reporte gerencial'!A3:B7",include:'values,formulas',tableMaxRows:5,tableMaxCols:2})).ndjson);
+console.log((await w.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#NUM!',options:{useRegex:true,maxResults:20},summary:'Errores'})).ndjson);
+await (await SpreadsheetFile.exportXlsx(w)).save('outputs/aceptacion-crosswalker/Pruebas_de_aceptacion_Crosswalker.xlsx');
+for(const [name,range,file] of [['Sheet1','C2:F4','casos'],['Sheet1','J2:P4','ejecucion'],['Criterios y trazabilidad','A1:D5','criterios'],['Reporte gerencial','A1:B12','gerencia']]){
+ await fs.writeFile(`tmp/uat/${file}.png`,new Uint8Array(await (await w.render({sheetName:name,range,scale:1})).arrayBuffer()));
+}

@@ -1,0 +1,810 @@
+{
+  "requirements": [
+    {
+      "id": "RU-01",
+      "text": "El niño debe poder jugar sin saber leer, guiándose por iconos, color y audio.",
+      "refs": "REQ-U-01; REQ-EDU-02",
+      "pages": "12, 18-19",
+      "owner": "Diego",
+      "criteria": [
+        "Identifica y usa los controles esenciales mediante iconos, color y audio, sin lectura ni ayuda verbal.",
+        "Al terminar el nivel, identifica la regla reforzada mediante audio y pictograma."
+      ]
+    },
+    {
+      "id": "RU-02",
+      "text": "El niño debe poder planear el cruce sin límite de tiempo y ejecutarlo con un solo botón.",
+      "refs": "REQ-01, REQ-02, REQ-10",
+      "pages": "12, 14-15",
+      "owner": "Arturo / Shalom",
+      "criteria": [
+        "La Fase Plano no consume tiempo ni mueve el tráfico y permite recolocar el plan dentro del presupuesto.",
+        "Un toque en RUN inicia la simulación; repetir nivel y plan desde el mismo estado produce el mismo resultado."
+      ]
+    },
+    {
+      "id": "RU-03",
+      "text": "El usuario general debe poder jugar sesiones cortas de 2 a 5 minutos mientras espera.",
+      "refs": "REQ-13",
+      "pages": "12, 16",
+      "owner": "Diego",
+      "criteria": [
+        "Un usuario general completa un nivel en una sesión de 2 a 5 minutos, desde su selección hasta el resultado.",
+        "Puede interrumpir la sesión y volver a jugar sin registro ni pérdida del progreso ya guardado."
+      ]
+    },
+    {
+      "id": "RU-04",
+      "text": "El usuario general debe entender el objetivo sin registro, tutorial largo ni conexión.",
+      "refs": "REQ-SEC-04; REQ-U-01; O-05",
+      "pages": "5, 12, 18",
+      "owner": "Diego",
+      "criteria": [
+        "En primer uso sin red llega al juego sin cuenta y comprende el objetivo con indicaciones breves e iconos.",
+        "En una muestra de al menos 8 usuarios, al menos 80% completa el primer mundo sin ayuda y el promedio posterior es ≥4/5 aciertos."
+      ]
+    },
+    {
+      "id": "RU-05",
+      "text": "El usuario debe recibir retroalimentación amigable y no violenta ante un fallo.",
+      "refs": "REQ-S-01 a REQ-S-03",
+      "pages": "12, 17",
+      "owner": "Diego",
+      "criteria": [
+        "Un fallo presenta frenado, desdoblado del peatón de papel e invitación a RE-DOBLAR Y PLANEAR.",
+        "Todos los fallos revisados carecen de atropellamientos, sangre, lesiones y sonidos de impacto."
+      ]
+    },
+    {
+      "id": "RU-06",
+      "text": "El usuario debe poder reintentar sin penalización y con una pista educativa.",
+      "refs": "REQ-12",
+      "pages": "12, 15-16",
+      "owner": "Arturo / Shalom",
+      "criteria": [
+        "Volver a intentar restaura la Fase Plano con fichas, habilidades y columnas intactas, sin penalización acumulativa.",
+        "Cada fallo ofrece una pista pertinente sobre habilidad, elemento o columna faltante y permite corregir el plan."
+      ]
+    },
+    {
+      "id": "RU-07",
+      "text": "El padre o tutor debe poder instalar la app sin costo, sin datos móviles y sin registro.",
+      "refs": "BR-04; REQ-SEC-04; CU-06",
+      "pages": "12, 18-19, 29",
+      "owner": "Juan Pablo",
+      "criteria": [
+        "Con paquete firmado previamente disponible, instala y abre sin datos móviles, cobros ni registro en la app.",
+        "Durante el uso no aparecen anuncios, compras, suscripciones ni solicitudes de información personal."
+      ]
+    },
+    {
+      "id": "RU-08",
+      "text": "El educador debe poder usar la app sin infraestructura de red ni cuentas.",
+      "refs": "BR-05; REQ-SEC-04; US-06",
+      "pages": "13, 18-19, 30",
+      "owner": "Juan Pablo",
+      "criteria": [
+        "En un aula sin red, inicia y completa una actividad educativa sin cuentas ni servicios externos.",
+        "Varios dispositivos permiten sesiones independientes y progreso anónimo local sin sincronización."
+      ]
+    },
+    {
+      "id": "RU-09",
+      "text": "El personal de ADO debe poder instalar los paquetes firmados mediante manuales claros.",
+      "refs": "Sección 1.5; CU-07; US-07",
+      "pages": "6-7, 13, 29-30",
+      "owner": "Juan Pablo",
+      "criteria": [
+        "Personal TI instala el APK firmado siguiendo exclusivamente el manual Android y comprueba su arranque.",
+        "Personal TI instala el IPA firmado en dispositivo autorizado siguiendo el manual iOS y el tutorial de instalación manual."
+      ]
+    },
+    {
+      "id": "RU-10",
+      "text": "El patrocinador debe poder validar el contenido pedagógico en revisiones formales.",
+      "refs": "O-06; C-07; REQ-EDU-01; BR-03",
+      "pages": "5, 13, 19-20",
+      "owner": "Arturo",
+      "criteria": [
+        "Cada revisión formal al 30% y 70% deja minuta firmada con versión, contenido revisado y observaciones.",
+        "El cierre exige validación de ADO sin observaciones bloqueantes y aprobación escrita del uso de marca."
+      ]
+    },
+    {
+      "id": "RU-11",
+      "text": "El equipo debe poder cargar todos los niveles desde un único archivo JSON compartido.",
+      "refs": "REQ-11; REQ-Q-04; C-02",
+      "pages": "13, 15, 18, 20",
+      "owner": "Arturo / Shalom",
+      "criteria": [
+        "Ambas apps cargan el mismo archivo JSON con 7 niveles en 3 mundos y resuelven los mismos planes con paridad.",
+        "Cambiar una definición válida en el JSON modifica el nivel en ambas apps sin editar la lógica ni valores fijos en código."
+      ]
+    },
+    {
+      "id": "RU-12",
+      "text": "El sistema debe operar en modo avión sin degradar funcionalidad.",
+      "refs": "REQ-SEC-01 a 04; REQ-06; C-05, C-06",
+      "pages": "13-14, 18, 20",
+      "owner": "Shalom",
+      "criteria": [
+        "En modo avión funcionan navegación, niveles, fichas, RUN, reintento, audio, estrellas y logros igual que con red.",
+        "Tras cerrar y reabrir en modo avión persisten progreso, estrellas y logros anónimos y la app no genera llamadas de red ni pide permisos prohibidos."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "UAT-RU-01-01",
+      "ru": "RU-01",
+      "criterion": "CA-RU-01-01",
+      "row": [
+        "UAT-RU-01-01",
+        "RU-01 — El niño debe poder jugar sin saber leer, guiándose por iconos, color y audio.",
+        "Navegar y planear sin lectura",
+        "CA-RU-01-01: Identifica y usa los controles esenciales mediante iconos, color y audio, sin lectura ni ayuda verbal.",
+        "Dado app instalada con audio activo, cuando navegar y planear sin lectura, entonces el participante inicia, coloca una ficha y ejecuta guiándose por iconos, color y audio, sin lectura ni ayuda verbal.",
+        "App instalada con audio activo\nParticipante de 6 a 12 años que aún no lee; sesión autorizada por tutor",
+        "Primer nivel; iconos de jugar, fichas y RUN; usuario identificado solo por código.",
+        "1) Abrir el menú sin leer instrucciones al participante\n2) Pedirle que muestre cómo iniciar y preparar un cruce\n3) Observar selección de nivel, colocación de ficha y uso de RUN\n4) Registrar ayudas solicitadas y confusiones",
+        "El participante inicia, coloca una ficha y ejecuta guiándose por iconos, color y audio, sin lectura ni ayuda verbal.",
+        "Lista de observación anónima y captura de controles; video de pantalla sin imagen del menor.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. Protocolo individual propuesto; Etapa 1 no fija tasa específica para no lectores."
+      ]
+    },
+    {
+      "id": "UAT-RU-01-02",
+      "ru": "RU-01",
+      "criterion": "CA-RU-01-02",
+      "row": [
+        "UAT-RU-01-02",
+        "RU-01 — El niño debe poder jugar sin saber leer, guiándose por iconos, color y audio.",
+        "Reconocer el refuerzo educativo",
+        "CA-RU-01-02: Al terminar el nivel, identifica la regla reforzada mediante audio y pictograma.",
+        "Dado nivel con solución conocida, cuando reconocer el refuerzo educativo, entonces cada cierre incluye audio y pictograma coherentes con su regla; el participante identifica la conducta sin leer.",
+        "Nivel con solución conocida\nAudio activo y pictograma disponible",
+        "Una solución válida por cada uno de los 7 niveles y regla esperada validada por ADO.",
+        "1) Resolver cada nivel\n2) Escuchar el refuerzo y observar el pictograma\n3) Pedir al participante que elija entre imágenes la conducta aprendida\n4) Cotejar audio y pictograma con la regla de ese nivel",
+        "Cada cierre incluye audio y pictograma coherentes con su regla; el participante identifica la conducta sin leer.",
+        "Grabación de audio/pantalla por nivel y respuestas anónimas.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Media",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-02-01",
+      "ru": "RU-02",
+      "criterion": "CA-RU-02-01",
+      "row": [
+        "UAT-RU-02-01",
+        "RU-02 — El niño debe poder planear el cruce sin límite de tiempo y ejecutarlo con un solo botón.",
+        "Mantener y editar el plan sin temporizador",
+        "CA-RU-02-01: La Fase Plano no consume tiempo ni mueve el tráfico y permite recolocar el plan dentro del presupuesto.",
+        "Dado nivel en fase plano, cuando mantener y editar el plan sin temporizador, entonces no hay avance de tráfico ni vencimiento del plan; los cambios válidos se conservan y no se ejecutan antes de RUN.",
+        "Nivel en Fase Plano\nPresupuesto y espacios de habilidades visibles",
+        "Espera de 6 minutos (sondeo propuesto); dos distribuciones válidas dentro del presupuesto.",
+        "1) Abrir el nivel y registrar posiciones iniciales\n2) Esperar 6 minutos sin RUN\n3) Colocar y recolocar fichas, habilidades y peatones\n4) Comparar tráfico, presupuesto y estado; inspeccionar ausencia de lógica de tiempo límite",
+        "No hay avance de tráfico ni vencimiento del plan; los cambios válidos se conservan y no se ejecutan antes de RUN.",
+        "Video de espera y edición; captura antes/después; revisión del control de temporización.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Arturo / Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. Los 6 minutos son una muestra de prueba, no un nuevo límite de planeación."
+      ]
+    },
+    {
+      "id": "UAT-RU-02-02",
+      "ru": "RU-02",
+      "criterion": "CA-RU-02-02",
+      "row": [
+        "UAT-RU-02-02",
+        "RU-02 — El niño debe poder planear el cruce sin límite de tiempo y ejecutarlo con un solo botón.",
+        "Ejecutar un plan con un toque y repetirlo",
+        "CA-RU-02-02: Un toque en RUN inicia la simulación; repetir nivel y plan desde el mismo estado produce el mismo resultado.",
+        "Dado nivel y estado inicial restablecidos, cuando ejecutar un plan con un toque y repetirlo, entonces cada toque inicia una sola simulación y el mismo plan produce las mismas trayectorias y resultado desde el mismo estado.",
+        "Nivel y estado inicial restablecidos\nMismo JSON en ambas versiones",
+        "Un plan ganador y uno fallido; 3 repeticiones de cada plan por plataforma.",
+        "1) Configurar el plan y guardar sus posiciones\n2) Tocar RUN una vez\n3) Registrar trayectorias, resultado y estrellas\n4) Restablecer el estado y repetir sin cambiar el plan\n5) Comparar repeticiones y plataformas",
+        "Cada toque inicia una sola simulación y el mismo plan produce las mismas trayectorias y resultado desde el mismo estado.",
+        "Videos comparables y tabla de resultados por plan, repetición y plataforma.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Arturo / Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-03-01",
+      "ru": "RU-03",
+      "criterion": "CA-RU-03-01",
+      "row": [
+        "UAT-RU-03-01",
+        "RU-03 — El usuario general debe poder jugar sesiones cortas de 2 a 5 minutos mientras espera.",
+        "Completar una sesión de 2 a 5 minutos",
+        "CA-RU-03-01: Un usuario general completa un nivel en una sesión de 2 a 5 minutos, desde su selección hasta el resultado.",
+        "Dado participante de público general sin experiencia previa, cuando completar una sesión de 2 a 5 minutos, entonces cada sesión observada completa el nivel entre 2 y 5 minutos; cualquier desviación se registra para revisar el diseño.",
+        "Participante de público general sin experiencia previa\nApp instalada y nivel disponible",
+        "Un nivel representativo por mundo; cronómetro; códigos anónimos de participante.",
+        "1) Seleccionar el nivel e iniciar cronómetro\n2) Jugar sin intervención del moderador\n3) Detener cronómetro al resultado final\n4) Registrar duración y repetir para los otros mundos",
+        "Cada sesión observada completa el nivel entre 2 y 5 minutos; cualquier desviación se registra para revisar el diseño.",
+        "Registro de tiempos y video de pantalla por nivel.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Media",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. Criterio literal de RU-03; falta acordar tamaño de muestra y porcentaje de cumplimiento."
+      ]
+    },
+    {
+      "id": "UAT-RU-03-02",
+      "ru": "RU-03",
+      "criterion": "CA-RU-03-02",
+      "row": [
+        "UAT-RU-03-02",
+        "RU-03 — El usuario general debe poder jugar sesiones cortas de 2 a 5 minutos mientras espera.",
+        "Interrumpir y retomar una sesión corta",
+        "CA-RU-03-02: Puede interrumpir la sesión y volver a jugar sin registro ni pérdida del progreso ya guardado.",
+        "Dado un nivel ya completado y guardado, cuando interrumpir y retomar una sesión corta, entonces se vuelve a jugar sin registro ni bloqueo y se conserva el progreso ya guardado.",
+        "Un nivel ya completado y guardado\nOtro nivel abierto en planeación",
+        "Progreso previo conocido; interrupción de 60 segundos (dato de prueba).",
+        "1) Enviar la app a segundo plano durante la planeación\n2) Esperar 60 segundos y volver\n3) Continuar o volver a seleccionar el nivel\n4) Finalizarlo y revisar el progreso anterior",
+        "Se vuelve a jugar sin registro ni bloqueo y se conserva el progreso ya guardado.",
+        "Video de interrupción y capturas de progreso antes/después.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Media",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. No se exige restaurar una simulación en curso: Etapa 1 no define ese comportamiento."
+      ]
+    },
+    {
+      "id": "UAT-RU-04-01",
+      "ru": "RU-04",
+      "criterion": "CA-RU-04-01",
+      "row": [
+        "UAT-RU-04-01",
+        "RU-04 — El usuario general debe entender el objetivo sin registro, tutorial largo ni conexión.",
+        "Comprender el objetivo en el primer uso sin red",
+        "CA-RU-04-01: En primer uso sin red llega al juego sin cuenta y comprende el objetivo con indicaciones breves e iconos.",
+        "Dado instalación limpia, cuando comprender el objetivo en el primer uso sin red, entonces no se solicita cuenta ni conexión; el usuario identifica el cruce hasta la banqueta superior y RUN con las indicaciones iniciales.",
+        "Instalación limpia\nModo avión activo y Wi-Fi desactivado",
+        "Primer mundo; participante nuevo; observación sin instrucciones externas.",
+        "1) Abrir la app\n2) Registrar todas las pantallas previas al juego\n3) Pedir al usuario que señale el destino del peatón y la acción para iniciar\n4) Dejar que prepare y ejecute un plan",
+        "No se solicita cuenta ni conexión; el usuario identifica el cruce hasta la banqueta superior y RUN con las indicaciones iniciales.",
+        "Secuencia de pantallas y registro anónimo de comprensión.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. No se impone una duración de tutorial: el término «largo» requiere acuerdo con ADO."
+      ]
+    },
+    {
+      "id": "UAT-RU-04-02",
+      "ru": "RU-04",
+      "criterion": "CA-RU-04-02",
+      "row": [
+        "UAT-RU-04-02",
+        "RU-04 — El usuario general debe entender el objetivo sin registro, tutorial largo ni conexión.",
+        "Validar autonomía y aprendizaje con usuarios reales",
+        "CA-RU-04-02: En una muestra de al menos 8 usuarios, al menos 80% completa el primer mundo sin ayuda y el promedio posterior es ≥4/5 aciertos.",
+        "Dado grupo de al menos 8 usuarios disponible, incluidos niños y público general, cuando validar autonomía y aprendizaje con usuarios reales, entonces al menos 80% completa sin ayuda y el promedio es ≥4/5. Para N=8, al menos 7 completan y se suman al menos 32 aciertos.",
+        "Grupo de al menos 8 usuarios disponible, incluidos niños y público general\nCuestionario de 5 preguntas y respuestas validado por ADO",
+        "N≥8; primer mundo; cuestionario posterior de 5 reactivos; IDs anónimos.",
+        "1) Permitir completar el primer mundo sin ayuda\n2) Registrar quién lo completa de manera autónoma\n3) Aplicar los 5 reactivos\n4) Calcular autónomos/N y total de aciertos/N",
+        "Al menos 80% completa sin ayuda y el promedio es ≥4/5. Para N=8, al menos 7 completan y se suman al menos 32 aciertos.",
+        "Hoja anónima de observación, cuestionario y cálculo de métricas.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-05-01",
+      "ru": "RU-05",
+      "criterion": "CA-RU-05-01",
+      "row": [
+        "UAT-RU-05-01",
+        "RU-05 — El usuario debe recibir retroalimentación amigable y no violenta ante un fallo.",
+        "Observar un fallo amigable",
+        "CA-RU-05-01: Un fallo presenta frenado, desdoblado del peatón de papel e invitación a RE-DOBLAR Y PLANEAR.",
+        "Dado nivel con plan que produce conflicto vial, cuando observar un fallo amigable, entonces el error se comunica con frenado, desdoblado de papel e invitación a RE-DOBLAR Y PLANEAR, sin violencia.",
+        "Nivel con plan que produce conflicto vial\nAudio habilitado",
+        "Plan fallido conocido; todos los arquetipos de peatón disponibles.",
+        "1) Ejecutar el plan fallido\n2) Observar secuencia visual y escuchar el audio\n3) Verificar frenado, desdoblado y mensaje\n4) Repetir con cada arquetipo",
+        "El error se comunica con frenado, desdoblado de papel e invitación a RE-DOBLAR Y PLANEAR, sin violencia.",
+        "Video con audio de cada variante y lista de revisión de REQ-S-01 a 03.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-05-02",
+      "ru": "RU-05",
+      "criterion": "CA-RU-05-02",
+      "row": [
+        "UAT-RU-05-02",
+        "RU-05 — El usuario debe recibir retroalimentación amigable y no violenta ante un fallo.",
+        "Revisar fallos de todos los mundos",
+        "CA-RU-05-02: Todos los fallos revisados carecen de atropellamientos, sangre, lesiones y sonidos de impacto.",
+        "Dado catálogo de niveles y rutas de fallo identificado, cuando revisar fallos de todos los mundos, entonces ninguna variante representa atropellamiento, sangre, lesión o sonido de impacto; contenido apto para todo público.",
+        "Catálogo de niveles y rutas de fallo identificado\nAssets de fallo disponibles para inspección",
+        "Los 7 niveles, 3 mundos, animaciones y sonidos de error.",
+        "1) Provocar cada variante de fallo identificada\n2) Revisar imagen, texto y audio\n3) Inspeccionar variantes no activadas en la sesión\n4) Registrar cualquier elemento inapropiado",
+        "Ninguna variante representa atropellamiento, sangre, lesión o sonido de impacto; contenido apto para todo público.",
+        "Inventario de variantes, videos y lista de aprobación de contenido.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Diego. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-06-01",
+      "ru": "RU-06",
+      "criterion": "CA-RU-06-01",
+      "row": [
+        "UAT-RU-06-01",
+        "RU-06 — El usuario debe poder reintentar sin penalización y con una pista educativa.",
+        "Reintentar conservando el plan",
+        "CA-RU-06-01: Volver a intentar restaura la Fase Plano con fichas, habilidades y columnas intactas, sin penalización acumulativa.",
+        "Dado nivel fallido con fichas, habilidades y columnas configuradas, cuando reintentar conservando el plan, entonces regresa a Fase Plano con plan intacto; los reintentos no añaden penalizaciones ni reducen recursos acumulativamente.",
+        "Nivel fallido con fichas, habilidades y columnas configuradas",
+        "Plan fallido completo; presupuesto inicial; 3 reintentos.",
+        "1) Capturar el plan y presupuesto antes de RUN\n2) Provocar fallo y tocar Volver a intentar\n3) Comparar fichas, habilidades y posiciones\n4) Repetir tres veces y revisar recursos",
+        "Regresa a Fase Plano con plan intacto; los reintentos no añaden penalizaciones ni reducen recursos acumulativamente.",
+        "Comparativa antes/después por reintento y video.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Arturo / Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-06-02",
+      "ru": "RU-06",
+      "criterion": "CA-RU-06-02",
+      "row": [
+        "UAT-RU-06-02",
+        "RU-06 — El usuario debe poder reintentar sin penalización y con una pista educativa.",
+        "Corregir el plan con la pista educativa",
+        "CA-RU-06-02: Cada fallo ofrece una pista pertinente sobre habilidad, elemento o columna faltante y permite corregir el plan.",
+        "Dado tres configuraciones fallidas conocidas, cuando corregir el plan con la pista educativa, entonces la pista corresponde a la causa del fallo y permite corregir habilidad, elemento o columna sin castigo acumulativo.",
+        "Tres configuraciones fallidas conocidas\nReglas y soluciones revisadas",
+        "Fallo por habilidad, por elemento y por columna; una corrección válida por caso.",
+        "1) Ejecutar cada configuración fallida\n2) Leer o escuchar la pista\n3) Reintentar y corregir el aspecto indicado\n4) Ejecutar nuevamente",
+        "La pista corresponde a la causa del fallo y permite corregir habilidad, elemento o columna sin castigo acumulativo.",
+        "Pista y configuración por variante, video del reintento y resultado corregido.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Arturo / Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-07-01",
+      "ru": "RU-07",
+      "criterion": "CA-RU-07-01",
+      "row": [
+        "UAT-RU-07-01",
+        "RU-07 — El padre o tutor debe poder instalar la app sin costo, sin datos móviles y sin registro.",
+        "Instalar y abrir sin datos móviles ni registro",
+        "CA-RU-07-01: Con paquete firmado previamente disponible, instala y abre sin datos móviles, cobros ni registro en la app.",
+        "Dado paquete firmado disponible por transferencia local, cuando instalar y abrir sin datos móviles ni registro, entonces la instalación y apertura no generan cobro ni registro en Crosswalker y no consumen datos móviles.",
+        "Paquete firmado disponible por transferencia local\nDispositivo autorizado y requisitos del sistema cubiertos",
+        "APK e IPA de la versión candidata; datos móviles desactivados.",
+        "1) Transferir el paquete por medio local\n2) Seguir el manual de instalación de la plataforma\n3) Abrir la app y acceder a un nivel\n4) Registrar requisitos externos del sistema si aparecen",
+        "La instalación y apertura no generan cobro ni registro en Crosswalker y no consumen datos móviles.",
+        "Registro de instalación, pantallas de apertura y consumo móvil.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Juan Pablo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. En iOS documentar provisión/confianza previas; no se afirma instalación offline universal ni ausencia de requisitos de Apple."
+      ]
+    },
+    {
+      "id": "UAT-RU-07-02",
+      "ru": "RU-07",
+      "criterion": "CA-RU-07-02",
+      "row": [
+        "UAT-RU-07-02",
+        "RU-07 — El padre o tutor debe poder instalar la app sin costo, sin datos móviles y sin registro.",
+        "Usar la app sin monetización ni datos personales",
+        "CA-RU-07-02: Durante el uso no aparecen anuncios, compras, suscripciones ni solicitudes de información personal.",
+        "Dado instalación limpia, cuando usar la app sin monetización ni datos personales, entonces no hay anuncios, pagos, suscripciones, registro ni captura de datos personales; el progreso es local y anónimo.",
+        "Instalación limpia\nTodos los menús y mundos accesibles en el entorno de prueba",
+        "Menú, niveles, pausa, resultados, ajustes y créditos.",
+        "1) Recorrer las pantallas\n2) Completar y fallar niveles\n3) Revisar posibles botones y ventanas comerciales\n4) Inspeccionar almacenamiento y componentes de anuncios/compras",
+        "No hay anuncios, pagos, suscripciones, registro ni captura de datos personales; el progreso es local y anónimo.",
+        "Inventario de pantallas, revisión de dependencias y almacenamiento anonimizado.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Juan Pablo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-08-01",
+      "ru": "RU-08",
+      "criterion": "CA-RU-08-01",
+      "row": [
+        "UAT-RU-08-01",
+        "RU-08 — El educador debe poder usar la app sin infraestructura de red ni cuentas.",
+        "Realizar una actividad en aula sin red",
+        "CA-RU-08-01: En un aula sin red, inicia y completa una actividad educativa sin cuentas ni servicios externos.",
+        "Dado dispositivos con app instalada, cuando realizar una actividad en aula sin red, entonces la actividad completa funciona sin cuenta, servidor o conexión y ofrece el refuerzo educativo de cada nivel.",
+        "Dispositivos con app instalada\nSin Wi-Fi ni datos móviles",
+        "Un nivel por mundo y plan didáctico basado en las reglas del juego.",
+        "1) Abrir la app en el aula sin conexión\n2) Elegir y completar un nivel de cada mundo\n3) Revisar refuerzo visual y sonoro\n4) Cerrar la actividad",
+        "La actividad completa funciona sin cuenta, servidor o conexión y ofrece el refuerzo educativo de cada nivel.",
+        "Bitácora del educador y video de los cierres de nivel.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Juan Pablo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-08-02",
+      "ru": "RU-08",
+      "criterion": "CA-RU-08-02",
+      "row": [
+        "UAT-RU-08-02",
+        "RU-08 — El educador debe poder usar la app sin infraestructura de red ni cuentas.",
+        "Usar dispositivos independientes sin cuentas",
+        "CA-RU-08-02: Varios dispositivos permiten sesiones independientes y progreso anónimo local sin sincronización.",
+        "Dado dos dispositivos sin red con progreso inicial vacío, cuando usar dispositivos independientes sin cuentas, entonces a conserva su progreso y B mantiene el suyo; no hay sincronización, identificación de alumnos ni cuentas compartidas.",
+        "Dos dispositivos sin red con progreso inicial vacío",
+        "Dispositivo A completa nivel 1; dispositivo B conserva inicio.",
+        "1) Completar un nivel en A\n2) Abrir B y verificar su progreso\n3) Cerrar y reabrir ambas apps\n4) Comparar los estados locales",
+        "A conserva su progreso y B mantiene el suyo; no hay sincronización, identificación de alumnos ni cuentas compartidas.",
+        "Capturas de ambos dispositivos y revisión del almacenamiento local.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Media",
+        "Responsable propuesto: Juan Pablo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-09-01",
+      "ru": "RU-09",
+      "criterion": "CA-RU-09-01",
+      "row": [
+        "UAT-RU-09-01",
+        "RU-09 — El personal de ADO debe poder instalar los paquetes firmados mediante manuales claros.",
+        "Instalar Android siguiendo el manual",
+        "CA-RU-09-01: Personal TI instala el APK firmado siguiendo exclusivamente el manual Android y comprueba su arranque.",
+        "Dado personal ti que no redactó el manual, cuando instalar Android siguiendo el manual, entonces tI completa la instalación con el manual, ejecuta el nivel y no necesita instrucciones faltantes.",
+        "Personal TI que no redactó el manual\nAPK firmado y manual Android entregados",
+        "A1 con Android 7.0/API 24 y A2/A3; versión y firma del APK.",
+        "1) Leer prerrequisitos y habilitar instalación según manual\n2) Instalar el APK y verificar firma/versión\n3) Abrir y ejecutar un nivel\n4) Registrar pasos ambiguos o ayuda adicional",
+        "TI completa la instalación con el manual, ejecuta el nivel y no necesita instrucciones faltantes.",
+        "Lista de pasos, versión/firma, capturas y observaciones del instalador.",
+        "A1 Android 7.0/API 24; A2 y A3 Android 7.0+ de gama baja.",
+        "Alta",
+        "Responsable propuesto: Juan Pablo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-09-02",
+      "ru": "RU-09",
+      "criterion": "CA-RU-09-02",
+      "row": [
+        "UAT-RU-09-02",
+        "RU-09 — El personal de ADO debe poder instalar los paquetes firmados mediante manuales claros.",
+        "Instalar iOS siguiendo el manual",
+        "CA-RU-09-02: Personal TI instala el IPA firmado en dispositivo autorizado siguiendo el manual iOS y el tutorial de instalación manual.",
+        "Dado personal ti que no redactó el manual, cuando instalar iOS siguiendo el manual, entonces tI instala y abre el IPA siguiendo instrucciones completas que explican certificados, provisión y equipo necesario.",
+        "Personal TI que no redactó el manual\nIPA firmado; equipo y dispositivo autorizados según distribución",
+        "I1 iOS 14; manual iOS; tutorial; certificado y perfil vigentes.",
+        "1) Revisar requisitos y vigencia de firma\n2) Aplicar los pasos de instalación y confianza del manual\n3) Abrir y ejecutar un nivel\n4) Registrar requisitos externos y ambigüedades",
+        "TI instala y abre el IPA siguiendo instrucciones completas que explican certificados, provisión y equipo necesario.",
+        "Bitácora, versión/perfil sin secretos y capturas de instalación.",
+        "I1 iPhone con iOS 14; equipo macOS/Xcode si el método documentado lo exige.",
+        "Alta",
+        "Responsable propuesto: Juan Pablo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-10-01",
+      "ru": "RU-10",
+      "criterion": "CA-RU-10-01",
+      "row": [
+        "UAT-RU-10-01",
+        "RU-10 — El patrocinador debe poder validar el contenido pedagógico en revisiones formales.",
+        "Documentar las revisiones pedagógicas formales",
+        "CA-RU-10-01: Cada revisión formal al 30% y 70% deja minuta firmada con versión, contenido revisado y observaciones.",
+        "Dado enlace de ado designado, cuando documentar las revisiones pedagógicas formales, entonces existen minutas firmadas para ambas revisiones y cada observación tiene decisión y responsable.",
+        "Enlace de ADO designado\nVersiones y material de las revisiones disponibles",
+        "Revisiones al 30% y 70%; fichas, reglas, mockups y niveles identificados por versión.",
+        "1) Presentar el contenido y correspondencia de cada ficha con su conducta vial\n2) Registrar comentarios y decisiones de ADO\n3) Documentar versión, asistentes y fecha\n4) Verificar firma de las dos minutas",
+        "Existen minutas firmadas para ambas revisiones y cada observación tiene decisión y responsable.",
+        "Minutas firmadas y matriz ficha-conducta-referencia aprobada.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Arturo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. El documento reporta revisión 30% realizada, pero aquí no se da por verificada su evidencia."
+      ]
+    },
+    {
+      "id": "UAT-RU-10-02",
+      "ru": "RU-10",
+      "criterion": "CA-RU-10-02",
+      "row": [
+        "UAT-RU-10-02",
+        "RU-10 — El patrocinador debe poder validar el contenido pedagógico en revisiones formales.",
+        "Cerrar observaciones bloqueantes y aprobar marca",
+        "CA-RU-10-02: El cierre exige validación de ADO sin observaciones bloqueantes y aprobación escrita del uso de marca.",
+        "Dado observación bloqueante real o simulada para revisar el proceso, cuando cerrar observaciones bloqueantes y aprobar marca, entonces el cierre solo procede con conformidad pedagógica de ADO, cero observaciones bloqueantes y aprobación escrita de marca.",
+        "Observación bloqueante real o simulada para revisar el proceso\nContenido corregido y recursos de marca",
+        "Registro de observaciones, versión corregida y aprobación escrita de identidad ADO.",
+        "1) Revisar que una observación bloqueante impide el cierre\n2) Presentar su corrección al enlace ADO\n3) Obtener resolución y aprobación por escrito\n4) Verificar que no quedan bloqueantes pendientes",
+        "El cierre solo procede con conformidad pedagógica de ADO, cero observaciones bloqueantes y aprobación escrita de marca.",
+        "Registro de cierre, minuta y autorización de uso de identidad.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Arturo. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. Las observaciones simuladas sirven para revisar el procedimiento; no son defectos reales del producto."
+      ]
+    },
+    {
+      "id": "UAT-RU-11-01",
+      "ru": "RU-11",
+      "criterion": "CA-RU-11-01",
+      "row": [
+        "UAT-RU-11-01",
+        "RU-11 — El equipo debe poder cargar todos los niveles desde un único archivo JSON compartido.",
+        "Cargar y resolver el catálogo compartido",
+        "CA-RU-11-01: Ambas apps cargan el mismo archivo JSON con 7 niveles en 3 mundos y resuelven los mismos planes con paridad.",
+        "Dado builds ios y android con el mismo json, cuando cargar y resolver el catálogo compartido, entonces ambas apps cargan los 7 niveles y 3 mundos desde el mismo JSON y reproducen el mismo comportamiento.",
+        "Builds iOS y Android con el mismo JSON\nCatálogo y soluciones esperadas disponibles",
+        "Un JSON con 7 niveles en 3 mundos; hash del archivo y un plan ganador por nivel.",
+        "1) Comparar hash del JSON en ambas versiones\n2) Abrir cada uno de los 7 niveles\n3) Ejecutar las mismas soluciones\n4) Comparar tableros, reglas, resultados y estrellas",
+        "Ambas apps cargan los 7 niveles y 3 mundos desde el mismo JSON y reproducen el mismo comportamiento.",
+        "Hashes, inventario de niveles y comparación por plataforma.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Arturo / Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. Se toma 7 como línea base: O-04/REQ-03 dicen mínimo 7 y L-06 máximo 7; confirmar con ADO."
+      ]
+    },
+    {
+      "id": "UAT-RU-11-02",
+      "ru": "RU-11",
+      "criterion": "CA-RU-11-02",
+      "row": [
+        "UAT-RU-11-02",
+        "RU-11 — El equipo debe poder cargar todos los niveles desde un único archivo JSON compartido.",
+        "Modificar un nivel mediante el JSON compartido",
+        "CA-RU-11-02: Cambiar una definición válida en el JSON modifica el nivel en ambas apps sin editar la lógica ni valores fijos en código.",
+        "Dado copia de prueba del json y código base versionado, cuando modificar un nivel mediante el JSON compartido, entonces ambas versiones reflejan el presupuesto 4 sin editar valores de nivel en la lógica del programa.",
+        "Copia de prueba del JSON y código base versionado\nEsquema y valor modificable identificados",
+        "Cambio válido de presupuesto de 3 a 4 en un nivel de prueba; sin cambiar la lógica.",
+        "1) Duplicar la base para prueba y cambiar solo el presupuesto\n2) Empaquetar el mismo JSON en iOS y Android\n3) Abrir el nivel y comparar presupuesto\n4) Inspeccionar diferencias del repositorio y restaurar datos originales",
+        "Ambas versiones reflejan el presupuesto 4 sin editar valores de nivel en la lógica del programa.",
+        "Diferencia de JSON/código, hashes y capturas de ambas plataformas.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Media",
+        "Responsable propuesto: Arturo / Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. 3 y 4 son datos sintéticos propuestos, no valores del catálogo oficial."
+      ]
+    },
+    {
+      "id": "UAT-RU-12-01",
+      "ru": "RU-12",
+      "criterion": "CA-RU-12-01",
+      "row": [
+        "UAT-RU-12-01",
+        "RU-12 — El sistema debe operar en modo avión sin degradar funcionalidad.",
+        "Recorrer todas las funciones en modo avión",
+        "CA-RU-12-01: En modo avión funcionan navegación, niveles, fichas, RUN, reintento, audio, estrellas y logros igual que con red.",
+        "Dado builds instalados y catálogo completo, cuando recorrer todas las funciones en modo avión, entonces todas las funciones conservan el comportamiento de referencia y no aparecen bloqueos por falta de conexión.",
+        "Builds instalados y catálogo completo\nPlanes de prueba disponibles",
+        "7 niveles, 7 fichas mínimas, 3 arquetipos; paleta de emergencia; estrellas y logros.",
+        "1) Registrar resultados de referencia con red disponible\n2) Activar modo avión y desactivar Wi-Fi\n3) Recorrer menú y todos los niveles usando funciones disponibles\n4) Comparar con referencia incluyendo audio, reintento y progresión",
+        "Todas las funciones conservan el comportamiento de referencia y no aparecen bloqueos por falta de conexión.",
+        "Matriz de funciones online/offline, videos y capturas de modo avión.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución."
+      ]
+    },
+    {
+      "id": "UAT-RU-12-02",
+      "ru": "RU-12",
+      "criterion": "CA-RU-12-02",
+      "row": [
+        "UAT-RU-12-02",
+        "RU-12 — El sistema debe operar en modo avión sin degradar funcionalidad.",
+        "Conservar progreso offline y verificar ausencia de red",
+        "CA-RU-12-02: Tras cerrar y reabrir en modo avión persisten progreso, estrellas y logros anónimos y la app no genera llamadas de red ni pide permisos prohibidos.",
+        "Dado app con almacenamiento accesible para inspección de prueba, cuando conservar progreso offline y verificar ausencia de red, entonces persisten los datos locales anónimos; se observan cero llamadas de red de la app y ningún permiso de internet, ubicación, cámara, micrófono o contactos aplicable a la plataforma.",
+        "App con almacenamiento accesible para inspección de prueba\nHerramienta de observación de tráfico atribuible a la app",
+        "Nivel completado, estrellas y logro activado según catálogo; captura de red con conectividad disponible.",
+        "1) En modo avión guardar progreso, estrellas y un logro\n2) Cerrar totalmente y reabrir la app; comparar datos\n3) Repetir el flujo con red habilitada y capturar tráfico de la app\n4) Inspeccionar permisos Android y capacidades/solicitudes iOS y almacenamiento",
+        "Persisten los datos locales anónimos; se observan cero llamadas de red de la app y ningún permiso de internet, ubicación, cámara, micrófono o contactos aplicable a la plataforma.",
+        "Capturas antes/después, traza atribuible a la app y revisión de permisos/almacenamiento.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Responsable propuesto: Shalom. Aprobador: enlace de Fundación ADO (por designar).",
+        "Pendiente de ejecución. iOS no tiene permiso INTERNET equivalente al de Android; revisar tráfico y capacidades, sin inventar ese permiso."
+      ]
+    },
+    {
+      "id": "UAT-TEC-01",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-01",
+      "row": [
+        "UAT-TEC-01",
+        "REQ-P-01, P-03, Q-03; C-03",
+        "Medir fluidez y estabilidad",
+        "≥90% de fotogramas con FPS >25; memoria <4096 MB; sin cierres en 20 minutos.",
+        "Dado build candidata y medición en dispositivos físicos preparada, cuando se ejecuta la verificación descrita, entonces se cumple la proporción mínima, la memoria máxima es <4096 MB y no hay cierres; temperatura y drenaje se registran para revisión.",
+        "Build candidata y medición en dispositivos físicos preparada",
+        "Sesión de 20 min por dispositivo; niveles representativos de los 3 mundos.",
+        "1) Iniciar perfiles de FPS y memoria\n2) Jugar continuamente 20 minutos\n3) Calcular proporción de fotogramas con FPS >25\n4) Registrar memoria máxima, cierres, temperatura y batería",
+        "Se cumple la proporción mínima, la memoria máxima es <4096 MB y no hay cierres; temperatura y drenaje se registran para revisión.",
+        "Trazas de FPS/memoria, duración, batería y eventos térmicos; falta acordar umbral de calentamiento/drenaje.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Equipo QA (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    },
+    {
+      "id": "UAT-TEC-02",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-02",
+      "row": [
+        "UAT-TEC-02",
+        "REQ-P-02, Q-02; C-04",
+        "Medir tamaño de los paquetes",
+        "Cada paquete final firmado es <80 MB.",
+        "Dado apk e ipa finales firmados disponibles, cuando se ejecuta la verificación descrita, entonces ambos paquetes pesan menos de 80.000.000 bytes.",
+        "APK e IPA finales firmados disponibles",
+        "Tamaño exacto en bytes de cada artefacto.",
+        "1) Identificar versión y hash de los paquetes\n2) Medir bytes de APK e IPA\n3) Comparar con 80.000.000 bytes",
+        "Ambos paquetes pesan menos de 80.000.000 bytes.",
+        "Registro de bytes, hashes y versión. Convención decimal de MB propuesta, por confirmar con ADO.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Arturo / Shalom (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    },
+    {
+      "id": "UAT-TEC-03",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-03",
+      "row": [
+        "UAT-TEC-03",
+        "REQ-P-04",
+        "Medir arranque y carga",
+        "Arranque en frío <4 s; carga de nivel <1,5 s.",
+        "Dado app cerrada y dispositivos de referencia disponibles, cuando se ejecuta la verificación descrita, entonces cada medición de arranque es <4 s y cada carga <1,5 s.",
+        "App cerrada y dispositivos de referencia disponibles",
+        "5 arranques en frío y 5 cargas por mundo/dispositivo (muestra propuesta).",
+        "1) Cerrar totalmente la app antes de cada arranque\n2) Medir de apertura a menú utilizable\n3) Medir de selección a Fase Plano utilizable\n4) Registrar cada tiempo, no solo el promedio",
+        "Cada medición de arranque es <4 s y cada carga <1,5 s.",
+        "Video con marcas temporales y tabla de mediciones.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Equipo QA (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    },
+    {
+      "id": "UAT-TEC-04",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-04",
+      "row": [
+        "UAT-TEC-04",
+        "REQ-03, REQ-06; US-04",
+        "Comprobar estrellas y desbloqueo",
+        "Se otorgan 1 a 3 estrellas según reglas del nivel y se desbloquea el siguiente al completar.",
+        "Dado estado inicial y reglas de puntuación aprobadas disponibles, cuando se ejecuta la verificación descrita, entonces las estrellas coinciden con las reglas, el avance válido desbloquea el siguiente nivel y persiste.",
+        "Estado inicial y reglas de puntuación aprobadas disponibles",
+        "Planes para 1, 2 y 3 estrellas; un fallo; siguiente nivel bloqueado.",
+        "1) Ejecutar cada plan con estado restablecido\n2) Comparar estrellas con las reglas del JSON/especificación\n3) Verificar desbloqueo al completar\n4) Cerrar y reabrir para verificar persistencia",
+        "Las estrellas coinciden con las reglas, el avance válido desbloquea el siguiente nivel y persiste.",
+        "Capturas y tabla plan-estrellas-desbloqueo. Fórmula de puntuación pendiente de definición si aún no existe.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Arturo / Shalom (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    },
+    {
+      "id": "UAT-TEC-05",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-05",
+      "row": [
+        "UAT-TEC-05",
+        "REQ-04, REQ-08, REQ-09",
+        "Comprobar fichas, peatones y entorno",
+        "Existen ≥7 fichas y 3 arquetipos diferenciados; peatones siguen columna válida y el entorno afecta a todos por igual.",
+        "Dado catálogo de fichas y comportamientos aprobado, cuando se ejecuta la verificación descrita, entonces el catálogo cumple mínimos, las diferencias siguen la especificación y el entorno aplica la misma regla a todo peatón que lo atraviesa.",
+        "Catálogo de fichas y comportamientos aprobado",
+        "7 fichas; 3 arquetipos; dos peatones que atraviesan el mismo elemento.",
+        "1) Inventariar fichas y arquetipos\n2) Elegir columnas válidas y ejecutar cada comportamiento\n3) Rechazar selección de columna no válida\n4) Comparar efecto del entorno en dos peatones",
+        "El catálogo cumple mínimos, las diferencias siguen la especificación y el entorno aplica la misma regla a todo peatón que lo atraviesa.",
+        "Matriz de comportamientos y videos. Efectos específicos deben estar definidos en catálogo.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Arturo / Shalom (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    },
+    {
+      "id": "UAT-TEC-06",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-06",
+      "row": [
+        "UAT-TEC-06",
+        "REQ-05",
+        "Verificar paleta de emergencia",
+        "La paleta detiene tráfico 3 s y solo puede usarse una vez por nivel.",
+        "Dado nivel ejecutándose con paleta disponible, cuando se ejecuta la verificación descrita, entonces el tráfico se detiene 3 s y reanuda; un segundo intento no causa otra detención.",
+        "Nivel ejecutándose con paleta disponible",
+        "Un primer uso y un intento de segundo uso en el mismo nivel.",
+        "1) Activar paleta y medir pausa del tráfico\n2) Verificar reanudación a los 3 segundos\n3) Intentar activarla de nuevo en el mismo nivel",
+        "El tráfico se detiene 3 s y reanuda; un segundo intento no causa otra detención.",
+        "Video con tiempo y registro del estado de la paleta. Registrar precisión instrumental; no asumir reposición en reintento.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Arturo / Shalom (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    },
+    {
+      "id": "UAT-TEC-07",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-07",
+      "row": [
+        "UAT-TEC-07",
+        "REQ-07, REQ-10",
+        "Validar tablero y límites del plan",
+        "Tablero usa los 5 tipos de fila; se respeta presupuesto común y espacios por peatón.",
+        "Dado nivel de prueba que contiene las cinco filas, cuando se ejecuta la verificación descrita, entonces las filas corresponden a su definición; el límite exacto se permite y el exceso se impide sin corromper el plan.",
+        "Nivel de prueba que contiene las cinco filas",
+        "Presupuesto B, coste B y B+1; capacidad de habilidad S y S+1 según JSON.",
+        "1) Revisar las 5 clases de fila\n2) Configurar un plan de coste B y capacidad S\n3) Intentar exceder a B+1 y S+1\n4) Recolocar un plan válido antes de RUN",
+        "Las filas corresponden a su definición; el límite exacto se permite y el exceso se impide sin corromper el plan.",
+        "Capturas de límites e inventario de filas. B y S se toman del JSON del nivel.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Alta",
+        "Arturo / Shalom (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    },
+    {
+      "id": "UAT-TEC-08",
+      "ru": "Complementario",
+      "criterion": "CA-TEC-08",
+      "row": [
+        "UAT-TEC-08",
+        "REQ-U-02, REQ-U-03; BR-07",
+        "Revisar interfaz e identidad",
+        "Vista 3/4 fija, intersección completa en pantalla, estética Cardboard Diorama y español de México.",
+        "Dado recursos de marca aprobados y pantallas completas disponibles, cuando se ejecuta la verificación descrita, entonces la cámara permanece fija, el tablero se ve completo, los controles son accesibles y la identidad/textos corresponden a lo aprobado.",
+        "Recursos de marca aprobados y pantallas completas disponibles",
+        "Todos los menús y niveles; dimensiones de pantalla de A1-A3 e I1.",
+        "1) Recorrer pantallas y niveles en los dispositivos\n2) Intentar gestos de rotación de cámara\n3) Revisar visibilidad del tablero y controles\n4) Cotejar paleta, estilo y textos con material aprobado",
+        "La cámara permanece fija, el tablero se ve completo, los controles son accesibles y la identidad/textos corresponden a lo aprobado.",
+        "Capturas por resolución y lista de revisión de diseño y lenguaje.",
+        "Android: A1 (7.0/API 24), A2 y A3 (gama baja, 7.0+). iOS: I1 (iOS 14). Modelos por confirmar; repetir y registrar por dispositivo.",
+        "Media",
+        "Diego (propuesto). Aprobador: enlace ADO.",
+        "Pendiente de ejecución. Caso complementario a los 12 RU."
+      ]
+    }
+  ]
+}
