@@ -21,6 +21,8 @@ import com.example.crosswalker.game.*
 
 /** Scene rendering is independent of the fixed-step simulation. */
 @Composable fun Board(level:Level,plan:Plan,sim:Simulation?,selected:String,planning:Boolean,modifier:Modifier=Modifier,frame:Int=0,onCrossing:(Int)->Unit={}) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+    val typeface=remember(context) { androidx.core.content.res.ResourcesCompat.getFont(context,R.font.jersey_25) }
     val resources=LocalResources.current
     val sprites=remember(resources) {
         mapOf("car_green" to R.drawable.car_green,"car_coral" to R.drawable.car_coral,"car_yellow" to R.drawable.car_yellow,"car_blue" to R.drawable.car_blue,"walker_coral" to R.drawable.walker_coral,"walker_blue" to R.drawable.walker_blue,"walker_green" to R.drawable.walker_green,"house" to R.drawable.house,"tree" to R.drawable.tree,"stop" to R.drawable.stop_sign).mapValues { resources.getDrawable(it.value, null)!! }
@@ -49,7 +51,7 @@ import com.example.crosswalker.game.*
             val left=x+(w-drawW)/2
             it.setBounds(left.toInt(),(y+h-drawH).toInt(),(left+drawW).toInt(),(y+h).toInt());it.draw(c)
         }}
-        fun label(text:String,x:Float,y:Float,size:Float,hex:String) {color(hex);p.textSize=size;p.typeface=android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.BOLD);p.textAlign=Paint.Align.CENTER;c.drawText(text,x,y,p)}
+        fun label(text:String,x:Float,y:Float,size:Float,hex:String) {color(hex);p.textSize=size;p.typeface=typeface;p.textAlign=Paint.Align.CENTER;c.drawText(text,x,y,p)}
         fun material(x:Float,y:Float,w:Float,h:Float,name:String) {
             color("#FFFFFF");p.shader=materials.getValue(name)
             val path=Path().apply {moveTo(x,y+1);lineTo(x+w*.3f,y);lineTo(x+w*.7f,y+1.1f);lineTo(x+w,y)
@@ -104,4 +106,3 @@ import com.example.crosswalker.game.*
         c.restore()
     }
 }
-

@@ -54,6 +54,16 @@ object CutPaper : Shape {
     }
 }
 
+@Composable fun WalkerArtwork(walker: com.example.crosswalker.game.Walker, size: Dp = 30.dp) {
+    val resource = when (walker.sprite) {
+        "walker_coral" -> R.drawable.walker_coral
+        "walker_green" -> R.drawable.walker_green
+        else -> R.drawable.walker_blue
+    }
+    Image(painterResource(resource), contentDescription = walker.name,
+        modifier = Modifier.size(size), contentScale = ContentScale.Fit)
+}
+
 @Composable fun ToolArtwork(id: String) {
     val resource = when (id) {
         "look" -> R.drawable.icon_look
