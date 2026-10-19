@@ -1,0 +1,632 @@
+{
+  "worlds": [
+    "Mi pequeño barrio",
+    "Campus de innovación",
+    "La ciudad de noche"
+  ],
+  "tools": [
+    {
+      "id": "look",
+      "label": "Mirar",
+      "icon": "◉",
+      "cost": 1,
+      "description": "Espera un hueco seguro antes de entrar a cada carril.",
+      "category": "skill"
+    },
+    {
+      "id": "wait",
+      "label": "Esperar",
+      "icon": "Ⅱ",
+      "cost": 1,
+      "description": "Espera tres segundos en el bordillo antes de salir.",
+      "category": "skill"
+    },
+    {
+      "id": "eye",
+      "label": "Contacto",
+      "icon": "☺",
+      "cost": 2,
+      "description": "El conductor te ve y cede el paso durante el día.",
+      "category": "skill"
+    },
+    {
+      "id": "signal",
+      "label": "Semáforo",
+      "icon": "▣",
+      "cost": 3,
+      "description": "En el cruce central, solicita detener el tráfico.",
+      "category": "skill"
+    },
+    {
+      "id": "visible",
+      "label": "Reflector",
+      "icon": "✦",
+      "cost": 2,
+      "description": "Permite que los conductores te vean y cedan el paso de noche.",
+      "category": "skill"
+    },
+    {
+      "id": "officer",
+      "label": "Agente",
+      "icon": "✋",
+      "cost": 4,
+      "description": "Detiene el tráfico durante los primeros seis segundos.",
+      "category": "street"
+    },
+    {
+      "id": "school",
+      "label": "Zona escolar",
+      "icon": "⚑",
+      "cost": 2,
+      "description": "Reduce la velocidad del tráfico en toda la calle.",
+      "category": "street"
+    },
+    {
+      "id": "bump",
+      "label": "Reductor",
+      "icon": "≋",
+      "cost": 2,
+      "description": "Los coches circulan más despacio.",
+      "category": "street"
+    },
+    {
+      "id": "crosswalk",
+      "label": "Paso cebra",
+      "icon": "▤",
+      "cost": 2,
+      "description": "Un paso marcado hace el recorrido un 20 % más rápido.",
+      "category": "street"
+    }
+  ],
+  "levels": [
+    {
+      "id": 1,
+      "world": 0,
+      "title": "Primeros pasos",
+      "lesson": "Elige un peatón, un punto de cruce y una acción. Mirar ayuda a encontrar un hueco seguro.",
+      "budget": 5,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.15,
+          "offset": 0.35,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.13,
+          "offset": 0.85,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.12,
+          "offset": 0.55,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "world": 0,
+      "title": "Mira a ambos lados",
+      "lesson": "Detente y observa antes de cruzar.",
+      "budget": 8,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.15524999999999997,
+          "offset": 0.42,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.13455,
+          "offset": 0.9199999999999999,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.12419999999999999,
+          "offset": 0.6200000000000001,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "world": 0,
+      "title": "Cada uno a su ritmo",
+      "lesson": "Cada persona necesita un tiempo distinto para cruzar.",
+      "budget": 11,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.1605,
+          "offset": 0.49,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.1391,
+          "offset": 0.99,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.12840000000000001,
+          "offset": 0.6900000000000001,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "world": 0,
+      "title": "Camino a la escuela",
+      "lesson": "La señalización y los reductores protegen a todos.",
+      "budget": 11,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.16574999999999998,
+          "offset": 0.56,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.14365,
+          "offset": 1.06,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.1326,
+          "offset": 0.76,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "world": 1,
+      "title": "Un nuevo recorrido",
+      "lesson": "Busca un cruce con buena visibilidad.",
+      "budget": 5,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.171,
+          "offset": 0.63,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.14820000000000003,
+          "offset": 1.13,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.1368,
+          "offset": 0.8300000000000001,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "world": 1,
+      "title": "La hora de entrada",
+      "lesson": "El semáforo se solicita desde el cruce central.",
+      "budget": 8,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.17625,
+          "offset": 0.7,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.15275000000000002,
+          "offset": 1.2,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.141,
+          "offset": 0.9000000000000001,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "world": 1,
+      "title": "Trabajo en equipo",
+      "lesson": "Planea un recorrido seguro para cada peatón.",
+      "budget": 11,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.1815,
+          "offset": 0.77,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.1573,
+          "offset": 1.27,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.1452,
+          "offset": 0.9700000000000001,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "world": 1,
+      "title": "La gran avenida",
+      "lesson": "Combina acciones personales y protección en la calle.",
+      "budget": 11,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.18675,
+          "offset": 0.8400000000000001,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.16185000000000002,
+          "offset": 1.34,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.1494,
+          "offset": 1.04,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "world": 2,
+      "title": "Luces al anochecer",
+      "lesson": "De noche, llevar un reflector ayuda a que te vean.",
+      "budget": 5,
+      "night": true,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.192,
+          "offset": 0.91,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.16640000000000002,
+          "offset": 1.4100000000000001,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.1536,
+          "offset": 1.11,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "world": 2,
+      "title": "Hazte visible",
+      "lesson": "Haz visible a cada peatón antes de salir.",
+      "budget": 8,
+      "night": true,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.19724999999999998,
+          "offset": 0.9800000000000001,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.17095,
+          "offset": 1.48,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.1578,
+          "offset": 1.1800000000000002,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "world": 2,
+      "title": "Juntos de noche",
+      "lesson": "Cuida especialmente a quien camina más despacio.",
+      "budget": 11,
+      "night": true,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.2025,
+          "offset": 1.05,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.17550000000000002,
+          "offset": 1.55,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.162,
+          "offset": 1.25,
+          "car": "car_blue"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "world": 2,
+      "title": "Una ciudad segura",
+      "lesson": "Pon en práctica todo lo aprendido.",
+      "budget": 11,
+      "night": true,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "leo",
+          "name": "Leo",
+          "kind": "distracted",
+          "speed": 0.1,
+          "sprite": "walker_blue"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.28,
+          "speed": 0.20775,
+          "offset": 1.12,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.49,
+          "speed": -0.18005000000000002,
+          "offset": 1.62,
+          "car": "car_yellow"
+        },
+        {
+          "y": 0.7,
+          "speed": 0.1662,
+          "offset": 1.32,
+          "car": "car_blue"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+name: Swift iPhone and iPad
+on:
+  push:
+    paths: ['**']
+  pull_request:
+    paths: ['**']
+  workflow_dispatch:
+
+jobs:
+  core:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test engine against Kotlin reference trajectories
+        run: swift test
+  app:
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [iPhone, iPad]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select available simulator
+        env:
+          DEVICE_FAMILY: ${{ matrix.device }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          devices = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '-j']))['devices']
+          matches = [d for runtime, group in devices.items() if 'iOS' in runtime for d in group if d['name'].startswith(os.environ['DEVICE_FAMILY'])]
+          if not matches:
+              raise SystemExit('No matching iOS simulator is installed')
+          with open(os.environ['GITHUB_ENV'], 'a') as out:
+              out.write('SIMULATOR_ID=' + matches[0]['udid'] + '\n')
+          PY
+      - name: Build and run unit and UI tests
+        run: >-
+          xcodebuild -project Crosswalker.xcodeproj -scheme Crosswalker
+          -destination "platform=iOS Simulator,id=$SIMULATOR_ID"
+          -resultBundlePath "TestResults-${{ matrix.device }}.xcresult"
+          test CODE_SIGNING_ALLOWED=NO
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TestResults-${{ matrix.device }}
+          path: TestResults-*.xcresult
