@@ -32,4 +32,23 @@ class SimulationTest {
     }
     @Test fun unprotectedTrafficCanTriggerFriendlyRetry() {assertEquals(Phase.RETRY,finish(Simulation(level().copy(lanes=listOf(Lane(.7f,0f,.7f,"car_coral"))),plan())).phase)}
     @Test fun centreSignalStopsTraffic() {val s=Simulation(level(),plan("signal"));val x=s.carX(s.level.lanes[0]);repeat(30){s.tick()};assertEquals(x,s.carX(s.level.lanes[0]),0f);assertEquals(Phase.WON,finish(s).phase)}
+    @Test fun wheelchairNeedsCrosswalkForFullSpeed() {
+        val rider=Walker("mateo","Mateo","wheelchair",.12f,"walker_chair")
+        val withRamp=finish(Simulation(level().copy(walkers=listOf(rider)),Plan(mutableMapOf("mateo" to Assignment(1,mutableSetOf("eye"))),mutableSetOf("crosswalk"))))
+        val withoutRamp=finish(Simulation(level().copy(walkers=listOf(rider)),Plan(mutableMapOf("mateo" to Assignment(1,mutableSetOf("eye"))))))
+        assertEquals(Phase.WON,withRamp.phase);assertEquals(Phase.WON,withoutRamp.phase)
+        assertTrue(withoutRamp.time>withRamp.time)
+    }
+    @Test fun phoneKindGetsNoBenefitFromLookAlone() {
+        val teen=Walker("tomas","Tomás","phone",.12f,"walker_slate")
+        val withLookOnly=Simulation(level().copy(walkers=listOf(teen)),Plan(mutableMapOf("tomas" to Assignment(1,mutableSetOf("look")))))
+        val withNoSkills=Simulation(level().copy(walkers=listOf(teen)),Plan(mutableMapOf("tomas" to Assignment(1,mutableSetOf()))))
+        repeat(1800) {withLookOnly.tick();withNoSkills.tick()}
+        assertEquals(withNoSkills.phase,withLookOnly.phase);assertEquals(withNoSkills.people[0].y,withLookOnly.people[0].y,0f)
+    }
+    @Test fun phoneAwayRestoresLooksProtection() {
+        val teen=Walker("tomas","Tomás","phone",.12f,"walker_slate")
+        val protected=finish(Simulation(level().copy(walkers=listOf(teen)),Plan(mutableMapOf("tomas" to Assignment(1,mutableSetOf("look","phone_away"))))))
+        assertEquals(Phase.WON,protected.phase)
+    }
 }

@@ -60,8 +60,12 @@ class Simulation(val level: Level, source: Plan) {
             if("wait" in skills && time < 3f) continue
             var velocity = p.walker.speed * (if("crosswalk" in plan.street) 1.2f else 1f)
             if(p.walker.kind == "distracted" && "look" !in skills) velocity *= .75f
+            if(p.walker.kind == "wheelchair" && "crosswalk" !in plan.street) velocity *= .5f
+            if(p.walker.kind == "phone" && "phone_away" !in skills) velocity *= .5f
+            // Looking only helps once the phone is put away.
+            val looking = "look" in skills && (p.walker.kind != "phone" || "phone_away" in skills)
             val lane = level.lanes.firstOrNull { p.y > it.y + .065f && p.y - it.y < .15f }
-            if(lane != null && "look" in skills) {
+            if(lane != null && looking) {
                 val duration = (p.y - lane.y + .075f) / velocity
                 val hazard = (0..30).any { sample -> abs(carX(lane, duration * sample / 30) - p.x) < .135f }
                 if(hazard && !officer && !signalled && time >= stopUntil) continue
