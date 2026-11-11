@@ -58,9 +58,17 @@ private fun Modifier.signBolts(color: Color) = drawBehind {
     val resource = when (walker.sprite) {
         "walker_coral" -> R.drawable.walker_coral
         "walker_green" -> R.drawable.walker_green
+        "walker_chair" -> R.drawable.walker_chair
+        "walker_slate" -> R.drawable.walker_slate
+        "walker_rust" -> R.drawable.walker_rust
         else -> R.drawable.walker_blue
     }
-    PixelImage(resource, walker.name, Modifier.size(size))
+    Box(Modifier.size(size)) {
+        PixelImage(resource, walker.name, Modifier.size(size))
+        // A pedestrian glued to a phone wears it as a badge wherever the UI names them.
+        if (walker.kind == "phone") PixelImage(R.drawable.phone, "con celular",
+            Modifier.size(size * .45f).align(Alignment.TopEnd))
+    }
 }
 
 @Composable fun ToolArtwork(id: String) {
@@ -73,6 +81,7 @@ private fun Modifier.signBolts(color: Color) = drawBehind {
         "officer" -> R.drawable.icon_officer
         "school" -> R.drawable.house
         "bump" -> R.drawable.icon_bump
+        "phone_away" -> R.drawable.icon_phone_away
         else -> R.drawable.icon_crosswalk
     }
     PixelImage(resource, null, Modifier.size(30.dp))

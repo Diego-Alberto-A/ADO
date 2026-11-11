@@ -39,6 +39,10 @@ private const val PIXEL = 1f
             "walker_coral_w0" to R.drawable.walker_coral_w0,"walker_coral_w1" to R.drawable.walker_coral_w1,"walker_coral_w2" to R.drawable.walker_coral_w2,
             "walker_blue_w0" to R.drawable.walker_blue_w0,"walker_blue_w1" to R.drawable.walker_blue_w1,"walker_blue_w2" to R.drawable.walker_blue_w2,
             "walker_green_w0" to R.drawable.walker_green_w0,"walker_green_w1" to R.drawable.walker_green_w1,"walker_green_w2" to R.drawable.walker_green_w2,
+            "walker_chair" to R.drawable.walker_chair,"walker_chair_w0" to R.drawable.walker_chair_w0,"walker_chair_w1" to R.drawable.walker_chair_w1,"walker_chair_w2" to R.drawable.walker_chair_w2,
+            "walker_slate" to R.drawable.walker_slate,"walker_slate_w0" to R.drawable.walker_slate_w0,"walker_slate_w1" to R.drawable.walker_slate_w1,"walker_slate_w2" to R.drawable.walker_slate_w2,
+            "walker_rust" to R.drawable.walker_rust,"walker_rust_w0" to R.drawable.walker_rust_w0,"walker_rust_w1" to R.drawable.walker_rust_w1,"walker_rust_w2" to R.drawable.walker_rust_w2,
+            "phone" to R.drawable.phone,
             "house" to R.drawable.house,"tree" to R.drawable.tree,"tree_autumn" to R.drawable.tree_autumn,
             "stop" to R.drawable.stop_sign,"signal" to R.drawable.traffic_light)
             .mapValues { resources.getDrawable(it.value, null)!!.apply { setFilterBitmap(false) } }
@@ -140,7 +144,10 @@ private const val PIXEL = 1f
             // covered, so a pedestrian who stops to wait stops stepping too.
             val art=if(person==null) w.sprite else "${w.sprite}_w${((person.y*32f).toInt().mod(3))}"
             sprite(art,x-15,y-38,30f,42f)
-            if("visible" in (plan.people[w.id]?.skills ?: emptySet())) {color("#FFE07A");c.drawCircle(x,y-19,4f,p)}
+            val skills=plan.people[w.id]?.skills ?: emptySet()
+            if("visible" in skills) {color("#FFE07A");c.drawCircle(x,y-19,4f,p)}
+            // The phone floats over its owner until "Guarda el celular" puts it away.
+            if(w.kind=="phone" && "phone_away" !in skills) sprite("phone",x-5,maxOf(y-56f,4f),10f,16f)
             // Clamped: a walker who just reached the far kerb sits against the
             // top of the board, and the bubble would be drawn off-canvas.
             val bubbleY=maxOf(y-40f,26f)

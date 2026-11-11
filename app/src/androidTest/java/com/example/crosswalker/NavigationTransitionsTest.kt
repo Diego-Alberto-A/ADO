@@ -27,7 +27,7 @@ class NavigationTransitionsTest {
         tap("MUNDO 2")
         ui.onNodeWithText("Campus de innovación").assertIsDisplayed()
         tap("MUNDO 1")
-        tap("Primeros pasos")
+        tap("Mi primer cruce")
         tap("PREPARAR EL PLAN")
         ui.runOnIdle { assertEquals("game", session.screen) }
         tap("LA CALLE")
@@ -64,7 +64,7 @@ class NavigationTransitionsTest {
 
     @Test fun resultsLeaveBeforeOpeningNextLevelAndRetryReturnsToPlanning() {
         tap("JUGAR")
-        tap("Primeros pasos")
+        tap("Mi primer cruce")
         tap("PREPARAR EL PLAN")
         ui.runOnIdle {
             // Finish deterministically; the test covers result navigation, not traffic timing.

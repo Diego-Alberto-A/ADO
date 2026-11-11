@@ -62,8 +62,11 @@ class Simulation(val level: Level, source: Plan) {
             if(p.walker.kind == "distracted" && "look" !in skills) velocity *= .75f
             if(p.walker.kind == "wheelchair" && "crosswalk" !in plan.street) velocity *= .5f
             if(p.walker.kind == "phone" && "phone_away" !in skills) velocity *= .5f
-            // Looking only helps once the phone is put away.
-            val looking = "look" in skills && (p.walker.kind != "phone" || "phone_away" in skills)
+            // Looking only helps once the phone is put away, and is moot when
+            // drivers already yield: a car frozen by eye contact would otherwise
+            // read as a hazard for ever.
+            val yielding = ("eye" in skills && !level.night) || ("visible" in skills && level.night)
+            val looking = "look" in skills && !yielding && (p.walker.kind != "phone" || "phone_away" in skills)
             val lane = level.lanes.firstOrNull { p.y > it.y + .065f && p.y - it.y < .15f }
             if(lane != null && looking) {
                 val duration = (p.y - lane.y + .075f) / velocity
@@ -73,7 +76,6 @@ class Simulation(val level: Level, source: Plan) {
             p.y -= velocity * dt
             for(l in level.lanes) {
                 val near = abs(p.y-l.y)<.066f && abs(p.x-carX(l))<.115f
-                val yielding = ("eye" in skills && !level.night) || ("visible" in skills && level.night)
                 if(near && !yielding && !officer && !signalled && time >= stopUntil) {
                     phase = Phase.RETRY
                     reason = if(level.night) "De noche, usa el reflector para que puedan verte." else "Un coche estaba muy cerca. Prueba mirar antes de cruzar o cambia el punto de cruce."

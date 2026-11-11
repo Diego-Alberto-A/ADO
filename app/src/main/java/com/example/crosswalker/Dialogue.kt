@@ -162,5 +162,7 @@ private val VOICES = listOf(
 fun walkerAccent(sprite: String): Accent = when (sprite) {
     "walker_coral" -> Brick
     "walker_green" -> Tree
+    "walker_chair" -> Orange
+    "walker_slate" -> Taxi
     else -> Sky
 }
