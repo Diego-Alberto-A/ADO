@@ -30,9 +30,12 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.draw.DrawModifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.crosswalker.ui.theme.*
 
 /**
@@ -231,4 +234,53 @@ fun textOn(face: Color): Color =
     val on = phase < 1.2f
     Text("\u25BC", color = if (on) color else Color.Transparent, style = HudStrong,
         modifier = Modifier.absoluteOffset(y = if (on) 0.dp else PX))
+}
+
+/**
+ * A compact square button for the HUD that floats over the board: cream face
+ * on its own 2 px base, so it stays legible over grass, asphalt or brick.
+ */
+@Composable fun HudButton(glyph: String, contentDescription: String, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val lift = if (pressed) 0.dp else 2.dp
+    Box(Modifier.size(48.dp)) {
+        Box(Modifier.matchParentSize().padding(top = 2.dp)
+            .pixelPanel(fill = CreamDark, highlight = null, shade = null, corner = 3.dp))
+        Box(Modifier.matchParentSize().padding(bottom = 2.dp).absoluteOffset(y = -lift + 2.dp)
+            .pixelPanel(fill = Cream, highlight = CreamLight, shade = CreamDark,
+                shadow = null, corner = 3.dp)
+            .clickable(interactionSource = interaction, indication = LocalIndication.current,
+                role = Role.Button, onClickLabel = contentDescription, onClick = onClick),
+            contentAlignment = Alignment.Center) {
+            Text(glyph, color = Ink, fontSize = 22.sp)
+        }
+    }
+}
+
+/** One token: a gold coin while you still hold it, an empty socket once spent. */
+@Composable private fun TokenDot(held: Boolean) {
+    Box(Modifier.size(11.dp).pixelPanel(
+        fill = if (held) Orange.base else InkShadow,
+        highlight = if (held) Orange.light else null,
+        shade = if (held) Orange.dark else AsphaltEdge,
+        shadow = null, corner = 3.dp))
+}
+
+/**
+ * The budget, read at a glance: one coin per token, lit for the ones still in
+ * hand. No arithmetic needed to see what is left.
+ */
+@Composable fun TokenCounter(remaining: Int, total: Int, modifier: Modifier = Modifier) {
+    Column(modifier.pixelPanelDark(corner = 3.dp).padding(horizontal = 8.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp),
+            modifier = Modifier.semantics(mergeDescendants = true) {
+                contentDescription = "Te quedan $remaining de $total fichas"
+            }) {
+            repeat(total) { i -> TokenDot(i < remaining) }
+        }
+        Spacer(Modifier.height(3.dp))
+        Text("FICHAS", style = HudStrong, color = CreamLight, letterSpacing = 2.sp)
+    }
 }

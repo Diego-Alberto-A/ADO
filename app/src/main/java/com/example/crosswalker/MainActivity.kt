@@ -218,17 +218,14 @@ class MainActivity: ComponentActivity() {
     val planning=sim==null
     val selectedWalker=s.level.walkers.first { it.id==s.selected }
     val cost=s.plan.cost(s.repo.tools)
-    Column(Modifier.fillMaxSize().padding(horizontal=14.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
-        Row(verticalAlignment=Alignment.CenterVertically) {
-            TextButton(onClick={s.paused=true}) {Text("Ⅱ",fontSize=24.sp,color=Asphalt)}
-            Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally) { Eyebrow("NIVEL ${s.level.id} · MUNDO ${s.level.world+1}");Text(s.level.title,style=TitleSmall,color=Ink) }
-            Text("● ${s.level.budget-cost}/${s.level.budget}",style=HudStrong,color=Orange.dark)
-        }
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) { Eyebrow(if(planning) "01 / PREPARA TU PLAN" else "02 / OBSERVA TU PLAN");Text(if(planning) "SIN LÍMITE DE TIEMPO" else "${sim!!.people.count { it.done }} / ${sim.people.size} A SALVO",style=HudStrong,color=Tree.dark) }
+    // No title, no phase label: the board runs to the top edge and the only
+    // chrome left floats over it — pause on one side, the budget on the other.
+    Box(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize(),verticalArrangement=Arrangement.spacedBy(7.dp)) {
         Board(s.level,s.plan,sim,s.selected,planning,Modifier.fillMaxWidth().weight(1f).heightIn(min=180.dp),frame) { crossing -> val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=crossing;s.plan=next;click() }
         AnimatedContent(targetState=planning, label="planningControls",
             transitionSpec={ fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { preparing ->
-        Column(verticalArrangement=Arrangement.spacedBy(7.dp)) {
+        Column(Modifier.padding(horizontal=14.dp).padding(bottom=8.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
         if(preparing) {
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) { s.level.walkers.forEach { w -> CraftChip(selected=s.selected==w.id,onClick={s.selected=w.id;click()},label={Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {if(s.selected==w.id) FocusCursor(Ink);WalkerArtwork(w);Text(w.name+if(s.plan.people.getValue(w.id).skills.isNotEmpty()) " ✓" else "")}}) } }
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",style=BodyText,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label -> CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick={val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next},label={Text(label)}) } }
@@ -244,10 +241,15 @@ class MainActivity: ComponentActivity() {
                 Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id))
             PaperButton("▶   PONER EL PLAN EN MARCHA") {click();s.simulation=Simulation(s.level,s.plan)}
         } else if(sim!=null) {
-            Text("Observa cómo cada decisión cambia el recorrido.",style=BodyText,color=Asphalt,textAlign=TextAlign.Center,modifier=Modifier.fillMaxWidth())
             PaperButton(if(sim!!.emergencyUsed) "AYUDA UTILIZADA" else "✋  PARAR TRÁFICO · 1 USO",Brick,enabled=!sim.emergencyUsed && sim.phase==Phase.RUNNING) {sim.emergency();s.frame++;click()}
         }
         }
+        }
+    }
+        Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.Top) {
+            HudButton("Ⅱ","Pausa") { s.paused=true }
+            Spacer(Modifier.weight(1f))
+            TokenCounter(s.level.budget-cost,s.level.budget)
         }
     }
     if(sim?.phase==Phase.WON || sim?.phase==Phase.RETRY) {

@@ -53,7 +53,7 @@ private const val PIXEL = 1f
             }
         }
     }
-    Canvas(modifier.semantics { contentDescription="Maqueta del nivel ${level.id}. Usa los botones de cruce para elegir izquierda, centro o derecha." }.pointerInput(planning,selected) { if(planning) detectTapGestures { onCrossing(when { it.x<size.width*.375f->0;it.x<size.width*.625f->1;else->2 }) } }) {
+    Canvas(modifier.semantics { contentDescription="${level.title}. Nivel ${level.id}, mundo ${level.world+1}. Usa los botones de cruce para elegir izquierda, centro o derecha." }.pointerInput(planning,selected) { if(planning) detectTapGestures { onCrossing(when { it.x<size.width*.375f->0;it.x<size.width*.625f->1;else->2 }) } }) {
         @Suppress("UNUSED_VARIABLE") val redraw=frame
         val c=drawContext.canvas.nativeCanvas
         c.save();c.scale(size.width/360f,size.height/460f);c.clipRect(0f,0f,360f,460f)
