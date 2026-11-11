@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.example.crosswalker.ui.theme.Cream
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -96,13 +97,13 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD }
                     if (backwards) {
                         drawContent()
                         if (radius > 0f) {
-                            drawCircle(Paper, radius + 9.dp.toPx())
+                            drawCircle(Cream, radius + 9.dp.toPx())
                             clipPath(opening) { drawPrevious() }
                         }
                     } else {
                         drawPrevious()
                         if (radius > 0f) {
-                            drawCircle(Paper, radius + 9.dp.toPx())
+                            drawCircle(Cream, radius + 9.dp.toPx())
                             clipPath(opening) { this@drawWithContent.drawContent() }
                         }
                     }

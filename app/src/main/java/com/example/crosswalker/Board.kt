@@ -22,6 +22,8 @@ import com.example.crosswalker.game.*
 /** Asphalt, kerb and markings, sampled from the Kenney tiles the sprites come from. */
 private const val ASPHALT = "#5C6278"
 private const val MARKING = "#A09CCA"
+private const val INK = "#2B2540"
+private const val WORLD_TEXT = "#FFF8E6"
 
 /** One source pixel of the tileset, in board units. */
 private const val PIXEL = 1f
@@ -29,7 +31,7 @@ private const val PIXEL = 1f
 /** Scene rendering is independent of the fixed-step simulation. */
 @Composable fun Board(level:Level,plan:Plan,sim:Simulation?,selected:String,planning:Boolean,modifier:Modifier=Modifier,frame:Int=0,onCrossing:(Int)->Unit={}) {
     val context=androidx.compose.ui.platform.LocalContext.current
-    val typeface=remember(context) { androidx.core.content.res.ResourcesCompat.getFont(context,R.font.jersey_25) }
+    val typeface=remember(context) { androidx.core.content.res.ResourcesCompat.getFont(context,R.font.silkscreen) }
     val resources=LocalResources.current
     val sprites=remember(resources) {
         mapOf("car_green" to R.drawable.car_green,"car_coral" to R.drawable.car_coral,"car_yellow" to R.drawable.car_yellow,"car_blue" to R.drawable.car_blue,
@@ -68,7 +70,12 @@ private const val PIXEL = 1f
             val left=x+(w-drawW)/2
             it.setBounds(left.toInt(),(y+h-drawH).toInt(),(left+drawW).toInt(),(y+h).toInt());it.draw(c)
         }}
-        fun label(text:String,x:Float,y:Float,size:Float,hex:String) {color(hex);p.textSize=size;p.typeface=typeface;p.textAlign=Paint.Align.CENTER;c.drawText(text,x,y,p)}
+        /** World text carries a 1 px ink outline so it reads over grass or asphalt. */
+        fun label(text:String,x:Float,y:Float,size:Float,hex:String) {
+            p.textSize=size;p.typeface=typeface;p.textAlign=Paint.Align.CENTER
+            color(INK);p.style=Paint.Style.STROKE;p.strokeWidth=2f;c.drawText(text,x,y,p)
+            color(hex);c.drawText(text,x,y,p)
+        }
         /** Flat tiled ground: pixel tiles stay square, so no cut-paper silhouette here. */
         fun ground(x:Float,y:Float,w:Float,h:Float,name:String) {
             color("#FFFFFF");p.shader=grounds.getValue(name)
@@ -103,7 +110,7 @@ private const val PIXEL = 1f
         rect(0f,335f,360f,PIXEL*2,ASPHALT)
         // Kerbside trees sit on the near pavement, clear of the crossing zones.
         sprite("tree",4f,386f,28f,44f);sprite("tree_autumn",328f,386f,28f,44f)
-        if("school" in plan.street) {rect(286f,314f,56f,20f,"#C6BC9F");rect(286f,314f,56f,PIXEL*2,"#8B8AB1");label("ESCUELA",314f,328f,9f,"#4A4636")}
+        if("school" in plan.street) {rect(286f,314f,56f,20f,"#C6BC9F");rect(286f,314f,56f,PIXEL*2,"#8B8AB1");label("ESCUELA",314f,328f,9f,WORLD_TEXT)}
         if("officer" in plan.street) sprite("stop",12f,300f,30f,42f)
         // "Semáforo" is a per-pedestrian skill: show the pole once anyone relies on it.
         if(plan.people.values.any {"signal" in it.skills}) sprite("signal",320f,294f,32f,48f)
@@ -112,19 +119,33 @@ private const val PIXEL = 1f
             color(if(active)"#FFFFFF" else "#8B8AB1");p.style=Paint.Style.STROKE;p.strokeWidth=if(active)2.5f else 1f;p.pathEffect=DashPathEffect(floatArrayOf(5f,5f),0f)
             c.drawRoundRect(x*360-26,349f,x*360+26,414f,4f,4f,p)
             if(active) {c.drawLine(x*360,343f,x*360,72f,p);p.pathEffect=null;p.style=Paint.Style.FILL;c.drawPath(Path().apply {moveTo(x*360,69f);lineTo(x*360-5,79f);lineTo(x*360+5,79f);close()},p)}
-            label(listOf("IZQ.","CENTRO","DER.")[i],x*360,431f,9f,"#4A4636")
+            label(listOf("IZQ.","CENTRO","DER.")[i],x*360,431f,9f,WORLD_TEXT)
+        }
+        /** A small cream bubble with a 4 px tail, the way a character reacts. */
+        fun bubble(x:Float,y:Float,glyph:String,hex:String) {
+            val w=22f; val h=17f; val left=x-w/2; val top=y-h
+            color(INK);c.drawRect(left-1,top-1,left+w+1,top+h+1,p)
+            c.drawPath(Path().apply {moveTo(x-5,top+h);lineTo(x+1,top+h+5);lineTo(x+3,top+h);close()},p)
+            color("#F4EAD0");c.drawRect(left,top,left+w,top+h,p)
+            c.drawPath(Path().apply {moveTo(x-4,top+h);lineTo(x,top+h+3);lineTo(x+2,top+h);close()},p)
+            p.textSize=12f;p.typeface=typeface;p.textAlign=Paint.Align.CENTER
+            color(hex);c.drawText(glyph,x,top+h-4,p)
         }
         level.walkers.forEachIndexed { i,w ->
             val person=sim?.people?.find {it.walker.id==w.id}
             val x=(person?.x ?: Simulation.crossings[plan.people[w.id]?.crossing ?: 1])*360f + if(planning)(i-(level.walkers.size-1)/2f)*19f else 0f
             val y=(person?.y ?: .91f)*410f
-            if(w.id==selected && planning) {color("#FFE08A");c.drawOval(x-16,y-7,x+16,y+5,p)}
+            if(w.id==selected && planning) {color("#FFE07A");c.drawOval(x-16,y-7,x+16,y+5,p)}
             // Walking away from the camera: the stride advances with distance
             // covered, so a pedestrian who stops to wait stops stepping too.
             val art=if(person==null) w.sprite else "${w.sprite}_w${((person.y*32f).toInt().mod(3))}"
             sprite(art,x-15,y-38,30f,42f)
-            if("visible" in (plan.people[w.id]?.skills ?: emptySet())) {color("#FFE08A");c.drawCircle(x,y-19,4f,p)}
-            if(person?.done==true) label("✓",x,y-40,15f,"#FFFFFF")
+            if("visible" in (plan.people[w.id]?.skills ?: emptySet())) {color("#FFE07A");c.drawCircle(x,y-19,4f,p)}
+            // Clamped: a walker who just reached the far kerb sits against the
+            // top of the board, and the bubble would be drawn off-canvas.
+            val bubbleY=maxOf(y-40f,26f)
+            if(person?.done==true) bubble(x+14,bubbleY,"♥","#D9483F")
+            else if(sim!=null && sim.emergencyRemaining>0f) bubble(x+14,bubbleY,"!","#D98A1C")
         }
         // Night: the street goes dark, the near pavement keeps a streetlamp's wash
         // so the crossing zones and their labels stay readable.
@@ -133,7 +154,7 @@ private const val PIXEL = 1f
             p.alpha=38;c.drawRect(0f,335f,360f,125f,p)
             p.alpha=255;color("#F5E6C5");c.drawCircle(195f,22f,9f,p)
         }
-        if(sim!=null && sim.emergencyRemaining>0f) label("ALTO",180f,330f,13f,"#FFFFFF")
+        if(sim!=null && sim.emergencyRemaining>0f) label("ALTO",180f,330f,13f,"#F27A6B")
         c.restore()
     }
 }

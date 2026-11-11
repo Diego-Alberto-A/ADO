@@ -1,59 +1,22 @@
 package com.example.crosswalker
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.*
-
-/** Deliberately cut corners; the same construction pattern is used throughout the UI. */
-object CutPaper : Shape {
-    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-        val w = size.width
-        val h = size.height
-        val nick = with(density) { 2.dp.toPx() }
-        return Outline.Generic(Path().apply {
-            moveTo(nick, nick); lineTo(w * .31f, 0f); lineTo(w * .69f, nick)
-            lineTo(w - nick, 0f); lineTo(w, h * .37f); lineTo(w - nick, h - nick)
-            lineTo(w * .61f, h); lineTo(w * .29f, h - nick); lineTo(0f, h)
-            lineTo(nick, h * .44f); close()
-        })
-    }
-}
-
-@Composable fun Modifier.craftPaper(felt: Boolean = false): Modifier {
-    val texture = painterResource(if (felt) R.drawable.material_felt else R.drawable.material_kraft)
-    return this.clip(CutPaper).drawBehind {
-        val side = maxOf(size.width, size.height)
-        with(texture) { draw(size = Size(side, side)) }
-    }
-}
-
-@Composable fun CraftChip(selected: Boolean, onClick: () -> Unit, label: @Composable () -> Unit) {
-    Box(Modifier.padding(vertical = 3.dp).heightIn(min = 42.dp).craftPaper(selected)
-        .border(if (selected) 1.5.dp else .5.dp, if (selected) Paper else Ink.copy(alpha = .25f), CutPaper)
-        .selectable(selected = selected, role = Role.Tab, onClick = onClick).padding(horizontal = 12.dp, vertical = 10.dp),
-        contentAlignment = Alignment.Center) {
-        androidx.compose.runtime.CompositionLocalProvider(
-            androidx.compose.material3.LocalContentColor provides if (selected) Paper else Ink
-        ) { label() }
-    }
-}
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.example.crosswalker.ui.theme.*
 
 /** Pixel art is never smoothed: Compose scales these sprites nearest-neighbour. */
 @Composable fun PixelImage(id: Int, contentDescription: String?, modifier: Modifier = Modifier,
@@ -61,6 +24,34 @@ object CutPaper : Shape {
     Image(bitmap = ImageBitmap.imageResource(id), contentDescription = contentDescription,
         modifier = modifier, contentScale = contentScale, alpha = alpha,
         filterQuality = FilterQuality.None)
+}
+
+/** Two bolts, the way a plate is fixed to its post. */
+private fun Modifier.signBolts(color: Color) = drawBehind {
+    val px = PX.toPx()
+    val d = px * 3
+    val y = size.height / 2 - px
+    listOf(d, size.width - d * 2).forEach { x ->
+        drawRect(color, topLeft = androidx.compose.ui.geometry.Offset(x, y),
+            size = androidx.compose.ui.geometry.Size(d, d))
+    }
+}
+
+/** A tab shaped like a street sign; the live one is Taxi yellow. */
+@Composable fun CraftChip(selected: Boolean, onClick: () -> Unit, label: @Composable () -> Unit) {
+    val face = if (selected) Taxi.base else Cream
+    Box(Modifier.padding(vertical = 4.dp).heightIn(min = 42.dp)
+        .pixelPanel(fill = face,
+            highlight = if (selected) Taxi.light else CreamLight,
+            shade = if (selected) Taxi.dark else CreamDark)
+        .signBolts(if (selected) Taxi.dark else CreamDark)
+        .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+        .padding(horizontal = 12.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center) {
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.material3.LocalContentColor provides Ink
+        ) { androidx.compose.material3.ProvideTextStyle(HudLabel) { label() } }
+    }
 }
 
 @Composable fun WalkerArtwork(walker: com.example.crosswalker.game.Walker, size: Dp = 30.dp) {
@@ -87,10 +78,16 @@ object CutPaper : Shape {
     PixelImage(resource, null, Modifier.size(30.dp))
 }
 
+/** Earned stars sit in their sunken slot; pending ones are dithered out. */
 @Composable fun PaperStars(count: Int, size: Dp = 18.dp) {
-    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-        repeat(3) { i -> PixelImage(R.drawable.star,
-            if (i < count) "Estrella obtenida" else "Estrella pendiente",
-            Modifier.size(size), alpha = if (i < count) 1f else .23f) }
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        val dither = rememberDitherShader(Cream)
+        repeat(3) { i ->
+            val earned = i < count
+            val slot = Modifier.size(size)
+            PixelImage(R.drawable.star,
+                if (earned) "Estrella obtenida" else "Estrella pendiente",
+                if (earned) slot else slot.ditherVeil(dither))
+        }
     }
 }

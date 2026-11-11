@@ -11,6 +11,14 @@ This branch re-skins the street scene with 16×16 pixel art from the
 walk cycle; cars, trees, buildings, crossings and the tool icons all come from
 the same tileset, so the board reads as one city.
 
+The interface is drawn to the same rules: one-pixel ink outlines, solid drop
+shadows, light from above, 2x2 dithering instead of soft alpha, and a palette
+sampled from the tiles. Dialogue boxes type themselves out with a tilted name
+plate, in the Animal Crossing / classic Pokemon manner.
+
+Type is Pixelify Sans (body), Jersey 10 (titles) and Silkscreen (HUD), all OFL;
+their licences are in `app/src/main/assets/licenses`.
+
 The paper-and-cardboard originals are still under `art/source`. Runtime sprites
 are generated from the tilemap, never edited by hand:
 

@@ -16,24 +16,15 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.crosswalker.ui.theme.Jersey25
+import com.example.crosswalker.ui.theme.*
 
 @Composable private fun PlayButton(enabled: Boolean, onClick: () -> Unit) {
-    Row(Modifier.fillMaxWidth().shadow(5.dp, CutPaper).craftPaper(true)
-        .border(1.dp, Paper.copy(alpha = .65f), CutPaper)
-        .clickable(enabled = enabled, role = Role.Button,
-            onClickLabel = "Elegir nivel", onClick = onClick)
-        .padding(horizontal = 22.dp, vertical = 17.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(36.dp).background(Paper, androidx.compose.foundation.shape.CircleShape),
-            contentAlignment = Alignment.Center) {
-            Text("▶", color = Green, fontSize = 18.sp)
-        }
-        Spacer(Modifier.width(14.dp))
-        Text("JUGAR", color = Paper, fontFamily = Jersey25, fontSize = 30.sp,
-            letterSpacing = 2.sp)
-    }
+    PixelButton("JUGAR", Tree, enabled, onClickLabel = "Elegir nivel",
+        leading = {
+            Box(Modifier.size(28.dp).pixelSlot(), contentAlignment = Alignment.Center) {
+                Text("▶", color = Tree.dark, style = HudStrong)
+            }
+        }, onClick = onClick)
 }
 
 @Composable fun Home(s: Session, enabled: Boolean, click: () -> Unit) {
@@ -55,23 +46,22 @@ import com.example.crosswalker.ui.theme.Jersey25
                     .fillMaxWidth(.82f), horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     Logo(21.sp)
-                    Text("El camino seguro empieza contigo.", color = Ink,
-                        fontSize = 11.sp, fontFamily = Jersey25)
+                    Text("El camino seguro empieza contigo.", color = Ink, style = BodyText)
                 }
             }
             Column(Modifier.widthIn(max = 360.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 PlayButton(enabled = enabled, onClick = play)
-                Text("Elige un nivel y empieza a explorar", color = Ink.copy(alpha = .7f),
-                    fontSize = 13.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text("Elige un nivel y empieza a explorar", color = Asphalt, style = BodyText,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
             Row(Modifier.widthIn(max = 440.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.weight(1f)) {
-                    PaperButton("⚙  AJUSTES", Kraft, enabled = enabled) { click(); s.dialog = "settings" }
+                    PaperButton("⚙  AJUSTES", Neutral, enabled = enabled) { click(); s.dialog = "settings" }
                 }
                 Box(Modifier.weight(1f)) {
-                    PaperButton("★  LOGROS", Kraft, enabled = enabled) { click(); s.dialog = "achievements" }
+                    PaperButton("★  LOGROS", Neutral, enabled = enabled) { click(); s.dialog = "achievements" }
                 }
             }
         }
