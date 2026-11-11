@@ -19,19 +19,35 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.example.crosswalker.game.*
 
+/** Asphalt, kerb and markings, sampled from the Kenney tiles the sprites come from. */
+private const val ASPHALT = "#5C6278"
+private const val MARKING = "#A09CCA"
+
+/** One source pixel of the tileset, in board units. */
+private const val PIXEL = 1f
+
 /** Scene rendering is independent of the fixed-step simulation. */
 @Composable fun Board(level:Level,plan:Plan,sim:Simulation?,selected:String,planning:Boolean,modifier:Modifier=Modifier,frame:Int=0,onCrossing:(Int)->Unit={}) {
     val context=androidx.compose.ui.platform.LocalContext.current
     val typeface=remember(context) { androidx.core.content.res.ResourcesCompat.getFont(context,R.font.jersey_25) }
     val resources=LocalResources.current
     val sprites=remember(resources) {
-        mapOf("car_green" to R.drawable.car_green,"car_coral" to R.drawable.car_coral,"car_yellow" to R.drawable.car_yellow,"car_blue" to R.drawable.car_blue,"walker_coral" to R.drawable.walker_coral,"walker_blue" to R.drawable.walker_blue,"walker_green" to R.drawable.walker_green,"house" to R.drawable.house,"tree" to R.drawable.tree,"stop" to R.drawable.stop_sign).mapValues { resources.getDrawable(it.value, null)!! }
+        mapOf("car_green" to R.drawable.car_green,"car_coral" to R.drawable.car_coral,"car_yellow" to R.drawable.car_yellow,"car_blue" to R.drawable.car_blue,
+            "walker_coral" to R.drawable.walker_coral,"walker_blue" to R.drawable.walker_blue,"walker_green" to R.drawable.walker_green,
+            "walker_coral_w0" to R.drawable.walker_coral_w0,"walker_coral_w1" to R.drawable.walker_coral_w1,"walker_coral_w2" to R.drawable.walker_coral_w2,
+            "walker_blue_w0" to R.drawable.walker_blue_w0,"walker_blue_w1" to R.drawable.walker_blue_w1,"walker_blue_w2" to R.drawable.walker_blue_w2,
+            "walker_green_w0" to R.drawable.walker_green_w0,"walker_green_w1" to R.drawable.walker_green_w1,"walker_green_w2" to R.drawable.walker_green_w2,
+            "house" to R.drawable.house,"tree" to R.drawable.tree,"tree_autumn" to R.drawable.tree_autumn,
+            "stop" to R.drawable.stop_sign,"signal" to R.drawable.traffic_light)
+            .mapValues { resources.getDrawable(it.value, null)!!.apply { setFilterBitmap(false) } }
     }
-    val materials=remember(resources) {
-        mapOf("kraft" to R.drawable.material_kraft, "felt" to R.drawable.material_felt,
-            "road" to R.drawable.material_road, "cream" to R.drawable.material_cream).mapValues { (_,id) ->
-            BitmapShader(BitmapFactory.decodeResource(resources,id),Shader.TileMode.REPEAT,Shader.TileMode.REPEAT).apply {
-                setLocalMatrix(Matrix().apply {setScale(.3f,.3f)})
+    // Ground textures tile at 16 board units, matching one source tile of the pack.
+    val grounds=remember(resources) {
+        mapOf("grass" to R.drawable.ground_grass,"road" to R.drawable.ground_road,"walk" to R.drawable.ground_walk,
+            "crosswalk" to R.drawable.ground_crosswalk).mapValues { (_,id) ->
+            val bitmap=BitmapFactory.decodeResource(resources,id)
+            BitmapShader(bitmap,Shader.TileMode.REPEAT,Shader.TileMode.REPEAT).apply {
+                setLocalMatrix(Matrix().apply { setScale(16f/bitmap.width,16f/bitmap.height) })
             }
         }
     }
@@ -40,9 +56,10 @@ import com.example.crosswalker.game.*
         val c=drawContext.canvas.nativeCanvas
         c.save();c.scale(size.width/360f,size.height/460f);c.clipRect(0f,0f,360f,460f)
         val p=Paint(Paint.ANTI_ALIAS_FLAG)
+        // Pixel art must never be smoothed; every upscale stays nearest-neighbour.
+        p.isFilterBitmap=false
         fun color(hex:String) {p.color=android.graphics.Color.parseColor(hex);p.style=Paint.Style.FILL;p.pathEffect=null;p.shader=null}
         fun rect(x:Float,y:Float,w:Float,h:Float,hex:String) {color(hex);c.drawRect(x,y,x+w,y+h,p)}
-        fun line(x:Float,y:Float,x2:Float,y2:Float,hex:String,width:Float=1f) {color(hex);p.strokeWidth=width;c.drawLine(x,y,x2,y2,p)}
         fun sprite(id:String,x:Float,y:Float,w:Float,h:Float) {sprites[id]?.let {
             val scaleRatio=(size.width/360f)/(size.height/460f)
             val aspect=it.intrinsicWidth.toFloat()/it.intrinsicHeight
@@ -52,57 +69,71 @@ import com.example.crosswalker.game.*
             it.setBounds(left.toInt(),(y+h-drawH).toInt(),(left+drawW).toInt(),(y+h).toInt());it.draw(c)
         }}
         fun label(text:String,x:Float,y:Float,size:Float,hex:String) {color(hex);p.textSize=size;p.typeface=typeface;p.textAlign=Paint.Align.CENTER;c.drawText(text,x,y,p)}
-        fun material(x:Float,y:Float,w:Float,h:Float,name:String) {
-            color("#FFFFFF");p.shader=materials.getValue(name)
-            val path=Path().apply {moveTo(x,y+1);lineTo(x+w*.3f,y);lineTo(x+w*.7f,y+1.1f);lineTo(x+w,y)
-                lineTo(x+w,y+h-1);lineTo(x+w*.65f,y+h);lineTo(x+w*.3f,y+h-.8f);lineTo(x,y+h);close()}
-            c.drawPath(path,p);p.shader=null
+        /** Flat tiled ground: pixel tiles stay square, so no cut-paper silhouette here. */
+        fun ground(x:Float,y:Float,w:Float,h:Float,name:String) {
+            color("#FFFFFF");p.shader=grounds.getValue(name)
+            c.drawRect(x,y,x+w,y+h,p);p.shader=null
         }
-        material(0f,9f,360f,451f,"kraft")
-        for(i in 0..60) line(i*6f,448f,i*6f,460f,"#C8A36D",2f)
-        material(0f,0f,360f,447f,"felt")
 
-        sprite("house",20f,0f,75f,63f);sprite("house",230f,0f,65f,59f)
-        sprite("tree",107f,3f,38f,51f);sprite("tree",312f,2f,34f,56f)
-        material(0f,56f,360f,15f,"kraft")
-        for(i in 0..23) rect(i*16f,58f,8f,6f,if(i%2==0)"#F8EACC" else "#6C6557")
+        ground(0f,0f,360f,460f,"grass")
+
+        // Far side of the street: houses, trees and the kerb the walkers aim for.
+        sprite("house",18f,0f,78f,64f);sprite("house",232f,2f,68f,60f)
+        sprite("tree",107f,4f,36f,52f);sprite("tree_autumn",310f,2f,34f,56f)
+        ground(0f,56f,360f,16f,"walk")
+        rect(0f,56f,360f,PIXEL*2,ASPHALT)
+
         val preview=sim ?: Simulation(level,plan)
         level.lanes.forEach { lane ->
             val y=lane.y*410f
-            material(0f,y-32f,360f,68f,"road")
-            material(0f,y-32f,360f,2f,"cream");material(0f,y+33f,360f,2f,"cream")
-            for(i in 0..12) material(i*30f,y,18f,2f,"cream")
-            if("crosswalk" in plan.street) Simulation.crossings.forEach { x -> for(i in 0..6) material(x*360-11,y-29+i*9,23f,5f,"cream") }
-            else if(lane==level.lanes.first()) for(i in 0..6) material(169f,y-29+i*9,23f,5f,"cream")
-            if("bump" in plan.street) for(i in 0..5) rect(275f+i%2*4,y-27+i*10,9f,5f,"#D9AC49")
+            ground(0f,y-32f,360f,68f,"road")
+            // Kerb edges, then the dashed centre line of the lane.
+            rect(0f,y-32f,360f,PIXEL*2,MARKING);rect(0f,y+34f,360f,PIXEL*2,MARKING)
+            for(i in 0..11) rect(i*32f+6f,y,18f,PIXEL*2,MARKING)
+            if("crosswalk" in plan.street) Simulation.crossings.forEach { x -> ground(x*360-16,y-30f,32f,64f,"crosswalk") }
+            else if(lane==level.lanes.first()) ground(164f,y-30f,32f,64f,"crosswalk")
+            if("bump" in plan.street) for(i in 0..5) rect(272f+i%2*5,y-26+i*10,11f,6f,"#F5A94C")
             val x=preview.carX(lane)*360f
             c.save();if(lane.speed<0)c.scale(-1f,1f,x,y)
-            sprite(lane.car,x-29,y-22,58f,43f);c.restore()
+            sprite(lane.car,x-26,y-19,52f,38f);c.restore()
         }
-        material(0f,335f,360f,111f,"kraft")
 
-        sprite("tree",10f,181f,27f,41f);sprite("tree",313f,178f,29f,44f)
-        material(38f,201f,35f,6f,"kraft");line(42f,207f,42f,216f,"#775E40",3f);line(69f,207f,69f,216f,"#775E40",3f)
-        if("school" in plan.street) {material(290f,316f,50f,18f,"cream");label("ESCUELA",315f,328f,8f,"#66543D")}
-        if("officer" in plan.street) sprite("stop",12f,306f,27f,36f)
+        // Near side: the pavement the pedestrians wait on.
+        ground(0f,335f,360f,125f,"walk")
+        rect(0f,335f,360f,PIXEL*2,ASPHALT)
+        // Kerbside trees sit on the near pavement, clear of the crossing zones.
+        sprite("tree",4f,386f,28f,44f);sprite("tree_autumn",328f,386f,28f,44f)
+        if("school" in plan.street) {rect(286f,314f,56f,20f,"#C6BC9F");rect(286f,314f,56f,PIXEL*2,"#8B8AB1");label("ESCUELA",314f,328f,9f,"#4A4636")}
+        if("officer" in plan.street) sprite("stop",12f,300f,30f,42f)
+        // "Semáforo" is a per-pedestrian skill: show the pole once anyone relies on it.
+        if(plan.people.values.any {"signal" in it.skills}) sprite("signal",320f,294f,32f,48f)
         if(planning) Simulation.crossings.forEachIndexed { i,x ->
             val active=plan.people[selected]?.crossing==i
-            color(if(active)"#F8EBCB" else "#AC895D");p.style=Paint.Style.STROKE;p.strokeWidth=if(active)2.5f else 1f;p.pathEffect=DashPathEffect(floatArrayOf(5f,5f),0f)
+            color(if(active)"#FFFFFF" else "#8B8AB1");p.style=Paint.Style.STROKE;p.strokeWidth=if(active)2.5f else 1f;p.pathEffect=DashPathEffect(floatArrayOf(5f,5f),0f)
             c.drawRoundRect(x*360-26,349f,x*360+26,414f,4f,4f,p)
             if(active) {c.drawLine(x*360,343f,x*360,72f,p);p.pathEffect=null;p.style=Paint.Style.FILL;c.drawPath(Path().apply {moveTo(x*360,69f);lineTo(x*360-5,79f);lineTo(x*360+5,79f);close()},p)}
-            label(listOf("IZQ.","CENTRO","DER.")[i],x*360,431f,9f,"#645138")
+            label(listOf("IZQ.","CENTRO","DER.")[i],x*360,431f,9f,"#4A4636")
         }
         level.walkers.forEachIndexed { i,w ->
             val person=sim?.people?.find {it.walker.id==w.id}
             val x=(person?.x ?: Simulation.crossings[plan.people[w.id]?.crossing ?: 1])*360f + if(planning)(i-(level.walkers.size-1)/2f)*19f else 0f
             val y=(person?.y ?: .91f)*410f
-            if(w.id==selected && planning) {color("#F4D580");c.drawOval(x-17,y-8,x+17,y+6,p)}
-            sprite(w.sprite,x-15,y-39,30f,44f)
-            if("visible" in (plan.people[w.id]?.skills ?: emptySet())) {color("#FFDE78");c.drawCircle(x,y-20,4f,p)}
-            if(person?.done==true) label("✓",x,y-40,15f,"#F9EAC7")
+            if(w.id==selected && planning) {color("#FFE08A");c.drawOval(x-16,y-7,x+16,y+5,p)}
+            // Walking away from the camera: the stride advances with distance
+            // covered, so a pedestrian who stops to wait stops stepping too.
+            val art=if(person==null) w.sprite else "${w.sprite}_w${((person.y*32f).toInt().mod(3))}"
+            sprite(art,x-15,y-38,30f,42f)
+            if("visible" in (plan.people[w.id]?.skills ?: emptySet())) {color("#FFE08A");c.drawCircle(x,y-19,4f,p)}
+            if(person?.done==true) label("✓",x,y-40,15f,"#FFFFFF")
         }
-        if(level.night) {color("#22334A");p.alpha=45;c.drawRect(0f,0f,360f,335f,p);p.alpha=255;color("#F5E6C5");c.drawCircle(195f,22f,9f,p)}
-        if(sim!=null && sim.emergencyRemaining>0f) label("ALTO",180f,330f,12f,"#FFF0D0")
+        // Night: the street goes dark, the near pavement keeps a streetlamp's wash
+        // so the crossing zones and their labels stay readable.
+        if(level.night) {
+            color("#1B2440");p.alpha=95;c.drawRect(0f,0f,360f,335f,p)
+            p.alpha=38;c.drawRect(0f,335f,360f,125f,p)
+            p.alpha=255;color("#F5E6C5");c.drawCircle(195f,22f,9f,p)
+        }
+        if(sim!=null && sim.emergencyRemaining>0f) label("ALTO",180f,330f,13f,"#FFFFFF")
         c.restore()
     }
 }

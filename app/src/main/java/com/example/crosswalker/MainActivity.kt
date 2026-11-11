@@ -181,7 +181,7 @@ class MainActivity: ComponentActivity() {
         .clickable(interactionSource=interaction,indication=LocalIndication.current,enabled=enabled,role=Role.Button,onClick={modalAction(onClick)}).padding(15.dp),
         contentAlignment=Alignment.Center) {
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            if(text.startsWith("✋")) Image(painterResource(R.drawable.stop_sign),null,Modifier.size(25.dp))
+            if(text.startsWith("✋")) PixelImage(R.drawable.icon_officer,null,Modifier.size(25.dp))
             Text(text.removePrefix("✋").trim(),color=if(color==Green)Paper else if(color==Coral)Color(0xFF76352A) else Ink,
                 fontWeight=FontWeight.ExtraBold,letterSpacing=1.sp,fontFamily=Jersey25)
         }
@@ -199,7 +199,7 @@ class MainActivity: ComponentActivity() {
                 Row(Modifier.fillMaxWidth().padding(start=if(index%2==0)0.dp else 35.dp,end=if(index%2==0)35.dp else 0.dp).rotate(if(index%2==0)-1f else 1f).craftPaper().border(1.dp,Paper.copy(alpha=.5f),CutPaper).clickable(enabled=s.repo.unlocked(l.id)) { click();chosen=l }.padding(18.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)) {
                     Box(Modifier.size(62.dp).clip(RoundedCornerShape(32.dp)).paint(painterResource(R.drawable.material_kraft),sizeToIntrinsics=false,contentScale=ContentScale.Crop).border(3.dp,Paper,RoundedCornerShape(32.dp)),contentAlignment=Alignment.Center) { Text(if(s.repo.unlocked(l.id)) "${l.id}" else "—",color=Ink,fontWeight=FontWeight.Bold,fontSize=27.sp) }
                     Column(Modifier.weight(1f)) {Text(l.title,fontWeight=FontWeight.Bold,color=Ink,fontSize=17.sp);if(s.repo.unlocked(l.id)) PaperStars(s.repo.stars(l.id)) else Text("Completa el nivel anterior",color=Ink.copy(alpha=.65f),fontSize=12.sp) }
-                    Image(painterResource(if(index%2==0) R.drawable.house else R.drawable.tree),null,Modifier.size(38.dp).rotate(3f))
+                    PixelImage(if(index%2==0) R.drawable.house else R.drawable.tree,null,Modifier.size(38.dp).rotate(3f))
                 }
                 if(index<3) Canvas(Modifier.fillMaxWidth().height(20.dp)) {
                     val start=if(index%2==0) size.width*.27f else size.width*.72f
@@ -239,7 +239,7 @@ class MainActivity: ComponentActivity() {
         if(preparing) {
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) { s.level.walkers.forEach { w -> CraftChip(selected=s.selected==w.id,onClick={s.selected=w.id;click()},label={Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {WalkerArtwork(w);Text(w.name+if(s.plan.people.getValue(w.id).skills.isNotEmpty()) " ✓" else "")}}) } }
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",fontSize=12.sp,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label -> CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick={val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next},label={Text(label)}) } }
-            Row { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}});Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {Image(painterResource(R.drawable.house),null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
+            Row { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}});Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
             Crossfade(targetState=s.tab, animationSpec=tween(180), label="toolCategory") { category ->
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category}.forEach { t ->
                 val active=if(t.category=="street") t.id in s.plan.street else t.id in s.plan.people.getValue(s.selected).skills
@@ -258,7 +258,7 @@ class MainActivity: ComponentActivity() {
     if(sim?.phase==Phase.WON || sim?.phase==Phase.RETRY) {
         val won=sim.phase==Phase.WON
         PaperDialog(if(won) "¡BUEN CAMINO!" else "OTRO PLAN, OTRA OPORTUNIDAD",{},dismissible=false) {
-            if(won) Row { repeat(3) { i -> Image(painterResource(R.drawable.star),contentDescription=if(i<sim.stars(cost)) "Estrella obtenida" else "Estrella pendiente",modifier=Modifier.size(52.dp),alpha=if(i<sim.stars(cost)) 1f else .25f) } } else Text("↻",fontSize=52.sp,color=Gold)
+            if(won) Row { repeat(3) { i -> PixelImage(R.drawable.star,if(i<sim.stars(cost)) "Estrella obtenida" else "Estrella pendiente",Modifier.size(52.dp),alpha=if(i<sim.stars(cost)) 1f else .25f) } } else Text("↻",fontSize=52.sp,color=Gold)
             Text(if(won) "¡Todos llegaron a salvo!" else "Nos detenemos a tiempo.",fontSize=23.sp,fontFamily=Jersey25,fontWeight=FontWeight.Bold,color=Ink)
             Text(if(won) "Usaste $cost de ${s.level.budget} fichas. Tus buenas decisiones hacen una ciudad más segura." else sim.reason,color=Ink,lineHeight=23.sp)
             if(won && s.level.id<s.repo.levels.size) PaperButton("SIGUIENTE CAMINO  →") {s.enter(s.repo.levels[s.level.id])}

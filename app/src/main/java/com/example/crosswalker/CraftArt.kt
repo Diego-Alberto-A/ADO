@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -54,14 +55,21 @@ object CutPaper : Shape {
     }
 }
 
+/** Pixel art is never smoothed: Compose scales these sprites nearest-neighbour. */
+@Composable fun PixelImage(id: Int, contentDescription: String?, modifier: Modifier = Modifier,
+                           alpha: Float = 1f, contentScale: ContentScale = ContentScale.Fit) {
+    Image(bitmap = ImageBitmap.imageResource(id), contentDescription = contentDescription,
+        modifier = modifier, contentScale = contentScale, alpha = alpha,
+        filterQuality = FilterQuality.None)
+}
+
 @Composable fun WalkerArtwork(walker: com.example.crosswalker.game.Walker, size: Dp = 30.dp) {
     val resource = when (walker.sprite) {
         "walker_coral" -> R.drawable.walker_coral
         "walker_green" -> R.drawable.walker_green
         else -> R.drawable.walker_blue
     }
-    Image(painterResource(resource), contentDescription = walker.name,
-        modifier = Modifier.size(size), contentScale = ContentScale.Fit)
+    PixelImage(resource, walker.name, Modifier.size(size))
 }
 
 @Composable fun ToolArtwork(id: String) {
@@ -71,18 +79,18 @@ object CutPaper : Shape {
         "eye" -> R.drawable.walker_blue
         "signal" -> R.drawable.icon_signal
         "visible" -> R.drawable.star
-        "officer" -> R.drawable.stop_sign
+        "officer" -> R.drawable.icon_officer
         "school" -> R.drawable.house
         "bump" -> R.drawable.icon_bump
         else -> R.drawable.icon_crosswalk
     }
-    Image(painterResource(resource), contentDescription = null, modifier = Modifier.size(30.dp))
+    PixelImage(resource, null, Modifier.size(30.dp))
 }
 
 @Composable fun PaperStars(count: Int, size: Dp = 18.dp) {
     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-        repeat(3) { i -> Image(painterResource(R.drawable.star),
-            contentDescription = if (i < count) "Estrella obtenida" else "Estrella pendiente",
-            modifier = Modifier.size(size), alpha = if (i < count) 1f else .23f) }
+        repeat(3) { i -> PixelImage(R.drawable.star,
+            if (i < count) "Estrella obtenida" else "Estrella pendiente",
+            Modifier.size(size), alpha = if (i < count) 1f else .23f) }
     }
 }

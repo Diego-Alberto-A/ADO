@@ -12,8 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -50,9 +48,9 @@ import com.example.crosswalker.ui.theme.Jersey25
             BoxWithConstraints(Modifier.widthIn(max = 440.dp).fillMaxWidth().aspectRatio(.8f)
                 .clickable(enabled = enabled, role = Role.Button,
                     onClickLabel = "Jugar: elegir nivel", onClick = play)) {
-                Image(painterResource(R.drawable.home_diorama),
-                    contentDescription = "Una ciudad hecha a mano dentro de una caja de cartón",
-                    contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+                PixelImage(R.drawable.home_diorama,
+                    "Una calle con su paso de peatones, vista desde arriba",
+                    Modifier.fillMaxSize())
                 Column(Modifier.align(Alignment.TopCenter).padding(top = maxHeight * .12f)
                     .fillMaxWidth(.82f), horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(9.dp)) {
