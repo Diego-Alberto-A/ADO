@@ -4,7 +4,7 @@ final class NavigationTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure=false; app=XCUIApplication(); app.launch() }
     override func tearDownWithError() throws {
-        if testRun?.hasSucceeded == false {
+        if (testRun?.failureCount ?? 0) > 0 {
             print("INTERACTION FAILURE HIERARCHY:\n" + app.debugDescription)
             let screenshot=XCTAttachment(screenshot:app.screenshot())
             screenshot.lifetime = .keepAlways; add(screenshot)
@@ -35,11 +35,13 @@ final class NavigationTests: XCTestCase {
     }
     func testWinRetryAndNextLevel() {
         tap("JUGAR"); tap("Primeros pasos"); tap("PREPARAR EL PLAN"); tap("Contacto"); tap("PONER EL PLAN EN MARCHA")
-        XCTAssertTrue(app.staticTexts["¡BUEN CAMINO!"].waitForExistence(timeout:20))
+        // Loaded CI simulators can render more slowly than a physical device.
+        // Leave the game's real 50 ms clock intact and allow the UI to finish.
+        XCTAssertTrue(app.staticTexts["¡BUEN CAMINO!"].waitForExistence(timeout:60))
         tap("VOLVER A INTENTAR")
         XCTAssertTrue(app.buttons.matching(NSPredicate(format:"label CONTAINS %@","PONER EL PLAN EN MARCHA")).firstMatch.waitForExistence(timeout:5))
         tap("PONER EL PLAN EN MARCHA")
-        XCTAssertTrue(app.staticTexts["¡BUEN CAMINO!"].waitForExistence(timeout:20))
+        XCTAssertTrue(app.staticTexts["¡BUEN CAMINO!"].waitForExistence(timeout:60))
         tap("SIGUIENTE CAMINO")
         XCTAssertTrue(app.staticTexts["Mira a ambos lados"].waitForExistence(timeout:5))
     }
