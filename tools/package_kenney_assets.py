@@ -261,3 +261,103 @@ def diorama():
 
 save(diorama(), "home_diorama", scale=5)
 print("Home scene written")
+
+
+# --- Extra pedestrians -------------------------------------------------------
+# Two more characters from the same tileset: a teenager (row 12) who crosses
+# glued to a phone, and a kid (row 15) who rides a wheelchair.
+EXTRA_WALKERS = {"walker_slate": 12, "walker_rust": 15}
+for name, row in EXTRA_WALKERS.items():
+    save(trim(tile(FRONT, row)), name)
+    frames = [tile(BACK, row + i) for i in range(3)]
+    box = union_box(frames)
+    for i, frame in enumerate(frames):
+        save(frame.crop(box), f"{name}_w{i}")
+
+# --- Wheelchair rider --------------------------------------------------------
+# Chair from "[LPC Revised] Elders!" (Eliza Wyatt et al., OGA-BY 3.0), a 64 px
+# sheet halved with nearest-neighbour so it sits at the tileset's 16 px scale.
+# Back view: the rider's head shows above the backrest. Front view: the rider's
+# upper body sits over the seat, legs hidden by the chair.
+LPC = ROOT / "art/lpc-elders/wheelchair_blue.png"
+chair_sheet = Image.open(LPC).convert("RGBA")
+
+
+def chair_frame(row):
+    f = chair_sheet.crop((0, row * 64, 64, (row + 1) * 64))
+    f = trim(f)
+    return f.resize((f.width // 2, f.height // 2), Image.NEAREST)
+
+
+CHAIR_BACK, CHAIR_FRONT = chair_frame(0), chair_frame(2)   # 16×15 and 16×21
+RIDER = 15
+
+
+def chair_back_view(frame, bob):
+    img = Image.new("RGBA", (20, 24), (0, 0, 0, 0))
+    img.alpha_composite(tile(BACK, RIDER + frame), (4, -bob))
+    img.alpha_composite(CHAIR_BACK, (2, 7))
+    return img
+
+
+def chair_front_view():
+    img = Image.new("RGBA", (20, 26), (0, 0, 0, 0))
+    img.alpha_composite(CHAIR_FRONT, (2, 3))
+    img.alpha_composite(tile(FRONT, RIDER).crop((0, 0, T, 11)), (4, 2))
+    return img
+
+
+save(chair_front_view(), "walker_chair")
+for i, bob in enumerate((0, 1, 0)):
+    save(chair_back_view(i, bob), f"walker_chair_w{i}")
+
+# --- Phone marker ------------------------------------------------------------
+# A classic handset hovers over the teenager; the tool icon crosses it out.
+INK = (43, 37, 64, 255)
+PHONE = ROOT / "art/phones/nokia.png"
+
+
+def ink_outline(img):
+    w, h = img.size
+    out = Image.new("RGBA", (w + 2, h + 2), (0, 0, 0, 0))
+    src, dst = img.load(), out.load()
+    for y in range(h):
+        for x in range(w):
+            if src[x, y][3]:
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    dst[x + 1 + dx, y + 1 + dy] = INK
+    for y in range(h):
+        for x in range(w):
+            if src[x, y][3]:
+                dst[x + 1, y + 1] = src[x, y]
+    return out
+
+
+def phone_sprite(height=13):
+    im = trim(Image.open(PHONE).convert("RGBA"))
+    im = im.resize((round(im.width * height / im.height), height), Image.LANCZOS)
+    px = im.load()
+    for y in range(im.height):            # hard alpha: pixel art has no fringe
+        for x in range(im.width):
+            r, g, b, a = px[x, y]
+            px[x, y] = (r, g, b, 255 if a > 100 else 0)
+    return ink_outline(im)
+
+
+def crossed_out(img):
+    out = img.copy()
+    px = out.load()
+    w, h = out.size
+    for i in range(max(w, h)):
+        x = int(i * w / max(w, h))
+        y = h - 1 - int(i * h / max(w, h))
+        for dx in (0, 1):
+            if x + dx < w:
+                px[x + dx, y] = (220, 97, 93, 255)
+    return out
+
+
+phone = phone_sprite()
+save(phone, "phone")
+save(crossed_out(phone), "icon_phone_away")
+print("Extra pedestrians, wheelchair rider and phone marker written")

@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Packs de arte completos (solo se copian a art/ los archivos usados)
+/NewAssets
