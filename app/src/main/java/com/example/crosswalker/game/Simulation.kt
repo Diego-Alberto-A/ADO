@@ -1,10 +1,19 @@
 package com.example.crosswalker.game
 
 import kotlin.math.abs
+import org.json.JSONObject
 
 data class Lane(val y: Float, val speed: Float, val offset: Float, val car: String)
 data class Walker(val id: String, val name: String, val kind: String, val speed: Float, val sprite: String)
-data class Level(val id: Int, val world: Int, val title: String, val lesson: String, val budget: Int, val night: Boolean, val lanes: List<Lane>, val walkers: List<Walker>)
+data class Level(
+    val id: Int, val world: Int, val title: String, val lesson: String,
+    val budget: Int, val night: Boolean, val lanes: List<Lane>, val walkers: List<Walker>,
+    val tools: List<String> = emptyList(),      // fichas que este nivel pone a disposición
+    val newTools: List<String> = emptyList(),   // las de `tools` que se presentan por primera vez aquí
+    val tutorial: Boolean = false,              // el nivel 1 guía paso a paso
+    val introLines: List<String> = emptyList(), // cola de diálogo inicial del tutorial
+    val readyMessage: String = ""               // tutorial: "ya puedes lanzar el plan"
+)
 data class Tool(val id: String, val label: String, val icon: String, val cost: Int, val description: String, val category: String)
 data class Assignment(var crossing: Int = 1, val skills: MutableSet<String> = mutableSetOf())
 data class Plan(val people: MutableMap<String, Assignment> = mutableMapOf(), val street: MutableSet<String> = mutableSetOf()) {
@@ -74,4 +83,30 @@ class Simulation(val level: Level, source: Plan) {
     }
     fun stars(cost: Int): Int = if(phase != Phase.WON) 0 else if(emergencyUsed) 1 else if(cost <= level.budget * .65f) 3 else 2
     companion object { const val STEP = .05f; val crossings = listOf(.25f,.5f,.75f) }
+}
+
+// --- JSON -----------------------------------------------------------------
+// Pure parsing, so the campaign file can be checked in plain JVM tests.
+fun parseTool(json: JSONObject) = Tool(
+    json.getString("id"), json.getString("label"), json.getString("icon"),
+    json.getInt("cost"), json.getString("description"), json.getString("category")
+)
+
+private fun JSONObject.stringList(key: String): List<String> =
+    if (has(key)) getJSONArray(key).let { a -> List(a.length()) { a.getString(it) } } else emptyList()
+
+fun parseLevel(json: JSONObject): Level {
+    val lanes = json.getJSONArray("lanes").let { a -> List(a.length()) { i -> a.getJSONObject(i).let {
+        Lane(it.getDouble("y").toFloat(), it.getDouble("speed").toFloat(), it.getDouble("offset").toFloat(), it.getString("car"))
+    } } }
+    val walkers = json.getJSONArray("walkers").let { a -> List(a.length()) { i -> a.getJSONObject(i).let {
+        Walker(it.getString("id"), it.getString("name"), it.getString("kind"), it.getDouble("speed").toFloat(), it.getString("sprite"))
+    } } }
+    return Level(
+        json.getInt("id"), json.getInt("world"), json.getString("title"), json.getString("lesson"),
+        json.getInt("budget"), json.getBoolean("night"), lanes, walkers,
+        json.stringList("tools"), json.stringList("newTools"),
+        json.optBoolean("tutorial", false), json.stringList("introLines"),
+        json.optString("readyMessage", "")
+    )
 }
