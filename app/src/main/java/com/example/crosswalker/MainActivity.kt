@@ -76,14 +76,15 @@ class Session(val repo: GameRepository): ViewModel() {
     var dialog by mutableStateOf("")
     var tab by mutableStateOf("skill")
     var message by mutableStateOf("")
+    var introIndex by mutableIntStateOf(0)
     fun enter(l: Level) { transition(ScreenMotion.FORWARD) { level=l; reset(); screen="game" } }
-    fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; simulation=null; paused=false; dialog=""; message=level.lesson; frame++ }
+    fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; frame++ }
     fun toggle(t: Tool) {
         val next=plan.copyPlan()
         val target=if(t.category=="street") next.street else next.people.getValue(selected).skills
         if(!target.remove(t.id)) target.add(t.id)
         if(next.cost(repo.tools)>level.budget) { message="No quedan fichas. Quita una acción para probar otra."; return }
-        plan=next; message=t.description
+        plan=next; if(!level.tutorial) message=t.description
     }
 }
 class MainActivity: ComponentActivity() {
@@ -209,6 +210,12 @@ class MainActivity: ComponentActivity() {
         Text(l.lesson,style=BodyText,color=Ink)
         Text("☺ ${l.walkers.size} PEATONES    ● ${l.budget} FICHAS",style=HudStrong,color=Tree.dark)
         Text("★ Llega al otro lado\n★★ Resuelve sin ayuda de emergencia\n★★★ Usa pocas fichas",style=BodyText,color=Ink)
+        if(l.newTools.isNotEmpty()) {
+            Text("FICHA NUEVA",style=HudStrong,color=Orange.dark)
+            l.newTools.forEach { id -> val t=s.repo.tools.first { it.id==id }
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) { ToolArtwork(t.id);Column { Text(t.label,style=BodyStrong,color=Ink);Text(t.description,style=BodyText,color=Ink) } }
+            }
+        }
         PaperButton("▶  PREPARAR EL PLAN") {chosen=null;s.enter(l)}
     } }
 }
@@ -231,14 +238,24 @@ class MainActivity: ComponentActivity() {
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",style=BodyText,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label -> CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick={val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next},label={Text(label)}) } }
             Row { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}});Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
             Crossfade(targetState=s.tab, animationSpec=tween(180), label="toolCategory") { category ->
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category}.forEach { t ->
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category && it.id in s.level.tools}.forEach { t ->
                 val active=if(t.category=="street") t.id in s.plan.street else t.id in s.plan.people.getValue(s.selected).skills
                 Column(Modifier.width(88.dp).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable {s.toggle(t);click()}.padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,maxLines=1);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
             } }
             }
-            if(s.repo.guidance) DialogueBox(s.message,selectedWalker.name,walkerAccent(selectedWalker.sprite),
+            // The tutorial drives the box itself: a tap-through intro, then a
+            // nudge that follows whatever the player has done so far.
+            val introDone=!s.level.tutorial || s.introIndex>=s.level.introLines.size
+            val displayMessage=when {
+                s.level.tutorial && !introDone -> s.level.introLines[s.introIndex]
+                s.level.tutorial && "look" !in s.plan.people.getValue(s.selected).skills -> s.level.lesson
+                s.level.tutorial -> s.level.readyMessage
+                else -> s.message
+            }
+            val onAdvance:(()->Unit)?=if(s.level.tutorial && !introDone) ({ s.introIndex++ }) else null
+            if(s.repo.guidance) DialogueBox(displayMessage,selectedWalker.name,walkerAccent(selectedWalker.sprite),
                 remember(s.level,s.repo.tools) { Lexicon.of(s.level,s.repo.tools) },
-                Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id))
+                Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id),onAdvance=onAdvance)
             PaperButton("▶   PONER EL PLAN EN MARCHA") {click();s.simulation=Simulation(s.level,s.plan)}
         } else if(sim!=null) {
             PaperButton(if(sim!!.emergencyUsed) "AYUDA UTILIZADA" else "✋  PARAR TRÁFICO · 1 USO",Brick,enabled=!sim.emergencyUsed && sim.phase==Phase.RUNNING) {sim.emergency();s.frame++;click()}

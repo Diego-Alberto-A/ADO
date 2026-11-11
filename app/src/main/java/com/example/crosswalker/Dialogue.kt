@@ -86,7 +86,8 @@ fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedSt
     speakerColor: Accent,
     lexicon: Lexicon,
     modifier: Modifier = Modifier,
-    blip: () -> Unit = {}
+    blip: () -> Unit = {},
+    onAdvance: (() -> Unit)? = null
 ) {
     var revealed by remember(text) { mutableIntStateOf(0) }
     val done = revealed >= text.length
@@ -115,7 +116,10 @@ fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedSt
         Column(
             Modifier.fillMaxWidth()
                 .pixelPanel(fill = Cream, innerBorder = CreamDark, corner = 4.dp)
-                .clickable(interactionSource = null, indication = null) { revealed = text.length }
+                // Tapping completes the line; tapping a finished line turns the page.
+                .clickable(interactionSource = null, indication = null) {
+                    if (done && onAdvance != null) onAdvance() else revealed = text.length
+                }
                 .padding(start = 12.dp, end = 12.dp, top = if (speaker == null) 12.dp else 16.dp,
                     bottom = 12.dp)
                 .semantics { contentDescription = text }
