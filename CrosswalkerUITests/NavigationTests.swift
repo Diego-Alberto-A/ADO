@@ -79,4 +79,18 @@ final class NavigationTests: XCTestCase {
         tap("Pausa"); tap("CONTINUAR")
         XCTAssertTrue(start.waitForExistence(timeout:5))
     }
+
+    func testPauseAndEmergencyButtonsRespondDuringSimulation() {
+        tap("JUGAR"); tap("Primeros pasos"); tap("PREPARAR EL PLAN")
+        tap("Mirar"); tap("Esperar"); tap("PONER EL PLAN EN MARCHA")
+        tap("Pausa")
+        XCTAssertTrue(app.staticTexts["PAUSA"].waitForExistence(timeout:5))
+        tap("CONTINUAR"); tap("PARAR TRÁFICO")
+        let used=app.buttons["AYUDA UTILIZADA"]
+        XCTAssertTrue(used.waitForExistence(timeout:5))
+        XCTAssertFalse(used.isEnabled)
+        tap("Pausa"); tap("REINTENTAR")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format:"label CONTAINS %@","PONER EL PLAN EN MARCHA")).firstMatch.waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["Centro"].isSelected)
+    }
 }
