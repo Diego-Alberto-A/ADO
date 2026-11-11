@@ -24,7 +24,7 @@ final class NavigationTests: XCTestCase {
         tap("LA CALLE"); tap("HABILIDADES"); tap("Pausa"); tap("AJUSTES"); tap("LISTO")
         XCTAssertTrue(app.staticTexts["PAUSA"].waitForExistence(timeout:5)); tap("CONTINUAR")
         tap("Pausa"); tap("VOLVER AL MAPA"); tap("INICIO")
-        XCTAssertTrue(app.buttons["JUGAR"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format:"label CONTAINS %@","JUGAR")).firstMatch.waitForExistence(timeout:5))
     }
     func testWinRetryAndNextLevel() {
         tap("JUGAR"); tap("Primeros pasos"); tap("PREPARAR EL PLAN"); tap("Contacto"); tap("PONER EL PLAN EN MARCHA")
