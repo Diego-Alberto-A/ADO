@@ -19,6 +19,13 @@ plate, in the Animal Crossing / classic Pokemon manner.
 Type is Pixelify Sans (body), Jersey 10 (titles) and Silkscreen (HUD), all OFL;
 their licences are in `app/src/main/assets/licenses`.
 
+Mateo's wheelchair comes from "[LPC Revised] Elders!" by Eliza Wyatt et al.
+(OGA-BY 3.0, credit in `app/src/main/assets/licenses`), halved to the
+tileset's 16 px scale and combined with a Kenney character. Tomás carries a
+phone marker made from `art/phones/nokia.png`. The full source packs live in
+`NewAssets/` (ignored by git); only the files the pipeline reads are copied
+into `art/`.
+
 The paper-and-cardboard originals are still under `art/source`. Runtime sprites
 are generated from the tilemap, never edited by hand:
 

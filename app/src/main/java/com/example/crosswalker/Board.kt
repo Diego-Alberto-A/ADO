@@ -147,7 +147,7 @@ private const val PIXEL = 1f
             val skills=plan.people[w.id]?.skills ?: emptySet()
             if("visible" in skills) {color("#FFE07A");c.drawCircle(x,y-19,4f,p)}
             // The phone floats over its owner until "Guarda el celular" puts it away.
-            if(w.kind=="phone" && "phone_away" !in skills) sprite("phone",x-5,maxOf(y-56f,4f),10f,16f)
+            if(w.kind=="phone" && "phone_away" !in skills) sprite("phone",x-6,maxOf(y-60f,4f),12f,19f)
             // Clamped: a walker who just reached the far kerb sits against the
             // top of the board, and the bubble would be drawn off-canvas.
             val bubbleY=maxOf(y-40f,26f)

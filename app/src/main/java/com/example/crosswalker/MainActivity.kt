@@ -207,7 +207,8 @@ class MainActivity: ComponentActivity() {
     }
     chosen?.let { l -> PaperDialog("NIVEL ${l.id}",{chosen=null}) {
         Text(l.title,style=TitleText,color=Ink)
-        Text(l.lesson,style=BodyText,color=Ink)
+        // The tutorial's `lesson` is an in-game nudge; the card shows its opening line instead.
+        Text(if(l.tutorial) l.introLines.getOrElse(1) { l.lesson } else l.lesson,style=BodyText,color=Ink)
         Text("☺ ${l.walkers.size} PEATONES    ● ${l.budget} FICHAS",style=HudStrong,color=Tree.dark)
         Text("★ Llega al otro lado\n★★ Resuelve sin ayuda de emergencia\n★★★ Usa pocas fichas",style=BodyText,color=Ink)
         if(l.newTools.isNotEmpty()) {
@@ -240,7 +241,7 @@ class MainActivity: ComponentActivity() {
             Crossfade(targetState=s.tab, animationSpec=tween(180), label="toolCategory") { category ->
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category && it.id in s.level.tools}.forEach { t ->
                 val active=if(t.category=="street") t.id in s.plan.street else t.id in s.plan.people.getValue(s.selected).skills
-                Column(Modifier.width(88.dp).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable {s.toggle(t);click()}.padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,maxLines=1);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
+                Column(Modifier.width(88.dp).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable {s.toggle(t);click()}.padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,minLines=2,maxLines=2,textAlign=TextAlign.Center);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
             } }
             }
             // The tutorial drives the box itself: a tap-through intro, then a
