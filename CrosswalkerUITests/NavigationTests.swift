@@ -5,8 +5,14 @@ final class NavigationTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure=false; app=XCUIApplication(); app.launch() }
     private func tap(_ label: String) {
         let button=app.buttons.matching(NSPredicate(format:"label CONTAINS %@",label)).firstMatch
+        // Long level briefings can put the action below the modal viewport.
+        // Scroll the frontmost scroll view before asserting the button exists.
+        for _ in 0..<3 {
+            if button.waitForExistence(timeout:2) && button.isHittable { break }
+            guard let scroll=app.scrollViews.allElementsBoundByIndex.last else { break }
+            scroll.swipeUp()
+        }
         XCTAssertTrue(button.waitForExistence(timeout:5),label)
-        if !button.isHittable && app.scrollViews.firstMatch.exists { app.scrollViews.firstMatch.swipeUp() }
         // Wait for the screen/modal animation to release input, rather than tapping through it.
         let ready=expectation(for:NSPredicate(format:"isHittable == true AND isEnabled == true"),evaluatedWith:button)
         wait(for:[ready],timeout:5); button.tap()

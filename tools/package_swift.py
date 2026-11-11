@@ -33,7 +33,20 @@ catalog=IOS/'Crosswalker/Assets.xcassets'
 icon=catalog/'AppIcon.appiconset'
 icon.mkdir(parents=True,exist_ok=True)
 (catalog/'Contents.json').write_text(json.dumps({'info':{'author':'xcode','version':1}},indent=2))
-subprocess.run(['ffmpeg','-v','error','-y','-i',str(ROOT/'app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp'),'-vf','scale=1024:1024,format=rgb24',str(icon/'AppIcon.png')],check=True)
+# Android's active adaptive icon is walker_blue over material_felt, with
+# 20dp horizontal / 16dp vertical insets in a 108dp layer. The legacy mipmap
+# is still the Android Studio robot; it is not the game's launcher artwork.
+# Produce an opaque, unmasked square; iOS supplies the corner mask.
+subprocess.run([
+    'ffmpeg','-v','error','-y',
+    '-i',str(ROOT/'app/src/main/res/drawable-nodpi/material_felt.webp'),
+    '-i',str(ROOT/'app/src/main/res/drawable-nodpi/walker_blue.webp'),
+    '-filter_complex',
+    '[0:v]scale=1024:1024[background];'
+    '[1:v]scale=644:720[foreground];'
+    '[background][foreground]overlay=(W-w)/2:(H-h)/2,format=rgb24',
+    '-frames:v','1',str(icon/'AppIcon.png')
+],check=True)
 (icon/'Contents.json').write_text(json.dumps({'images':[{'filename':'AppIcon.png','idiom':'universal','platform':'ios','size':'1024x1024'}],'info':{'author':'xcode','version':1}},indent=2))
 info={'CFBundleDevelopmentRegion':'es','CFBundleDisplayName':'Crosswalker','CFBundleExecutable':'$(EXECUTABLE_NAME)','CFBundleIdentifier':'$(PRODUCT_BUNDLE_IDENTIFIER)','CFBundleInfoDictionaryVersion':'6.0','CFBundleName':'$(PRODUCT_NAME)','CFBundlePackageType':'APPL','CFBundleShortVersionString':'1.0','CFBundleVersion':'1','LSRequiresIPhoneOS':True,'UIAppFonts':['jersey_25.ttf'],'UIApplicationSceneManifest':{'UIApplicationSupportsMultipleScenes':False},'UILaunchScreen':{},'UISupportedInterfaceOrientations':['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],'UISupportedInterfaceOrientations~ipad':['UIInterfaceOrientationPortrait','UIInterfaceOrientationPortraitUpsideDown','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight']}
 info['UISupportedInterfaceOrientations']=['UIInterfaceOrientationPortrait']

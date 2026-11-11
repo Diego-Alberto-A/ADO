@@ -45,6 +45,10 @@ All 21 named images, including `material_cream`, `material_kraft`, `material_fel
 
 `AssetTests` loads every image from the built app bundle, checks the font/audio/campaign, and renders the SwiftUI material backgrounds to catch blank output. The static validator checks the image-set manifests and resource build-phase membership as well as source pixel identity.
 
+The app icon uses the game's blue pedestrian on the felt background, matching the active Android adaptive icon. The legacy Android mipmap contains the Android Studio robot and is not used for the iOS icon.
+
+The game loop restarts its SwiftUI task when the scene phase changes. This prevents an inactive launch phase from leaving the simulation frozen. `SessionTests` hosts the real game view through inactive, active, background, and resumed states and checks that traffic and pedestrians move without manually advancing the simulation.
+
 Open the root `Crosswalker.xcodeproj` from this branch. After updating from the old layout, close the old project, open this project, clean the build folder, and rebuild.
 
 ## Verification status

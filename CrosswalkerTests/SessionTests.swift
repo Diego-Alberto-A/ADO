@@ -1,5 +1,7 @@
 #if !SWIFT_PACKAGE
 import XCTest
+import SwiftUI
+import UIKit
 @testable import Crosswalker
 
 @MainActor final class SessionTests: XCTestCase {
@@ -35,6 +37,43 @@ import XCTest
         s.simulation=Simulation(s.level,s.plan)
         for _ in 0..<1801 { s.tick() }
         XCTAssertEqual(s.simulation?.phase,.won); XCTAssertEqual(s.repo.stars(1),3); XCTAssertTrue(s.repo.unlocked(2))
+    }
+
+    func testGameLoopStartsAfterInactiveLaunchAndResumesAfterBackgrounding() async throws {
+        let s=try session(); s.sound=false; s.enter(s.repo.levels[0])
+        // Exercise the real SwiftUI task, rather than calling tick() manually.
+        let host=UIHostingController(rootView:GameRoot(session:s).environment(\.scenePhase,.inactive))
+        let window=UIWindow(frame:UIScreen.main.bounds)
+        window.rootViewController=host; window.isHidden=false
+        defer { window.isHidden=true; window.rootViewController=nil }
+        host.view.layoutIfNeeded()
+        try await Task.sleep(nanoseconds:200_000_000)
+        let sim=Simulation(s.level,s.plan); s.simulation=sim
+        let carBefore=sim.carX(s.level.lanes[0]), walkerBefore=sim.people[0].y
+        host.rootView=GameRoot(session:s).environment(\.scenePhase,.active)
+        await eventually { sim.time >= 0.15 }
+        XCTAssertNotEqual(sim.carX(s.level.lanes[0]),carBefore,"Traffic must move after launch")
+        XCTAssertLessThan(sim.people[0].y,walkerBefore,"Pedestrians must move after launch")
+
+        host.rootView=GameRoot(session:s).environment(\.scenePhase,.background)
+        await eventually { s.paused }
+        let pausedTime=sim.time
+        try await Task.sleep(nanoseconds:200_000_000)
+        XCTAssertEqual(sim.time,pausedTime)
+        host.rootView=GameRoot(session:s).environment(\.scenePhase,.active)
+        // Returning to the app preserves pause until the user taps Continue.
+        try await Task.sleep(nanoseconds:200_000_000)
+        XCTAssertEqual(sim.time,pausedTime)
+        s.paused=false
+        await eventually { sim.time > pausedTime }
+    }
+
+    private func eventually(_ condition: () -> Bool, file: StaticString = #filePath, line: UInt = #line) async {
+        for _ in 0..<100 {
+            if condition() { return }
+            do { try await Task.sleep(nanoseconds:20_000_000) } catch { break }
+        }
+        XCTFail("Game loop did not reach the expected state",file:file,line:line)
     }
 }
 #endif

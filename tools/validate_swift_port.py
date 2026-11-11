@@ -49,6 +49,13 @@ check('Jersey25-Regular' in names,'Wrong custom font PostScript name')
 
 info=plistlib.loads((IOS/'Crosswalker/Info.plist').read_bytes())
 check(info['UIAppFonts']==['jersey_25.ttf'],'Font not registered')
+icon=CATALOG/'AppIcon.appiconset'
+icon_manifest=json.loads((icon/'Contents.json').read_text())
+check(icon_manifest['images']==[{'filename':'AppIcon.png','idiom':'universal','platform':'ios','size':'1024x1024'}],'Invalid app icon manifest')
+icon_data=(icon/'AppIcon.png').read_bytes()
+check(icon_data[:8]==b'\x89PNG\r\n\x1a\n','App icon must be PNG')
+width,height,depth,color_type=struct.unpack_from('>IIBB',icon_data,16)
+check((width,height,depth,color_type)==(1024,1024,8,2),'App icon must be 1024 square RGB without alpha')
 plistlib.loads((RES/'PrivacyInfo.xcprivacy').read_bytes())
 ET.parse(IOS/'Crosswalker.xcodeproj/xcshareddata/xcschemes/Crosswalker.xcscheme')
 project=(IOS/'Crosswalker.xcodeproj/project.pbxproj').read_text(encoding='utf-8')

@@ -16,6 +16,7 @@ import SwiftUI
     @StateObject private var session: Session
     @Environment(\.scenePhase) private var scenePhase
     init(repo: GameRepository) { _session = StateObject(wrappedValue: Session(repo: repo)) }
+    init(session: Session) { _session = StateObject(wrappedValue: session) }
     var body: some View {
         ZStack {
             PaperBackground().ignoresSafeArea()
@@ -30,10 +31,14 @@ import SwiftUI
         .onChange(of: scenePhase) { phase in
             if phase != .active && session.simulation?.phase == .running { session.paused = true }
         }
-        .task {
+        // A task without an identity keeps the environment from the render that
+        // started it (often .inactive during launch). Restart on phase changes.
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             while !Task.isCancelled {
                 do { try await Task.sleep(nanoseconds: 50_000_000) } catch { return }
-                if scenePhase == .active { session.tick() }
+                guard !Task.isCancelled else { return }
+                session.tick()
             }
         }
     }
