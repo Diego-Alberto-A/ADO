@@ -21,7 +21,8 @@ import SwiftUI
         ZStack {
             PaperBackground().ignoresSafeArea()
             ScreenTransitions(session: session)
-                .accessibilityHidden(!session.dialog.isEmpty || session.paused || session.chosen != nil || session.simulation?.phase == .won || session.simulation?.phase == .retry)
+                .allowsHitTesting(!session.hasModal && !session.transitioning)
+                .accessibilityHidden(session.hasModal || session.transitioning)
             ModalHost(session: session)
         }
         .font(.custom("Jersey25-Regular", size: 16))

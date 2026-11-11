@@ -27,10 +27,28 @@ import UIKit
     }
     func testRetryResetAndExitHaveOriginalSemantics() throws {
         let s=try session(); s.enter(s.repo.levels[4]); s.crossing(2)
-        s.simulation=Simulation(s.level,s.plan); s.simulation=nil
+        s.simulation=Simulation(s.level,s.plan); s.improvePlan()
         XCTAssertEqual(s.plan.people[s.selected]?.crossing,2)
+        XCTAssertEqual(s.screen,.game); XCTAssertEqual(s.level.id,5)
         s.reset(); XCTAssertEqual(s.plan.people[s.selected]?.crossing,1)
         s.paused=true; s.navigate(.map); XCTAssertEqual(s.world,1); XCTAssertFalse(s.paused); XCTAssertNil(s.simulation)
+    }
+
+    func testFailedPlanReturnsToSameLevelWithAllAssignmentsIntact() throws {
+        let s=try session(); s.sound=false; s.enter(s.repo.levels[0]); s.crossing(2)
+        s.toggle(try XCTUnwrap(s.repo.tools.first { $0.id == "wait" }))
+        s.simulation=Simulation(s.level,s.plan)
+        for _ in 0..<1801 { s.tick() }
+        XCTAssertEqual(s.simulation?.phase,.retry)
+        XCTAssertTrue(s.hasModal)
+        let levelID=s.level.id, selected=s.selected, cost=s.cost
+        s.improvePlan()
+        XCTAssertEqual(s.screen,.game); XCTAssertEqual(s.level.id,levelID)
+        XCTAssertEqual(s.selected,selected); XCTAssertEqual(s.cost,cost)
+        XCTAssertEqual(s.plan.people[selected]?.crossing,2)
+        XCTAssertEqual(s.plan.people[selected]?.skills,Set(["wait"]))
+        XCTAssertEqual(s.message,s.level.lesson)
+        XCTAssertNil(s.simulation); XCTAssertFalse(s.hasModal)
     }
     func testWinPersistsBestScoreAndUnlocksNextLevel() throws {
         let s=try session(); s.enter(s.repo.levels[0]); s.toggle(try XCTUnwrap(s.repo.tools.first { $0.id == "eye" }))

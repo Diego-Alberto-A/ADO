@@ -16,6 +16,7 @@ struct PaperDialog<Content: View>: View {
     @ViewBuilder let content: () -> Content
     @State private var visible = false
     @State private var closing = false
+    @State private var contentHeight: CGFloat = 0
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -25,10 +26,14 @@ struct PaperDialog<Content: View>: View {
                         Text(title).tracking(1).multilineTextAlignment(.center)
                         Rectangle().fill(Palette.paper).frame(height:1)
                         content()
-                    }.padding(20).frame(maxWidth:.infinity).craftPaper().overlay(CutPaper().stroke(Palette.paper,lineWidth:2))
+                    }.padding(20).frame(maxWidth:.infinity).craftPaper().overlay(CutPaper().stroke(Palette.paper,lineWidth:2).allowsHitTesting(false))
+                        .background(GeometryReader { content in
+                            Color.clear.preference(key:DialogContentHeightKey.self,value:content.size.height)
+                        }.allowsHitTesting(false))
                 }
-                .frame(maxWidth:400,maxHeight:geometry.size.height-48)
-                .fixedSize(horizontal:false,vertical:true)
+                .frame(maxWidth:400)
+                .frame(height:min(contentHeight > 0 ? contentHeight : geometry.size.height-48,max(0,geometry.size.height-48)))
+                .onPreferenceChange(DialogContentHeightKey.self) { contentHeight=$0 }
                 .padding(.horizontal,28)
                 .scaleEffect(visible ? 1 : 0.96).offset(y:visible ? 0 : 20)
                 .rotationEffect(.degrees(visible ? 0 : -1.2)).opacity(visible ? 1 : 0)
@@ -45,6 +50,11 @@ struct PaperDialog<Content: View>: View {
         withAnimation(.timingCurve(0.4,0,0.2,1,duration:0.17)) { visible=false }
         DispatchQueue.main.asyncAfter(deadline:.now()+0.17) { action() }
     }
+}
+
+private struct DialogContentHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat,nextValue: () -> CGFloat) { value=nextValue() }
 }
 
 struct ModalHost: View {
@@ -101,7 +111,7 @@ struct ModalHost: View {
                 if won && session.level.id < session.repo.levels.count {
                     PaperButton("SIGUIENTE CAMINO  →") { session.enter(session.repo.levels[session.level.id]) }
                 }
-                PaperButton(won ? "VOLVER A INTENTAR" : "✎  MEJORAR MI PLAN",color:won ? Palette.kraft : Palette.green) { session.simulation=nil; session.message=session.level.lesson }
+                PaperButton(won ? "VOLVER A INTENTAR" : "✎  MEJORAR MI PLAN",color:won ? Palette.kraft : Palette.green) { session.improvePlan() }
                 PaperButton("VOLVER AL MAPA",color:Palette.kraft) { session.navigate(.map) }
             }
         }

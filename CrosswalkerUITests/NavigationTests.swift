@@ -3,6 +3,13 @@ import XCTest
 final class NavigationTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure=false; app=XCUIApplication(); app.launch() }
+    override func tearDownWithError() throws {
+        if testRun?.hasSucceeded == false {
+            print("INTERACTION FAILURE HIERARCHY:\n" + app.debugDescription)
+            let screenshot=XCTAttachment(screenshot:app.screenshot())
+            screenshot.lifetime = .keepAlways; add(screenshot)
+        }
+    }
     private func tap(_ label: String) {
         let button=app.buttons.matching(NSPredicate(format:"label CONTAINS %@",label)).firstMatch
         // Long level briefings can put the action below the modal viewport.
@@ -35,5 +42,41 @@ final class NavigationTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["¡BUEN CAMINO!"].waitForExistence(timeout:20))
         tap("SIGUIENTE CAMINO")
         XCTAssertTrue(app.staticTexts["Mira a ambos lados"].waitForExistence(timeout:5))
+    }
+
+    func testLevelCardRespondsAcrossItsVisibleWidth() {
+        tap("JUGAR")
+        let card=app.buttons["level-1"]
+        XCTAssertTrue(card.waitForExistence(timeout:5))
+        for x in [CGFloat(0.08),0.5,0.92] {
+            card.coordinate(withNormalizedOffset:CGVector(dx:x,dy:0.5)).tap()
+            XCTAssertTrue(app.staticTexts["NIVEL 1"].waitForExistence(timeout:5))
+            // The backdrop dismisses only the briefing; it must not activate
+            // the map underneath (including the return-home button).
+            app.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:0.5)).tap()
+            XCTAssertTrue(card.waitForExistence(timeout:5))
+        }
+    }
+
+    func testImproveFailedPlanKeepsLevelAndCrossingThenAllowsEditing() {
+        tap("JUGAR"); tap("Primeros pasos"); tap("PREPARAR EL PLAN"); tap("Der.")
+        XCTAssertTrue(app.buttons["Der."].isSelected)
+        tap("PONER EL PLAN EN MARCHA")
+        XCTAssertTrue(app.staticTexts["OTRO PLAN, OTRA OPORTUNIDAD"].waitForExistence(timeout:30))
+        let improve=app.buttons.matching(NSPredicate(format:"label CONTAINS %@","MEJORAR MI PLAN")).firstMatch
+        XCTAssertTrue(improve.waitForExistence(timeout:5))
+        // Use the padded part of the button, away from its text and the map
+        // action underneath it. This previously activated the wrong action.
+        improve.coordinate(withNormalizedOffset:CGVector(dx:0.12,dy:0.5)).tap()
+        let start=app.buttons.matching(NSPredicate(format:"label CONTAINS %@","PONER EL PLAN EN MARCHA")).firstMatch
+        XCTAssertTrue(start.waitForExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["Primeros pasos"].exists)
+        XCTAssertTrue(app.buttons["Der."].isSelected)
+        tap("Centro"); XCTAssertTrue(app.buttons["Centro"].isSelected)
+        tap("Contacto")
+        let contact=app.buttons.matching(NSPredicate(format:"label CONTAINS %@","Contacto")).firstMatch
+        XCTAssertEqual(contact.value as? String,"Seleccionado")
+        tap("Pausa"); tap("CONTINUAR")
+        XCTAssertTrue(start.waitForExistence(timeout:5))
     }
 }

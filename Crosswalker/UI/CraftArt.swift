@@ -18,14 +18,14 @@ struct CutPaper: Shape {
     }
 }
 struct PaperBackground: View {
-    var body: some View { GeometryReader { g in Image("material_cream").resizable().scaledToFill().frame(width:g.size.width,height:g.size.height).clipped() } }
+    var body: some View { GeometryReader { g in Image("material_cream").resizable().scaledToFill().frame(width:g.size.width,height:g.size.height).clipped() }.allowsHitTesting(false) }
 }
 extension View {
     func craftPaper(_ felt: Bool = false) -> some View {
         background { GeometryReader { g in
             Image(felt ? "material_felt" : "material_kraft").resizable().scaledToFill()
                 .frame(width:g.size.width,height:g.size.height).clipped()
-        } }.clipShape(CutPaper())
+        }.allowsHitTesting(false) }.clipShape(CutPaper())
     }
 }
 struct PaperButtonStyle: ButtonStyle {
@@ -35,7 +35,8 @@ struct PaperButtonStyle: ButtonStyle {
         configuration.label.font(.custom("Jersey25-Regular", size: 18)).tracking(1)
             .foregroundStyle(color == Palette.green ? Palette.paper : color == Palette.coral ? Color(hex:0x76352A) : Palette.ink)
             .padding(15).frame(maxWidth:.infinity,minHeight:54).craftPaper(color == Palette.green)
-            .overlay(CutPaper().stroke(Palette.paper.opacity(0.65),lineWidth:1))
+            .overlay(CutPaper().stroke(Palette.paper.opacity(0.65),lineWidth:1).allowsHitTesting(false))
+            .contentShape(Rectangle())
             .scaleEffect(configuration.isPressed ? 0.97 : 1).opacity(enabled ? 1 : 0.45)
             .animation(.easeInOut(duration:0.1),value:configuration.isPressed)
     }
@@ -65,7 +66,8 @@ struct CraftChip<Label: View>: View {
     var body: some View {
         Button(action:action) { label().font(.custom("Jersey25-Regular",size:14)).padding(.horizontal,12).padding(.vertical,10)
             .frame(minHeight:42).foregroundStyle(selected ? Palette.paper : Palette.ink).craftPaper(selected)
-            .overlay(CutPaper().stroke(selected ? Palette.paper : Palette.ink.opacity(0.25),lineWidth:selected ? 1.5 : 0.5))
+            .overlay(CutPaper().stroke(selected ? Palette.paper : Palette.ink.opacity(0.25),lineWidth:selected ? 1.5 : 0.5).allowsHitTesting(false))
+            .contentShape(Rectangle())
         }.buttonStyle(.plain).padding(.vertical,3).accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 }
@@ -73,7 +75,7 @@ struct Artwork: View {
     let name: String
     var size: CGFloat = 30
     init(_ name: String, size: CGFloat = 30) { self.name=name; self.size=size }
-    var body: some View { Image(name).resizable().scaledToFit().frame(width:size,height:size).accessibilityHidden(true) }
+    var body: some View { Image(name).resizable().scaledToFit().frame(width:size,height:size).allowsHitTesting(false).accessibilityHidden(true) }
 }
 func toolImage(_ id: String) -> String {
     ["look":"icon_look","wait":"icon_wait","eye":"walker_blue","signal":"icon_signal","visible":"star","officer":"stop_sign","school":"house","bump":"icon_bump"][id] ?? "icon_crosswalk"

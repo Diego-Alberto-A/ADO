@@ -34,6 +34,14 @@ enum ScreenMotion: Equatable { case forward, backward, worldForward, worldBackwa
     var cost: Int { plan.cost(repo.tools) }
     var totalStars: Int { repo.levels.reduce(0) { $0 + repo.stars($1.id) } }
     var completed: Int { repo.levels.filter { repo.stars($0.id) > 0 }.count }
+    var hasModal: Bool {
+        !dialog.isEmpty || (paused && screen == .game) || chosen != nil || simulation?.phase == .won || simulation?.phase == .retry
+    }
+    func improvePlan() {
+        // Android's result action returns to planning in the same level and
+        // keeps every crossing and tool assignment. It performs no navigation.
+        simulation = nil; message = level.lesson
+    }
     func navigate(_ destination: Screen) {
         guard destination != screen, !transitioning else { return }
         transition(destination == .home || (screen == .game && destination == .map) ? .backward : .forward) {

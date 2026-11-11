@@ -24,11 +24,11 @@ struct Home: View {
                     Button { play() } label: {
                         GeometryReader { g in
                             ZStack(alignment:.top) {
-                                Image("home_diorama").resizable().scaledToFit()
+                                Image("home_diorama").resizable().scaledToFit().allowsHitTesting(false)
                                 VStack(spacing:9) { Logo(); Text("El camino seguro empieza contigo.").font(.custom("Jersey25-Regular",size:11)) }
                                     .frame(width:g.size.width*0.82).padding(.top,g.size.height*0.12)
                             }
-                        }.aspectRatio(0.8,contentMode:.fit)
+                        }.aspectRatio(0.8,contentMode:.fit).contentShape(Rectangle())
                     }.buttonStyle(.plain).frame(maxWidth:440).accessibilityLabel("Una ciudad hecha a mano dentro de una caja de cartón").accessibilityHint("Jugar: elegir nivel")
                     VStack(spacing:8) {
                         Button(action:play) {
@@ -36,7 +36,8 @@ struct Home: View {
                                 Text("▶").font(.custom("Jersey25-Regular",size:18)).foregroundStyle(Palette.green).frame(width:36,height:36).background(Palette.paper,in:Circle())
                                 Text("JUGAR").font(.custom("Jersey25-Regular",size:30)).tracking(2)
                             }.padding(.horizontal,22).padding(.vertical,17).frame(maxWidth:.infinity).foregroundStyle(Palette.paper).craftPaper(true)
-                                .overlay(CutPaper().stroke(Palette.paper.opacity(0.65),lineWidth:1)).shadow(radius:5,y:3)
+                                .overlay(CutPaper().stroke(Palette.paper.opacity(0.65),lineWidth:1).allowsHitTesting(false)).shadow(radius:5,y:3)
+                                .contentShape(Rectangle())
                         }.buttonStyle(.plain)
                         Text("Elige un nivel y empieza a explorar").font(.custom("Jersey25-Regular",size:13)).foregroundStyle(Palette.ink.opacity(0.7))
                     }.frame(maxWidth:360)
@@ -55,7 +56,7 @@ struct WorldMap: View {
     @ObservedObject var session: Session
     var body: some View {
         VStack(alignment:.leading,spacing:14) {
-            HStack { Button("‹ INICIO") { session.navigate(.home) }.padding(8); Spacer(); Text("★ \(session.totalStars) / 36") }
+            HStack { Button { session.navigate(.home) } label: { Text("‹ INICIO").padding(8).contentShape(Rectangle()) }; Spacer(); Text("★ \(session.totalStars) / 36") }
             Eyebrow("ELIGE TU PRÓXIMA AVENTURA")
             Text(session.repo.worlds[session.world]).font(.custom("Jersey25-Regular",size:30))
             HStack(spacing:8) {
@@ -72,7 +73,7 @@ struct WorldMap: View {
                                 let start=size.width*(index%2 == 0 ? 0.27 : 0.72), end=size.width*(index%2 == 0 ? 0.72 : 0.27)
                                 var path=Path(); path.move(to:CGPoint(x:start,y:0)); path.addCurve(to:CGPoint(x:end,y:size.height),control1:CGPoint(x:start,y:size.height*0.8),control2:CGPoint(x:end,y:size.height*0.2))
                                 context.stroke(path,with:.color(Palette.coral.opacity(0.75)),lineWidth:2)
-                            }.frame(height:20)
+                            }.frame(height:20).allowsHitTesting(false)
                         }
                     }
                 }.padding(.vertical,4)
@@ -85,15 +86,17 @@ struct WorldMap: View {
         return Button { session.beep(); session.chosen=level } label: {
             HStack(spacing:16) {
                 Text(unlocked ? "\(level.id)" : "—").font(.custom("Jersey25-Regular",size:27))
-                    .frame(width:62,height:62).background { Image("material_kraft").resizable().scaledToFill() }.clipShape(Circle()).overlay(Circle().stroke(Palette.paper,lineWidth:3))
+                    .frame(width:62,height:62).background { Image("material_kraft").resizable().scaledToFill().frame(width:62,height:62).clipped().allowsHitTesting(false) }.clipShape(Circle()).overlay(Circle().stroke(Palette.paper,lineWidth:3).allowsHitTesting(false))
                 VStack(alignment:.leading) {
                     Text(level.title).font(.custom("Jersey25-Regular",size:17))
                     if unlocked { PaperStars(count:session.repo.stars(level.id)) }
                     else { Text("Completa el nivel anterior").font(.custom("Jersey25-Regular",size:12)).opacity(0.65) }
                 }.frame(maxWidth:.infinity,alignment:.leading)
                 Artwork(index%2 == 0 ? "house" : "tree",size:38).rotationEffect(.degrees(3))
-            }.padding(18).craftPaper().overlay(CutPaper().stroke(Palette.paper.opacity(0.5),lineWidth:1))
+            }.padding(18).craftPaper().overlay(CutPaper().stroke(Palette.paper.opacity(0.5),lineWidth:1).allowsHitTesting(false))
+                .contentShape(Rectangle())
         }.buttonStyle(.plain).disabled(!unlocked)
+            .accessibilityIdentifier("level-\(level.id)")
             .rotationEffect(.degrees(index%2 == 0 ? -1 : 1)).padding(index%2 == 0 ? .trailing : .leading,35)
     }
 }
@@ -107,7 +110,7 @@ struct Game: View {
             ScrollView {
                 VStack(spacing:7) {
                     HStack {
-                        Button("Ⅱ") { session.paused=true }.font(.custom("Jersey25-Regular",size:24)).frame(width:44,height:44).accessibilityLabel("Pausa")
+                        Button { session.paused=true } label: { Text("Ⅱ").font(.custom("Jersey25-Regular",size:24)).frame(width:44,height:44).contentShape(Rectangle()) }.buttonStyle(.plain).accessibilityLabel("Pausa")
                         VStack { Eyebrow("NIVEL \(session.level.id) · MUNDO \(session.level.world+1)"); Text(session.level.title) }.frame(maxWidth:.infinity)
                         Text("● \(session.level.budget-session.cost)/\(session.level.budget)")
                     }
@@ -123,7 +126,7 @@ struct Game: View {
                         Text("Observa cómo cada decisión cambia el recorrido.").font(.custom("Jersey25-Regular",size:12)).multilineTextAlignment(.center)
                         PaperButton(sim.emergencyUsed ? "AYUDA UTILIZADA" : "✋  PARAR TRÁFICO · 1 USO",color:Palette.coral,enabled:!sim.emergencyUsed && sim.phase == .running) { sim.emergency(); session.frame += 1; session.beep() }
                     }
-                    }.background(GeometryReader { g in Color.clear.preference(key:ControlsHeightKey.self,value:g.size.height) })
+                    }.background(GeometryReader { g in Color.clear.preference(key:ControlsHeightKey.self,value:g.size.height) }.allowsHitTesting(false))
                 }.padding(.horizontal,14).padding(.vertical,8)
             }.animation(.easeInOut(duration:0.22),value:planning)
                 .onPreferenceChange(ControlsHeightKey.self) { controlsHeight=$0 }
@@ -165,7 +168,8 @@ struct Game: View {
         return Button { session.toggle(tool); session.beep() } label: {
             VStack { Artwork(toolImage(tool.id)); Text(tool.label).lineLimit(1); Text("\(active ? "✓" : "+") \(tool.cost) ●") }
                 .font(.custom("Jersey25-Regular",size:11)).padding(8).frame(width:87).foregroundStyle(active ? Palette.paper : Palette.ink)
-                .craftPaper(active).overlay(CutPaper().stroke(active ? Palette.paper : Palette.kraft,lineWidth:1))
+                .craftPaper(active).overlay(CutPaper().stroke(active ? Palette.paper : Palette.kraft,lineWidth:1).allowsHitTesting(false))
+                .contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel("\(tool.label), \(tool.cost) fichas").accessibilityValue(active ? "Seleccionado" : "Sin seleccionar").accessibilityHint(tool.description)
     }
 }
