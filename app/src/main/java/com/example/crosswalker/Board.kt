@@ -7,6 +7,8 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.DashPathEffect
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
@@ -142,7 +144,8 @@ private const val PIXEL = 1f
             if(w.id==selected && planning) {color("#FFE07A");c.drawOval(x-16,y-7,x+16,y+5,p)}
             // Walking away from the camera: the stride advances with distance
             // covered, so a pedestrian who stops to wait stops stepping too.
-            val art=if(person==null) w.sprite else "${w.sprite}_w${((person.y*32f).toInt().mod(3))}"
+            val collapsed=sim?.phase==Phase.RETRY && sim.collapsedWalkerId==w.id
+            val art=if(person==null || collapsed) w.sprite else "${w.sprite}_w${((person.y*32f).toInt().mod(3))}"
             sprite(art,x-15,y-38,30f,42f)
             val skills=plan.people[w.id]?.skills ?: emptySet()
             if("visible" in skills) {color("#FFE07A");c.drawCircle(x,y-19,4f,p)}
@@ -153,6 +156,33 @@ private const val PIXEL = 1f
             val bubbleY=maxOf(y-40f,26f)
             if(person?.done==true) bubble(x+14,bubbleY,"♥","#D9483F")
             else if(sim!=null && sim.emergencyRemaining>0f) bubble(x+14,bubbleY,"!","#D98A1C")
+        }
+        // Choque: oscurecer todo el tablero excepto al peatón golpeado y su carril.
+        if(sim?.phase==Phase.RETRY && sim.collapsedWalkerId!=null) {
+            val hitWalker=level.walkers.first { it.id==sim.collapsedWalkerId }
+            val hitPerson=sim.people.first { it.walker.id==hitWalker.id }
+            val hx=hitPerson.x*360f; val hy=hitPerson.y*410f
+            val laneY=sim.collapsedLane!!.y*410f
+            val layerId=c.saveLayer(0f,0f,360f,460f,null)
+            color("#000000");p.alpha=140;c.drawRect(0f,0f,360f,460f,p);p.alpha=255
+            p.xfermode=PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            c.drawRect(hx-22f,hy-45f,hx+22f,hy+10f,p)   // agujero 1: el peatón golpeado
+            c.drawRect(0f,laneY-34f,360f,laneY+34f,p)   // agujero 2: todo el carril implicado
+            p.xfermode=null
+            c.restoreToCount(layerId)
+        }
+        // Victoria: oscurecer todo excepto a los peatones y sus corazones (ya dibujados arriba).
+        if(sim?.phase==Phase.WON) {
+            val layerId=c.saveLayer(0f,0f,360f,460f,null)
+            color("#000000");p.alpha=160;c.drawRect(0f,0f,360f,460f,p);p.alpha=255
+            p.xfermode=PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            level.walkers.forEach { w ->
+                val person=sim.people.first { it.walker.id==w.id }
+                val hx=person.x*360f; val hy=person.y*410f
+                c.drawRect(hx-22f,hy-45f,hx+22f,hy+14f,p)   // cubre sprite + burbuja "♥"
+            }
+            p.xfermode=null
+            c.restoreToCount(layerId)
         }
         // Night: the street goes dark, the near pavement keeps a streetlamp's wash
         // so the crossing zones and their labels stay readable.
