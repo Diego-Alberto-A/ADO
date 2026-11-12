@@ -74,6 +74,9 @@ class NavigationTransitionsTest {
             }
         }
         ui.waitForIdle()
+        // El modal de victoria espera a la mitad de la canción de victoria antes de aparecer
+        // (ver Game()): hay que esperar ese flag en vez de asumir que el modal ya está listo.
+        ui.waitUntil(10000) { session.showResultDialog }
         tap("SIGUIENTE CAMINO")
         ui.runOnIdle {
             assertEquals(2, session.level.id)

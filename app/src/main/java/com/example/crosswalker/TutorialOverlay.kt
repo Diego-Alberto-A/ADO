@@ -83,7 +83,8 @@ fun Modifier.tutorialTarget(id: String, controller: TutorialController, onTap: (
  *
  * Toda la superficie captura el toque: solo el que cae dentro de algún rect de `tapId` dispara su
  * `onTap` real; cualquier otro, incluido uno dentro del agujero "siempre visible" del diálogo
- * cuando ese paso no lo pide, no hace nada.
+ * cuando ese paso no lo pide, no hace nada. Única excepción: PAUSA siempre es un toque válido,
+ * sin importar el paso activo — igual que el botón de retroceso del sistema, que ni pasa por aquí.
  */
 @Composable fun TutorialOverlay(controller: TutorialController) {
     val step = controller.step
@@ -96,7 +97,11 @@ fun Modifier.tutorialTarget(id: String, controller: TutorialController, onTap: (
     // El diálogo se mantiene legible siempre, sea o no el objetivo de este paso en particular.
     val dialogueHoles = controller.entriesFor("dialogue").map { (r, _) -> r.translate(-overlayOrigin) }
     val visibleHoles = (spotlightHoles + dialogueHoles).distinct()
-    val taps = step?.let { controller.entriesFor(it.tapId).map { (r, onTap) -> r.translate(-overlayOrigin) to onTap } } ?: emptyList()
+    // PAUSA sigue funcionando en todo momento, aunque el paso activo señale otra cosa: se añade
+    // siempre a los toques válidos, sin pasar por `step.tapId`.
+    val pauseTaps = controller.entriesFor("pause").map { (r, onTap) -> r.translate(-overlayOrigin) to onTap }
+    val stepTaps = step?.let { controller.entriesFor(it.tapId).map { (r, onTap) -> r.translate(-overlayOrigin) to onTap } } ?: emptyList()
+    val taps = (pauseTaps + stepTaps).distinctBy { it.first }
     val pulse = rememberInfiniteTransition(label = "tutorialPulse")
     val handAlpha by pulse.animateFloat(1f, .25f,
         infiniteRepeatable(tween(650), RepeatMode.Reverse), label = "handAlpha")
