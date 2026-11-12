@@ -77,7 +77,8 @@ class Session(val repo: GameRepository): ViewModel() {
     var tab by mutableStateOf("skill")
     var message by mutableStateOf("")
     var introIndex by mutableIntStateOf(0)
-    fun enter(l: Level) { transition(ScreenMotion.FORWARD) { level=l; reset(); screen="game" } }
+    var sound: com.example.crosswalker.audio.SoundEngine? = null
+    fun enter(l: Level) { transition(ScreenMotion.FORWARD) { sound?.playSfx(R.raw.sfx_enter_level); level=l; reset(); screen="game" } }
     fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; frame++ }
     fun toggle(t: Tool) {
         val next=plan.copyPlan()
@@ -100,12 +101,21 @@ class MainActivity: ComponentActivity() {
 @Composable fun Crosswalker(s:Session) {
     val context=LocalContext.current
     val tone=remember { ToneGenerator(AudioManager.STREAM_MUSIC,35) }
-    fun click() { if(s.repo.sound) tone.startTone(ToneGenerator.TONE_PROP_BEEP,65) }
+    val sound=remember { com.example.crosswalker.audio.SoundEngine(context) { s.repo.sound } }
+    LaunchedEffect(Unit) { s.sound = sound }
+    fun click() { sound.playSfx(R.raw.sfx_button) }
+    // La clave incluye `s.level.world` además de `s.world`: "SIGUIENTE CAMINO" puede llevar de un
+    // nivel a otro de distinto mundo sin pasar por el mapa, así que `s.screen` se queda en "game" y
+    // `s.world` (la pestaña del mapa) no cambia — solo `s.level.world` lo hace.
+    LaunchedEffect(s.screen, s.world, s.level.world) {
+        com.example.crosswalker.audio.musicForScreen(s.screen, if (s.screen=="game") s.level.world else s.world)
+            ?.let { sound.playMusic(it) }
+    }
     DisposableEffect(Unit) {
         val owner=context as ComponentActivity
         val observer=LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_STOP && s.simulation?.phase==Phase.RUNNING) s.paused=true }
         owner.lifecycle.addObserver(observer)
-        onDispose { owner.lifecycle.removeObserver(observer); tone.release() }
+        onDispose { owner.lifecycle.removeObserver(observer); tone.release(); sound.release() }
     }
     LaunchedEffect(s.simulation,s.paused,s.transitioning) {
         val sim=s.simulation
