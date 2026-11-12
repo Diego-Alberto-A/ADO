@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
@@ -33,48 +37,54 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
 /**
- * Qué paso está activo y qué composables reportaron su posición/acción para él en la
- * recomposición actual. `beginFrame()` se llama una vez por recomposición, antes de que los
- * composables hijos vuelvan a reportar: así nunca se acumulan rects de un paso anterior.
+ * Qué paso está activo, y un registro persistente de "qué composable con qué id está dónde y qué
+ * hace al tocarlo". El registro se mantiene actualizado SIEMPRE (no solo cuando su id coincide con
+ * el paso activo): `onGloballyPositioned` solo se dispara cuando el layout cambia de verdad, nunca
+ * solo porque cambió el paso activo, así que si solo registráramos "mientras coincide" perderíamos
+ * la posición exacta en el momento en que un paso nuevo empieza. Cada composable usa su propio
+ * token estable como parte de la clave, para que varios compartan el mismo id (los 3 cruces
+ * comparten "crossing") sin pisarse entre sí.
  */
 class TutorialController {
     var step: TutorialStep? by mutableStateOf(null)
-    // `by mutableStateOf` en las tres: `TutorialOverlay` lee `spotlightRects`/`tapTargets` para
-    // decidir qué dibujar, y los hijos los escriben desde `onGloballyPositioned` (que corre en la
-    // fase de layout, después de la composición) — si fueran `var` planas sin estado de Compose,
-    // escribirlas ahí nunca dispararía una recomposición del overlay.
-    var spotlightRects: List<Rect> by mutableStateOf(emptyList())
-    var tapTargets: List<Pair<Rect, () -> Unit>> by mutableStateOf(emptyList())
-    fun beginFrame() { spotlightRects = emptyList(); tapTargets = emptyList() }
+    private val registry = mutableStateMapOf<Pair<String, Any>, Pair<Rect, () -> Unit>>()
+    fun register(id: String, token: Any, rect: Rect, onTap: () -> Unit) { registry[id to token] = rect to onTap }
+    fun unregister(token: Any) { registry.keys.filter { it.second == token }.forEach { registry.remove(it) } }
+    fun entriesFor(id: String): List<Pair<Rect, () -> Unit>> = registry.filterKeys { it.first == id }.values.toList()
 }
 
 /**
- * Mientras `id` coincide con el `spotlightId`/`tapId` del paso activo, este composable reporta su
- * rect (para el agujero del velo y/o para aceptar el toque) y entrega `onTap` — su propio
- * `onClick` real — como la acción que el overlay puede disparar. Si el composable no coincide con
- * el paso activo, no hace nada: el coste fuera del tutorial es cero.
+ * Registra (y mantiene al día) la posición de este composable y su `onTap` real bajo `id`, sin
+ * importar si `id` es el objetivo activo ahora mismo. `TutorialOverlay` decide, al leer
+ * `controller.step`, cuáles de estos registros le importan en cada momento.
  */
-fun Modifier.tutorialTarget(id: String, controller: TutorialController, onTap: () -> Unit): Modifier =
+fun Modifier.tutorialTarget(id: String, controller: TutorialController, onTap: () -> Unit): Modifier = composed {
+    val token = remember { Any() }
+    DisposableEffect(token) { onDispose { controller.unregister(token) } }
     this.onGloballyPositioned { coordinates ->
-        val step = controller.step ?: return@onGloballyPositioned
-        val rect = coordinates.boundsInRoot()
-        if (step.spotlightId == id) controller.spotlightRects = controller.spotlightRects + rect
-        if (step.tapId == id) controller.tapTargets = controller.tapTargets + (rect to onTap)
+        controller.register(id, token, coordinates.boundsInRoot(), onTap)
     }
+}
 
 /**
- * Velo oscuro a pantalla completa con un agujero por cada rect de `controller.spotlightRects`, la
- * manita parpadeando junto al primero de ellos, y toda la superficie capturando el toque: solo el
- * que cae dentro de algún `tapTargets` dispara su `onTap` real.
+ * Velo oscuro a pantalla completa con un agujero por cada rect registrado bajo el `spotlightId`
+ * del paso activo, la manita parpadeando junto al primero de ellos, y toda la superficie
+ * capturando el toque: solo el que cae dentro de algún rect de `tapId` dispara su `onTap` real.
  */
 @Composable fun TutorialOverlay(controller: TutorialController) {
-    controller.beginFrame()
-    val holes = controller.spotlightRects
-    val taps = controller.tapTargets
+    val step = controller.step
+    // `boundsInRoot()` mide desde la raíz real de la ventana, pero este overlay vive dentro del
+    // mismo `Box` con `systemBarsPadding()` que el resto de la pantalla: su propio origen local no
+    // es (0,0) en esos términos. Se captura ese origen y se resta de cada rect para volver a
+    // coordenadas locales a este overlay, que es el espacio en el que se dibuja y se detectan toques.
+    var overlayOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    val holes = step?.let { controller.entriesFor(it.spotlightId).map { (r, _) -> r.translate(-overlayOrigin) } } ?: emptyList()
+    val taps = step?.let { controller.entriesFor(it.tapId).map { (r, onTap) -> r.translate(-overlayOrigin) to onTap } } ?: emptyList()
     val pulse = rememberInfiniteTransition(label = "tutorialPulse")
     val handAlpha by pulse.animateFloat(1f, .25f,
         infiniteRepeatable(tween(650), RepeatMode.Reverse), label = "handAlpha")
     BoxWithConstraints(Modifier.fillMaxSize()
+        .onGloballyPositioned { overlayOrigin = it.boundsInRoot().topLeft }
         .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
         .drawWithContent {
             drawContent()
@@ -84,7 +94,7 @@ fun Modifier.tutorialTarget(id: String, controller: TutorialController, onTap: (
                     cornerRadius = CornerRadius(8f, 8f), blendMode = BlendMode.Clear)
             }
         }
-        .pointerInput(controller.step) {
+        .pointerInput(step) {
             detectTapGestures { offset -> taps.firstOrNull { (rect, _) -> rect.contains(offset) }?.second?.invoke() }
         }
     ) {
