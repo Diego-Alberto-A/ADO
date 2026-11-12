@@ -16,3 +16,6 @@ local.properties
 
 # Packs de arte completos (solo se copian a art/ los archivos usados)
 /NewAssets
+
+# Pack de audio/puntero crudo (solo se copia a res/ lo que se usa)
+/latestAssets
