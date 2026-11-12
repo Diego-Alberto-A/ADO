@@ -31,6 +31,8 @@ class Simulation(val level: Level, source: Plan) {
     val emergencyRemaining: Float get() = maxOf(0f, stopUntil - time)
     private val trafficClocks = level.lanes.associateWith { 0f }.toMutableMap()
     var reason = ""; private set
+    var collapsedWalkerId: String? = null; private set
+    var collapsedLane: Lane? = null; private set
     val people = level.walkers.map { PersonState(it, crossings[plan.people[it.id]?.crossing ?: 1]) }
     fun carX(lane: Lane, ahead: Float = 0f): Float {
         val multiplier = (if("school" in plan.street) .7f else 1f) * (if("bump" in plan.street) .65f else 1f)
@@ -78,6 +80,8 @@ class Simulation(val level: Level, source: Plan) {
                 val near = abs(p.y-l.y)<.066f && abs(p.x-carX(l))<.115f
                 if(near && !yielding && !officer && !signalled && time >= stopUntil) {
                     phase = Phase.RETRY
+                    collapsedWalkerId = p.walker.id
+                    collapsedLane = l
                     reason = if(level.night) "De noche, usa el reflector para que puedan verte." else "Un coche estaba muy cerca. Prueba mirar antes de cruzar o cambia el punto de cruce."
                     return
                 }

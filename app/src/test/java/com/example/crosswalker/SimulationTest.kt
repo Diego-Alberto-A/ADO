@@ -35,6 +35,13 @@ class SimulationTest {
         }
     }
     @Test fun unprotectedTrafficCanTriggerFriendlyRetry() {assertEquals(Phase.RETRY,finish(Simulation(level().copy(lanes=listOf(Lane(.7f,0f,.7f,"car_coral"))),plan())).phase)}
+    @Test fun collisionRecordsWhichWalkerAndLaneCollapsed() {
+        val lane=Lane(.7f,0f,.7f,"car_coral")
+        val s=finish(Simulation(level().copy(lanes=listOf(lane)),plan()))
+        assertEquals(Phase.RETRY,s.phase)
+        assertEquals("ana",s.collapsedWalkerId)
+        assertEquals(lane,s.collapsedLane)
+    }
     @Test fun centreSignalStopsTraffic() {val s=Simulation(level(),plan("signal"));val x=s.carX(s.level.lanes[0]);repeat(30){s.tick()};assertEquals(x,s.carX(s.level.lanes[0]),0f);assertEquals(Phase.WON,finish(s).phase)}
     @Test fun wheelchairNeedsCrosswalkForFullSpeed() {
         val rider=Walker("mateo","Mateo","wheelchair",.12f,"walker_chair")
