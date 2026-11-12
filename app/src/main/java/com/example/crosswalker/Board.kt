@@ -119,10 +119,23 @@ private const val PIXEL = 1f
             val x=preview.carX(lane)*360f
             c.save();if(lane.speed<0)c.scale(-1f,1f,x,y)
             sprite(lane.car,x-26,y-19,52f,38f);c.restore()
+            // A twoWay lane looks like any other, but a second car shares the
+            // same strip going the other way — nothing marks it, on purpose.
+            if(lane.twoWay) {
+                val ox=preview.oncomingCarX(lane)*360f
+                c.save();if(lane.speed>=0)c.scale(-1f,1f,ox,y)
+                sprite(lane.car,ox-26,y-19,52f,38f);c.restore()
+            }
             if(!level.tutorial && sim != null) {
                 if(sim.carSpeed(lane)<.002f) label("ALTO",x,y-24f,8f,"#FFE07A")
                 else if(sim.isBraking(lane)) label("FRENA",x,y-24f,8f,"#F27A6B")
             }
+        }
+        // A fixed obstacle takes one crossing fully off the table, in every lane.
+        level.blockedCrossing?.let { bc ->
+            val obstacle=when(level.world) { 1->"obstacle_cone_campus";2->"car_yellow";else->"obstacle_barricade_barrio" }
+            val bx=Simulation.crossings[bc]*360f
+            level.lanes.forEach { lane -> sprite(obstacle,bx-20,lane.y*410f-18,40f,36f) }
         }
 
         // Near side: the pavement the pedestrians wait on.

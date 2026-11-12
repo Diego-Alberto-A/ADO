@@ -3,7 +3,8 @@ package com.example.crosswalker.game
 import kotlin.math.abs
 import org.json.JSONObject
 
-data class Lane(val y: Float, val speed: Float, val offset: Float, val car: String)
+data class Lane(val y: Float, val speed: Float, val offset: Float, val car: String,
+    val twoWay: Boolean = false, val oncomingOffset: Float = .7f)
 data class Walker(val id: String, val name: String, val kind: String, val speed: Float, val sprite: String)
 data class Level(
     val id: Int, val world: Int, val title: String, val lesson: String,
@@ -17,7 +18,8 @@ data class Level(
     val sight: List<Float> = listOf(.95f, .95f, .95f),
     val accessible: List<Int> = listOf(1),
     val island: Boolean = false,
-    val parCost: Int = 0
+    val parCost: Int = 0,
+    val blockedCrossing: Int? = null // obra/obstáculo fijo: ese cruce no es una opción válida
 )
 data class Tool(val id: String, val label: String, val icon: String, val cost: Int, val description: String, val category: String)
 fun Tool.explanation(level: Level): String = if(id == "look" && !level.tutorial)
@@ -40,11 +42,20 @@ class Simulation(val level: Level, source: Plan) {
     var collapsedLane: Lane? = null; private set
     val people = level.walkers.map { PersonState(it, crossings[plan.people[it.id]?.crossing ?: 1]) }
     data class Vehicle(var x: Float, var speed: Float, var reaction: Float = 0f, var braking: Boolean = false)
-    private val vehicles = level.lanes.associateWith { Vehicle(it.offset - .2f, abs(it.speed) * if("speed_zone" in plan.street && !level.tutorial) .55f else 1f) }
+    private fun baseSpeed(lane: Lane) = abs(lane.speed) * if("speed_zone" in plan.street && !level.tutorial) .55f else 1f
+    private val vehicles = level.lanes.associateWith { Vehicle(it.offset - .2f, baseSpeed(it)) }
+    // A twoWay lane also carries a hidden car coming from the other direction: the
+    // same strip looks one-way, but isn't — "Mirar"/"Confirmar alto" must clear both.
+    private val oncoming = level.lanes.filter { it.twoWay }.associateWith { Vehicle(it.oncomingOffset - .2f, baseSpeed(it)) }
+    private fun carsFor(lane: Lane): List<Pair<Vehicle, Float>> = buildList {
+        add(vehicles.getValue(lane) to direction(lane))
+        if(lane.twoWay) add(oncoming.getValue(lane) to -direction(lane))
+    }
     var impactSpeed = 0f; private set
     var feedback = ""; private set
     fun carSpeed(lane: Lane): Float = if(level.tutorial) abs(lane.speed) else vehicles.getValue(lane).speed
     fun isBraking(lane: Lane): Boolean = !level.tutorial && vehicles.getValue(lane).braking
+    fun oncomingCarX(lane: Lane): Float = oncoming.getValue(lane).x
     fun carX(lane: Lane, ahead: Float = 0f): Float {
         if(!level.tutorial) {
             val car = vehicles.getValue(lane)
@@ -134,6 +145,32 @@ class Simulation(val level: Level, source: Plan) {
     private fun deceleration() = if(level.weather == "rain") .055f else .12f
     private fun reject(message: String) { phase = Phase.RETRY; reason = message }
 
+    // One car's physics for one tick: shared by the lane's own car and, on a
+    // twoWay lane, the hidden car coming from the other direction (dir flipped).
+    private fun stepVehicle(lane: Lane, car: Vehicle, dir: Float, dt: Float) {
+        val nominal = abs(lane.speed) * if("speed_zone" in plan.street) .55f else 1f
+        // Red starts before the pedestrian phase, allowing reaction and actual braking.
+        val red = "signal" in plan.street && time % 22f < 16f
+        val targets = people.filter { p ->
+            val distance = (p.x - car.x) * dir
+            val detection = sight(p) * if(level.night && "visible" !in skills(p)) .45f else 1f
+            val atRoad = p.y > lane.y - .09f && p.y <= .94f
+            val marked = "crosswalk" in plan.street && crossing(p) in level.accessible
+            !p.done && atRoad && distance > .10f && distance < detection &&
+                (marked || (red && crossing(p) == 1))
+        }
+        val target = targets.minByOrNull { (it.x - car.x) * dir }
+        val distance = target?.let { (it.x - car.x) * dir - .12f }
+        val request = distance != null && distance <= stopDistance(car.speed) + .18f
+        car.reaction = if(request) car.reaction + dt else 0f
+        car.braking = request && car.reaction >= .65f
+        if(car.braking) {
+            // Brake even if too late; no visibility or right-of-way grants immunity.
+            car.speed = maxOf(0f, car.speed - deceleration() * dt)
+        } else car.speed = minOf(nominal, car.speed + .08f * dt)
+        car.x = wrap(car.x + dir * car.speed * dt)
+    }
+
     // All units are board fractions and seconds: an educational model, not road engineering data.
     private fun tickTraffic(dt: Float) {
         if(time == 0f) {
@@ -141,37 +178,24 @@ class Simulation(val level: Level, source: Plan) {
             val used = plan.street + plan.people.values.flatMap { it.skills }
             if(used.any { it !in available }) { reject("Esa ficha no está disponible en este camino."); return }
             if(plan.people.values.any { it.crossing !in 0..2 }) { reject("Elige uno de los tres cruces."); return }
+            if(level.blockedCrossing != null && plan.people.values.any { it.crossing == level.blockedCrossing }) {
+                reject("Ese cruce está bloqueado por una obra. Elige otro camino."); return
+            }
             val rider = people.firstOrNull { it.walker.kind == "wheelchair" &&
                 !("crosswalk" in plan.street && crossing(it) in level.accessible) }
             if(rider != null) { reject("${rider.walker.name} necesita una rampa accesible. El paso accesible está en el cruce indicado; pintar rayas no elimina un bordillo."); return }
+            // A plan missing Mirar/Confirmar alto (or still distracted by a phone) never
+            // starts: the risk is real (see tickTraffic's hidden traffic and collisions),
+            // but requiring attention up front means nobody is ever shown arriving "by luck".
+            val unprepared = people.firstOrNull { !focused(it) || skills(it).none { id -> id == "look" || id == "eye" } }
+            if(unprepared != null) { reject("${unprepared.walker.name} necesita Mirar o Confirmar alto, con el celular guardado, antes de cruzar."); return }
         }
         time += dt
         val previous = vehicles.mapValues { it.value.x }
+        val previousOncoming = oncoming.mapValues { it.value.x }
         val green = "signal" in plan.street && time % 22f in 3f..16f
-        vehicles.forEach { (lane, car) ->
-            val dir = direction(lane)
-            val nominal = abs(lane.speed) * if("speed_zone" in plan.street) .55f else 1f
-            // Red starts before the pedestrian phase, allowing reaction and actual braking.
-            val red = "signal" in plan.street && time % 22f < 16f
-            val targets = people.filter { p ->
-                val distance = (p.x - car.x) * dir
-                val detection = sight(p) * if(level.night && "visible" !in skills(p)) .45f else 1f
-                val atRoad = p.y > lane.y - .09f && p.y <= .94f
-                val marked = "crosswalk" in plan.street && crossing(p) in level.accessible
-                !p.done && atRoad && distance > .10f && distance < detection &&
-                    (marked || (red && crossing(p) == 1))
-            }
-            val target = targets.minByOrNull { (it.x - car.x) * dir }
-            val distance = target?.let { (it.x - car.x) * dir - .12f }
-            val request = distance != null && distance <= stopDistance(car.speed) + .18f
-            car.reaction = if(request) car.reaction + dt else 0f
-            car.braking = request && car.reaction >= .65f
-            if(car.braking) {
-                // Brake even if too late; no visibility or right-of-way grants immunity.
-                car.speed = maxOf(0f, car.speed - deceleration() * dt)
-            } else car.speed = minOf(nominal, car.speed + .08f * dt)
-            car.x = wrap(car.x + dir * car.speed * dt)
-        }
+        vehicles.forEach { (lane, car) -> stepVehicle(lane, car, direction(lane), dt) }
+        oncoming.forEach { (lane, car) -> stepVehicle(lane, car, -direction(lane), dt) }
         for(p in people) {
             if(p.done) continue
             val actions = skills(p)
@@ -183,28 +207,29 @@ class Simulation(val level: Level, source: Plan) {
             if(waiting && focused(p)) {
                 if("look" in actions) {
                     move = lanesAhead.all { lane ->
-                        val car = vehicles.getValue(lane)
                         val duration = (p.y - lane.y + .07f) / pace(p)
                         val arrival = maxOf(0f, (p.y - lane.y - .07f) / pace(p))
-                        // A stopped car is only safe when it has stopped BEFORE this crossing.
-                        val stopped = car.speed < .002f && (p.x - car.x) * direction(lane) > .115f
-                        val horizon = abs(lane.speed) * (if("speed_zone" in plan.street) .55f else 1f) * duration
-                        if(!stopped && horizon > sight(p)) false else
-                            (0..40).none { sample ->
-                                val t = arrival + (duration - arrival) * sample / 40
-                                // Predict free-flow speed conservatively; never rely on future braking.
-                                val x = wrap(car.x + direction(lane) * maxOf(car.speed, abs(lane.speed) *
-                                    if("speed_zone" in plan.street) .55f else 1f) * t)
-                                !stopped && abs(x - p.x) < .12f
-                            }
+                        carsFor(lane).all { (car, dir) ->
+                            // A stopped car is only safe when it has stopped BEFORE this crossing.
+                            val stopped = car.speed < .002f && (p.x - car.x) * dir > .115f
+                            val horizon = abs(lane.speed) * (if("speed_zone" in plan.street) .55f else 1f) * duration
+                            if(!stopped && horizon > sight(p)) false else
+                                (0..40).none { sample ->
+                                    val t = arrival + (duration - arrival) * sample / 40
+                                    // Predict free-flow speed conservatively; never rely on future braking.
+                                    val x = wrap(car.x + dir * maxOf(car.speed, abs(lane.speed) *
+                                        if("speed_zone" in plan.street) .55f else 1f) * t)
+                                    !stopped && abs(x - p.x) < .12f
+                                }
+                        }
                     }
                     if(!move) feedback = if(lanesAhead.any { abs(it.speed) * (if("speed_zone" in plan.street) .55f else 1f) * (p.y-it.y+.07f)/pace(p) > sight(p) })
                         "No hay visibilidad suficiente: busca un cruce despejado, luz, refugio o menos velocidad."
                     else "Esperando un hueco suficiente para completar el tramo sin detenerse en un carril."
                 }
                 if("eye" in actions) {
-                    val allStopped = lanesAhead.all { lane -> val car=vehicles.getValue(lane)
-                        car.speed < .002f && (p.x-car.x)*direction(lane) > .115f }
+                    val allStopped = lanesAhead.all { lane -> carsFor(lane).all { (car,dir) ->
+                        car.speed < .002f && (p.x-car.x)*dir > .115f } }
                     move = move && allStopped
                     if(!allStopped) feedback = "Confirmar alto: espera a que TODOS los carriles se detengan; una mirada no basta."
                 }
@@ -221,30 +246,31 @@ class Simulation(val level: Level, source: Plan) {
                 if(refuge(p) && oldY > .515f && p.y < .515f) p.y = .515f
             }
             for(lane in level.lanes) {
-                val oldX = previous.getValue(lane)
-                val car = vehicles.getValue(lane)
+                val hits = buildList {
+                    add(Triple(vehicles.getValue(lane), previous.getValue(lane), false))
+                    if(lane.twoWay) add(Triple(oncoming.getValue(lane), previousOncoming.getValue(lane), true))
+                }
                 // Swept rectangles: solve the overlapping time intervals, not just frame endpoints.
                 // A wrap is a new car entering offscreen, never a sweep across the whole road.
-                if(abs(car.x-oldX) < .7f && sweptHit(oldX, car.x, oldY, p.y, p.x, lane.y)) {
-                    impactSpeed = car.speed
-                    collapsedWalkerId = p.walker.id; collapsedLane = lane
-                    val cause = when {
-                        !focused(p) -> "El celular distrajo a ${p.walker.name}. Guardarlo permite prestar atención, pero también hace falta comprobar el tráfico."
-                        level.weather == "rain" -> "Con lluvia el coche necesita más distancia para frenar. Reduce la velocidad y espera un hueco o un alto completo."
-                        level.night -> "Con poca luz te detectaron tarde. Ser visible ayuda, pero no sustituye comprobar cada carril."
-                        else -> "El coche no podía detenerse dentro de la distancia disponible. Comprueba todos los carriles antes de salir."
+                for((car, oldX, isOncoming) in hits) {
+                    if(abs(car.x-oldX) < .7f && sweptHit(oldX, car.x, oldY, p.y, p.x, lane.y)) {
+                        impactSpeed = car.speed
+                        collapsedWalkerId = p.walker.id; collapsedLane = lane
+                        val cause = when {
+                            !focused(p) -> "El celular distrajo a ${p.walker.name}. Guardarlo permite prestar atención, pero también hace falta comprobar el tráfico."
+                            isOncoming -> "Un coche venía en sentido contrario, por donde no esperabas tráfico. Mira hacia los dos lados antes de cruzar."
+                            level.weather == "rain" -> "Con lluvia el coche necesita más distancia para frenar. Reduce la velocidad y espera un hueco o un alto completo."
+                            level.night -> "Con poca luz te detectaron tarde. Ser visible ayuda, pero no sustituye comprobar cada carril."
+                            else -> "El coche no podía detenerse dentro de la distancia disponible. Comprueba todos los carriles antes de salir."
+                        }
+                        reject((if(impactSpeed < .04f) "Contacto a baja velocidad: también puede hacer daño. " else "Choque: el coche seguía en movimiento. ") + cause)
+                        return
                     }
-                    reject((if(impactSpeed < .04f) "Contacto a baja velocidad: también puede hacer daño. " else "Choque: el coche seguía en movimiento. ") + cause)
-                    return
                 }
             }
             if(p.y <= .08f) p.done = true
         }
-        if(people.all { it.done }) {
-            val unsafe = people.firstOrNull { !focused(it) || skills(it).none { id -> id == "look" || id == "eye" } }
-            if(unsafe != null) reject("${unsafe.walker.name} llegó por suerte, sin comprobar el tráfico con atención. El objetivo es un cruce seguro: guarda el celular si lo lleva y elige Mirar o Confirmar alto.")
-            else { phase = Phase.WON; feedback = "¡Todos llegaron con un plan seguro!" }
-        }
+        if(people.all { it.done }) { phase = Phase.WON; feedback = "¡Todos llegaron con un plan seguro!" }
         if(time >= 90f && phase == Phase.RUNNING) reject("Nadie debe cruzar sin condiciones seguras. $feedback Cambia el cruce o combina otras fichas.")
     }
     private fun sweptHit(x0: Float, x1: Float, y0: Float, y1: Float, px: Float, ly: Float): Boolean {
@@ -272,7 +298,8 @@ private fun JSONObject.stringList(key: String): List<String> =
 
 fun parseLevel(json: JSONObject): Level {
     val lanes = json.getJSONArray("lanes").let { a -> List(a.length()) { i -> a.getJSONObject(i).let {
-        Lane(it.getDouble("y").toFloat(), it.getDouble("speed").toFloat(), it.getDouble("offset").toFloat(), it.getString("car"))
+        Lane(it.getDouble("y").toFloat(), it.getDouble("speed").toFloat(), it.getDouble("offset").toFloat(), it.getString("car"),
+            it.optBoolean("twoWay", false), it.optDouble("oncomingOffset", .7).toFloat())
     } } }
     val walkers = json.getJSONArray("walkers").let { a -> List(a.length()) { i -> a.getJSONObject(i).let {
         Walker(it.getString("id"), it.getString("name"), it.getString("kind"), it.getDouble("speed").toFloat(), it.getString("sprite"))
@@ -285,6 +312,7 @@ fun parseLevel(json: JSONObject): Level {
         json.optString("readyMessage", ""), json.optString("weather", "dry"),
         if(json.has("sight")) json.getJSONArray("sight").let { a -> List(a.length()) { a.getDouble(it).toFloat() } } else listOf(.95f,.95f,.95f),
         if(json.has("accessible")) json.getJSONArray("accessible").let { a -> List(a.length()) { a.getInt(it) } } else listOf(1),
-        json.optBoolean("island", false), json.optInt("parCost", 0)
+        json.optBoolean("island", false), json.optInt("parCost", 0),
+        if(json.has("blockedCrossing")) json.getInt("blockedCrossing") else null
     )
 }
