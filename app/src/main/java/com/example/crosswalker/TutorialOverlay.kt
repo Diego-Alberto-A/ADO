@@ -22,15 +22,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -38,52 +38,56 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
+/** Lo que un composable candidato registra: dónde está, qué hace al tocarlo y cómo se ve. */
+class TutorialEntry(val rect: Rect, val onTap: () -> Unit, val layer: GraphicsLayer)
+
 /**
- * Qué paso está activo, y un registro persistente de "qué composable con qué id está dónde y qué
- * hace al tocarlo". El registro se mantiene actualizado SIEMPRE (no solo cuando su id coincide con
- * el paso activo): `onGloballyPositioned` solo se dispara cuando el layout cambia de verdad, nunca
- * solo porque cambió el paso activo, así que si solo registráramos "mientras coincide" perderíamos
- * la posición exacta en el momento en que un paso nuevo empieza. Cada composable usa su propio
- * token estable como parte de la clave, para que varios compartan el mismo id (los 3 cruces
- * comparten "crossing") sin pisarse entre sí.
+ * Qué paso está activo, y un registro persistente de los composables candidatos. El registro se
+ * mantiene actualizado SIEMPRE (no solo cuando su id coincide con el paso activo):
+ * `onGloballyPositioned` solo se dispara cuando el layout cambia de verdad, nunca solo porque
+ * cambió el paso activo. Cada composable usa su propio token estable como parte de la clave, para
+ * que varios compartan el mismo id (los 3 cruces comparten "crossing") sin pisarse entre sí.
  */
 class TutorialController {
     var step: TutorialStep? by mutableStateOf(null)
-    private val registry = mutableStateMapOf<Pair<String, Any>, Pair<Rect, () -> Unit>>()
-    fun register(id: String, token: Any, rect: Rect, onTap: () -> Unit) { registry[id to token] = rect to onTap }
+    private val registry = mutableStateMapOf<Pair<String, Any>, TutorialEntry>()
+    fun register(id: String, token: Any, entry: TutorialEntry) { registry[id to token] = entry }
     fun unregister(token: Any) { registry.keys.filter { it.second == token }.forEach { registry.remove(it) } }
-    fun entriesFor(id: String): List<Pair<Rect, () -> Unit>> = registry.filterKeys { it.first == id }.values.toList()
+    fun entriesFor(id: String): List<TutorialEntry> = registry.filterKeys { it.first == id }.values.toList()
 }
 
 /**
- * Registra (y mantiene al día) la posición de este composable y su `onTap` real bajo `id`, sin
- * importar si `id` es el objetivo activo ahora mismo. `TutorialOverlay` decide, al leer
- * `controller.step`, cuáles de estos registros le importan en cada momento.
+ * Registra (y mantiene al día) este composable bajo `id`: su posición, su `onTap` real y una
+ * `GraphicsLayer` en la que graba su propio dibujo en cada fotograma. Esa capa es lo que permite a
+ * `TutorialOverlay` volver a pintar el elemento, píxel por píxel, por encima del velo oscuro — sin
+ * recortar el velo ni duplicar el composable (y su estado). El elemento se sigue dibujando también
+ * en su sitio, debajo del velo; la copia de arriba lo tapa exactamente.
  */
 fun Modifier.tutorialTarget(id: String, controller: TutorialController, onTap: () -> Unit): Modifier = composed {
     val token = remember { Any() }
+    val layer = rememberGraphicsLayer()
     DisposableEffect(token) { onDispose { controller.unregister(token) } }
     this.onGloballyPositioned { coordinates ->
-        controller.register(id, token, coordinates.boundsInRoot(), onTap)
-    }
+            controller.register(id, token, TutorialEntry(coordinates.boundsInRoot(), onTap, layer))
+        }
+        .drawWithContent {
+            layer.record { this@drawWithContent.drawContent() }
+            drawLayer(layer)
+        }
 }
 
 /**
- * Velo guiado del tutorial, en capas explícitas de abajo hacia arriba:
+ * Velo guiado del tutorial, en tres capas de abajo hacia arriba:
  *
- * 1. La pantalla real del juego (un hermano anterior de este composable, no algo que dibuje aquí)
- *    queda siempre debajo, oscurecida por el velo.
- * 2. El velo oscuro semitransparente, con un agujero recortado (totalmente nítido, sin oscurecer)
- *    por cada elemento que debe verse con claridad ahora: el objetivo señalado de este paso Y,
- *    siempre, la caja de diálogo — así el jugador nunca pierde de vista lo que tiene que hacer.
- * 3. Un recuadro de borde resaltando el objetivo señalado de este paso (no la caja de diálogo,
- *    salvo que ella misma sea el objetivo), dibujado encima del velo.
- * 4. La manita, siempre encima del velo y colocada por debajo del recuadro que de verdad hay que
- *    tocar para avanzar (el objetivo del toque, no necesariamente el mismo que el señalado).
+ * 1. La pantalla real del juego (un hermano anterior de este composable) queda debajo, entera:
+ *    se ve a través del velo, atenuada, y no recibe toques.
+ * 2. El velo negro semitransparente cubriendo toda la pantalla, sin recortes.
+ * 3. Encima del velo, y por eso resaltados por sí solos: una copia exacta de cada elemento que
+ *    toca ver con claridad ahora — el objetivo señalado del paso y, siempre, la caja de diálogo —
+ *    y la manita, colocada debajo del objetivo que de verdad hay que tocar.
  *
  * Toda la superficie captura el toque: solo el que cae dentro de algún rect de `tapId` dispara su
- * `onTap` real; cualquier otro, incluido uno dentro del agujero "siempre visible" del diálogo
- * cuando ese paso no lo pide, no hace nada. Única excepción: PAUSA siempre es un toque válido,
+ * `onTap` real; cualquier otro no hace nada. Única excepción: PAUSA siempre es un toque válido,
  * sin importar el paso activo — igual que el botón de retroceso del sistema, que ni pasa por aquí.
  */
 @Composable fun TutorialOverlay(controller: TutorialController) {
@@ -93,44 +97,34 @@ fun Modifier.tutorialTarget(id: String, controller: TutorialController, onTap: (
     // es (0,0) en esos términos. Se captura ese origen y se resta de cada rect para volver a
     // coordenadas locales a este overlay, que es el espacio en el que se dibuja y se detectan toques.
     var overlayOrigin by remember { mutableStateOf(Offset.Zero) }
-    val spotlightHoles = step?.let { controller.entriesFor(it.spotlightId).map { (r, _) -> r.translate(-overlayOrigin) } } ?: emptyList()
+    fun local(e: TutorialEntry) = e.rect.translate(-overlayOrigin)
+    val spotlight = step?.let { controller.entriesFor(it.spotlightId) } ?: emptyList()
     // El diálogo se mantiene legible siempre, sea o no el objetivo de este paso en particular.
-    val dialogueHoles = controller.entriesFor("dialogue").map { (r, _) -> r.translate(-overlayOrigin) }
-    val visibleHoles = (spotlightHoles + dialogueHoles).distinct()
-    // PAUSA sigue funcionando en todo momento, aunque el paso activo señale otra cosa: se añade
-    // siempre a los toques válidos, sin pasar por `step.tapId`.
-    val pauseTaps = controller.entriesFor("pause").map { (r, onTap) -> r.translate(-overlayOrigin) to onTap }
-    val stepTaps = step?.let { controller.entriesFor(it.tapId).map { (r, onTap) -> r.translate(-overlayOrigin) to onTap } } ?: emptyList()
-    val taps = (pauseTaps + stepTaps).distinctBy { it.first }
+    val elevated = (spotlight + controller.entriesFor("dialogue")).distinct()
+    // PAUSA sigue funcionando en todo momento, aunque el paso activo señale otra cosa.
+    val stepTaps = step?.let { controller.entriesFor(it.tapId) } ?: emptyList()
+    val taps = (controller.entriesFor("pause") + stepTaps).distinct()
     val pulse = rememberInfiniteTransition(label = "tutorialPulse")
     val handAlpha by pulse.animateFloat(1f, .25f,
         infiniteRepeatable(tween(650), RepeatMode.Reverse), label = "handAlpha")
     val hand = ImageBitmap.imageResource(R.drawable.pointer_hand)
 
     Box(Modifier.fillMaxSize().onGloballyPositioned { overlayOrigin = it.boundsInRoot().topLeft }) {
-        // Capas 1-3: el velo, sus agujeros y el recuadro de borde, todos en un mismo Canvas — cada
-        // llamada posterior dentro de él compone por encima de la anterior, así que el borde
-        // (dibujado al final) queda por encima del velo sin necesidad de un composable aparte.
-        Canvas(Modifier.fillMaxSize()
-            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-            .pointerInput(step) {
-                detectTapGestures { offset -> taps.firstOrNull { (rect, _) -> rect.contains(offset) }?.second?.invoke() }
-            }
-        ) {
+        Canvas(Modifier.fillMaxSize().pointerInput(step) {
+            detectTapGestures { offset -> taps.firstOrNull { local(it).contains(offset) }?.onTap?.invoke() }
+        }) {
+            // Capa 2: el velo completo.
             drawRect(Color.Black.copy(alpha = .55f))
-            visibleHoles.forEach { r ->
-                drawRoundRect(Color.Transparent, topLeft = r.topLeft, size = r.size,
-                    cornerRadius = CornerRadius(8f, 8f), blendMode = BlendMode.Clear)
-            }
-            spotlightHoles.forEach { r ->
-                drawRoundRect(Color(0xFFFFE07A), topLeft = r.topLeft, size = r.size,
-                    cornerRadius = CornerRadius(8f, 8f), style = Stroke(width = 4f))
+            // Capa 3: cada elemento resaltado, pintado de nuevo encima del velo en su mismo sitio.
+            elevated.forEach { e ->
+                val at = local(e).topLeft
+                translate(at.x, at.y) { drawLayer(e.layer) }
             }
         }
-        // Capa 4: la manita, siempre encima del velo y de su recuadro, colocada debajo del
-        // objetivo que de verdad hay que tocar (el de `tapId`, que en los pasos puramente
-        // informativos es la caja de diálogo, no el elemento señalado).
-        val tapTarget = taps.firstOrNull()?.first
+        // La manita, encima de todo, debajo del objetivo que de verdad hay que tocar (el de
+        // `tapId`, que en los pasos puramente informativos es la caja de diálogo, no el elemento
+        // señalado). Se usa `stepTaps`, no `taps`: PAUSA encabeza `taps` por ser la excepción global.
+        val tapTarget = stepTaps.firstOrNull()?.let { local(it) }
         if (tapTarget != null) {
             Image(
                 bitmap = hand,

@@ -59,9 +59,15 @@ class Session(val repo: GameRepository): ViewModel() {
     fun navigate(destination: String) {
         if (destination != screen) transition(if (destination == "home" || (screen == "game" && destination == "map")) ScreenMotion.BACKWARD else ScreenMotion.FORWARD) {
             if (screen == "game") { simulation=null; paused=false; world=level.world }
+            // Volver al menú (inicio o mapa) es lo único que vuelve a permitir música de fondo
+            // después de una victoria.
+            musicSuspended=false
             screen=destination
         }
     }
+    // Tras ganar, solo suena la música de victoria: ninguna otra pista arranca (ni la del siguiente
+    // nivel) hasta volver al menú.
+    var musicSuspended by mutableStateOf(false)
     fun changeWorld(next: Int) {
         if (next != world) transition(if (next < world) ScreenMotion.WORLD_BACKWARD else ScreenMotion.WORLD_FORWARD) { world=next }
     }
@@ -110,8 +116,8 @@ class MainActivity: ComponentActivity() {
     // La clave incluye `s.level.world` además de `s.world`: "SIGUIENTE CAMINO" puede llevar de un
     // nivel a otro de distinto mundo sin pasar por el mapa, así que `s.screen` se queda en "game" y
     // `s.world` (la pestaña del mapa) no cambia — solo `s.level.world` lo hace.
-    LaunchedEffect(s.screen, s.world, s.level.world) {
-        com.example.crosswalker.audio.musicForScreen(s.screen, if (s.screen=="game") s.level.world else s.world)
+    LaunchedEffect(s.screen, s.world, s.level.world, s.musicSuspended) {
+        if (!s.musicSuspended) com.example.crosswalker.audio.musicForScreen(s.screen, if (s.screen=="game") s.level.world else s.world)
             ?.let { sound.playMusic(it) }
     }
     DisposableEffect(Unit) {
@@ -259,6 +265,10 @@ class MainActivity: ComponentActivity() {
                 s.showResultDialog = true
             }
             Phase.WON -> {
+                // Llegaron todos: se corta la música del nivel y solo suena la de victoria. Nada
+                // más vuelve a sonar hasta regresar al menú (ver `Session.musicSuspended`).
+                s.musicSuspended = true
+                engine?.stopMusic()
                 if (engine != null) engine.playOneShot(R.raw.music_win, onHalfway = { s.showResultDialog = true })
                 else s.showResultDialog = true
             }
