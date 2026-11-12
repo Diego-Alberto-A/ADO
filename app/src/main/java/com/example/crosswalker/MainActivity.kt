@@ -79,6 +79,8 @@ class Session(val repo: GameRepository): ViewModel() {
     var introIndex by mutableIntStateOf(0)
     var sound: com.example.crosswalker.audio.SoundEngine? = null
     var showResultDialog by mutableStateOf(false)
+    val tutorialController = TutorialController()
+    val tutorialActive: Boolean get() = level.tutorial && !repo.tutorialDone
     fun enter(l: Level) { transition(ScreenMotion.FORWARD) { sound?.playSfx(R.raw.sfx_enter_level); level=l; reset(); screen="game" } }
     fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; showResultDialog=false; frame++ }
     fun toggle(t: Tool) {
@@ -139,6 +141,7 @@ class MainActivity: ComponentActivity() {
             }
         }
         }
+        if (s.screen=="game" && s.tutorialActive) TutorialOverlay(s.tutorialController)
         if(s.dialog=="settings") PaperDialog("A TU MANERA", {s.dialog=""}) {
             var sound by remember { mutableStateOf(s.repo.sound) }
             var guidance by remember { mutableStateOf(s.repo.guidance) }
@@ -237,6 +240,9 @@ class MainActivity: ComponentActivity() {
     val planning=sim==null
     val selectedWalker=s.level.walkers.first { it.id==s.selected }
     val cost=s.plan.cost(s.repo.tools)
+    val lookChosen="look" in s.plan.people.getValue(s.selected).skills
+    s.tutorialController.step = if (s.tutorialActive)
+        tutorialStepFor(s.introIndex, s.level.introLines.size, lookChosen) else null
     LaunchedEffect(sim?.phase) {
         when (sim?.phase) {
             Phase.RETRY -> if (sim.collapsedWalkerId != null) {
@@ -259,15 +265,19 @@ class MainActivity: ComponentActivity() {
         Column(Modifier.padding(horizontal=14.dp).padding(bottom=8.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
         if(preparing) {
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) { s.level.walkers.forEach { w -> CraftChip(selected=s.selected==w.id,onClick={s.selected=w.id;click()},label={Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {if(s.selected==w.id) FocusCursor(Ink);WalkerArtwork(w);Text(w.name+if(s.plan.people.getValue(w.id).skills.isNotEmpty()) " ✓" else "")}}) } }
-            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",style=BodyText,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label -> CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick={val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next},label={Text(label)}) } }
-            Row { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}});Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
+            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",style=BodyText,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label ->
+                val pick = { val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next }
+                Box(Modifier.tutorialTarget("crossing",s.tutorialController,pick)) { CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick=pick,label={Text(label)}) }
+            } }
+            Row { Box(Modifier.tutorialTarget("tab_skill",s.tutorialController){s.tab="skill"}) { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}}) };Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
             Crossfade(targetState=s.tab, animationSpec=tween(180), label="toolCategory") { category ->
             val toolScroll=rememberScrollState()
             Box(Modifier.fillMaxWidth()) {
             // When the cards overflow, leave a gutter on the right for the "more" arrow.
             Row(Modifier.fillMaxWidth().padding(end=if(toolScroll.maxValue>0) 16.dp else 0.dp).horizontalScroll(toolScroll),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category && it.id in s.level.tools}.forEach { t ->
                 val active=if(t.category=="street") t.id in s.plan.street else t.id in s.plan.people.getValue(s.selected).skills
-                Column(Modifier.width(84.dp).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable {s.toggle(t);click()}.padding(horizontal=4.dp,vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,minLines=2,maxLines=2,textAlign=TextAlign.Center);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
+                val pick = { s.toggle(t);click() }
+                Column(Modifier.width(84.dp).tutorialTarget(if(t.id=="look")"tool_look" else "",s.tutorialController,pick).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable(onClick=pick).padding(horizontal=4.dp,vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,minLines=2,maxLines=2,textAlign=TextAlign.Center);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
             } }
             // A fifth card can hide past the right edge: blink an arrow in the gutter until the player scrolls.
             if(toolScroll.canScrollForward) Box(Modifier.align(Alignment.CenterEnd).rotate(-90f)) { MoreTextArrow(Orange.dark,HudStrong.copy(fontSize=14.sp,lineHeight=14.sp)) }
@@ -283,10 +293,14 @@ class MainActivity: ComponentActivity() {
                 else -> s.message
             }
             val onAdvance:(()->Unit)?=if(s.level.tutorial && !introDone) ({ s.introIndex++ }) else null
-            if(s.repo.guidance) DialogueBox(displayMessage,selectedWalker.name,walkerAccent(selectedWalker.sprite),
-                remember(s.level,s.repo.tools) { Lexicon.of(s.level,s.repo.tools) },
-                Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id),onAdvance=onAdvance,voice=s.sound)
-            PaperButton("▶   PONER EL PLAN EN MARCHA") {click();s.simulation=Simulation(s.level,s.plan)}
+            val advanceDialogue = { if (s.introIndex < s.level.introLines.size - 1) s.introIndex++ }
+            if(s.repo.guidance) Box(Modifier.heightIn(min=56.dp).tutorialTarget("dialogue",s.tutorialController,advanceDialogue)) {
+                DialogueBox(displayMessage,selectedWalker.name,walkerAccent(selectedWalker.sprite),
+                    remember(s.level,s.repo.tools) { Lexicon.of(s.level,s.repo.tools) },
+                    blip=blip(selectedWalker.id),onAdvance=onAdvance,voice=s.sound)
+            }
+            val launch = { click();if(s.tutorialActive) s.repo.tutorialDone=true;s.simulation=Simulation(s.level,s.plan) }
+            Box(Modifier.tutorialTarget("launch",s.tutorialController,launch)) { PaperButton("▶   PONER EL PLAN EN MARCHA",onClick=launch) }
         } else if(sim!=null) {
             PaperButton(if(sim!!.emergencyUsed) "AYUDA UTILIZADA" else "✋  PARAR TRÁFICO · 1 USO",Brick,enabled=!sim.emergencyUsed && sim.phase==Phase.RUNNING) {sim.emergency();s.frame++;click()}
         }
@@ -294,9 +308,9 @@ class MainActivity: ComponentActivity() {
         }
     }
         Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.Top) {
-            HudButton("Ⅱ","Pausa") { s.paused=true }
+            Box(Modifier.tutorialTarget("pause",s.tutorialController){s.paused=true}) { HudButton("Ⅱ","Pausa") { s.paused=true } }
             Spacer(Modifier.weight(1f))
-            TokenCounter(s.level.budget-cost,s.level.budget)
+            TokenCounter(s.level.budget-cost,s.level.budget,Modifier.tutorialTarget("tokens",s.tutorialController){})
         }
     }
     if(sim?.phase==Phase.RETRY || (sim?.phase==Phase.WON && s.showResultDialog)) {

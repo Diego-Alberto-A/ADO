@@ -19,4 +19,7 @@ class GameRepository(context: Context) {
     var guidance: Boolean
         get() = prefs.getBoolean("guidance",true)
         set(value) { prefs.edit().putBoolean("guidance",value).apply() }
+    var tutorialDone: Boolean
+        get() = prefs.getBoolean("tutorial_done",false)
+        set(value) { prefs.edit().putBoolean("tutorial_done",value).apply() }
 }
