@@ -49,7 +49,7 @@
 - Produces: `fun parseTool(json: JSONObject): Tool`
 - Produces: `fun parseLevel(json: JSONObject): Level`
 
-- [ ] **Step 1: Añadir la dependencia de test para `org.json`**
+- [x] **Step 1: Añadir la dependencia de test para `org.json`**
 
 En `app/build.gradle.kts`, dentro del bloque `dependencies { ... }`, añade:
 
@@ -57,7 +57,7 @@ En `app/build.gradle.kts`, dentro del bloque `dependencies { ... }`, añade:
     testImplementation("org.json:json:20231013")
 ```
 
-- [ ] **Step 2: Escribir el test que falla**
+- [x] **Step 2: Escribir el test que falla**
 
 Crea `app/src/test/java/com/example/crosswalker/game/ParsingTest.kt`:
 
@@ -109,12 +109,12 @@ class ParsingTest {
 }
 ```
 
-- [ ] **Step 3: Verificar que falla**
+- [x] **Step 3: Verificar que falla**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.game.ParsingTest"`
 Expected: FAIL (no existe `parseTool`/`parseLevel`, ni los campos nuevos en `Level`).
 
-- [ ] **Step 4: Implementar `Level` con los campos nuevos y `parseTool`/`parseLevel`**
+- [x] **Step 4: Implementar `Level` con los campos nuevos y `parseTool`/`parseLevel`**
 
 En `app/src/main/java/com/example/crosswalker/game/Simulation.kt`, reemplaza:
 
@@ -164,7 +164,7 @@ fun parseLevel(json: JSONObject): Level {
 }
 ```
 
-- [ ] **Step 5: Usar `parseTool`/`parseLevel` en `GameRepository`**
+- [x] **Step 5: Usar `parseTool`/`parseLevel` en `GameRepository`**
 
 En `app/src/main/java/com/example/crosswalker/data/GameRepository.kt`, reemplaza las líneas que construyen `tools` y `levels` inline por:
 
@@ -173,17 +173,17 @@ En `app/src/main/java/com/example/crosswalker/data/GameRepository.kt`, reemplaza
     val levels = root.getJSONArray("levels").let { a -> List(a.length()) { parseLevel(a.getJSONObject(it)) } }
 ```
 
-- [ ] **Step 6: Verificar que el test pasa**
+- [x] **Step 6: Verificar que el test pasa**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.game.ParsingTest"`
 Expected: PASS (3 tests).
 
-- [ ] **Step 7: Verificar que no se rompió nada existente**
+- [x] **Step 7: Verificar que no se rompió nada existente**
 
 Run: `./gradlew :app:testDebugUnitTest`
 Expected: PASS (todos los tests existentes siguen verdes; `SimulationTest` construye `Level` sin los campos nuevos y debe seguir compilando gracias a los defaults).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/build.gradle.kts app/src/main/java/com/example/crosswalker/game/Simulation.kt app/src/main/java/com/example/crosswalker/data/GameRepository.kt app/src/test/java/com/example/crosswalker/game/ParsingTest.kt
@@ -202,7 +202,7 @@ git commit -m "feat: parsear fichas y niveles por nivel desde JSON"
 - Consumes: `Level`, `Walker`, `Plan`, `Assignment`, `Simulation` (ya existentes).
 - Produces: comportamiento de `kind == "wheelchair"` (necesita `"crosswalk"` en `plan.street` para velocidad normal) y `kind == "phone"` (necesita `"phone_away"` en las habilidades propias para que `"look"` proteja).
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [x] **Step 1: Escribir los tests que fallan**
 
 Añade al final de la clase `SimulationTest` (mismo archivo, reutiliza los helpers privados `level()`/`finish()` ya existentes):
 
@@ -237,12 +237,12 @@ Añade al final de la clase `SimulationTest` (mismo archivo, reutiliza los helpe
     }
 ```
 
-- [ ] **Step 2: Verificar que fallan**
+- [x] **Step 2: Verificar que fallan**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.game.SimulationTest"`
 Expected: FAIL (`wheelchairNeedsCrosswalkForFullSpeed` y `phoneAwayRestoresLooksProtection` probablemente no terminan en `WON` distinto, o fallan por tiempos iguales; `phoneKindGetsNoBenefitFromLookAlone` falla porque hoy `"look"` sí tiene efecto para cualquier `kind`).
 
-- [ ] **Step 3: Implementar las reglas en `tick()`**
+- [x] **Step 3: Implementar las reglas en `tick()`**
 
 En `app/src/main/java/com/example/crosswalker/game/Simulation.kt`, dentro de `tick()`, reemplaza:
 
@@ -265,12 +265,12 @@ por:
             if(lane != null && looking) {
 ```
 
-- [ ] **Step 4: Verificar que pasan**
+- [x] **Step 4: Verificar que pasan**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.game.SimulationTest"`
 Expected: PASS (todos, incluidos los 3 nuevos).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/game/Simulation.kt app/src/test/java/com/example/crosswalker/SimulationTest.kt
@@ -291,7 +291,7 @@ git commit -m "feat: peatones en silla de ruedas y distraidos con el celular"
 - Consumes: `parseTool`, `parseLevel` (Task 1), `Simulation`, `Phase`, `Plan`, `Assignment` (existentes).
 - Produces: el contenido real de `campaign.json` que todas las tareas de UI (4 y 5) van a ejercitar.
 
-- [ ] **Step 1: Escribir el test de contenido que falla**
+- [x] **Step 1: Escribir el test de contenido que falla**
 
 Añade al final de `SimulationTest.kt`, **reemplazando** el test existente `campaignArchetypesHaveSafeSolutions` (que asumía un patrón de 3 carriles fijo que ya no aplica):
 
@@ -314,12 +314,12 @@ Añade al final de `SimulationTest.kt`, **reemplazando** el test existente `camp
     }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.game.SimulationTest"`
 Expected: FAIL — `campaign.json` todavía no tiene `tools`/el contenido nuevo (o directamente no compila porque `campaignArchetypesHaveSafeSolutions` ya no existe en el código fuente si lo borraste primero; bórralo antes de este paso).
 
-- [ ] **Step 3: Reescribir `campaign.json`**
+- [x] **Step 3: Reescribir `campaign.json`**
 
 Reemplaza TODO el contenido de `app/src/main/assets/campaign.json` por:
 
@@ -529,7 +529,7 @@ Reemplaza TODO el contenido de `app/src/main/assets/campaign.json` por:
 }
 ```
 
-- [ ] **Step 4: Añadir el ícono de "Guarda el celular"**
+- [x] **Step 4: Añadir el ícono de "Guarda el celular"**
 
 En `app/src/main/java/com/example/crosswalker/CraftArt.kt`, dentro de `ToolArtwork`, añade una rama antes del `else`:
 
@@ -539,21 +539,21 @@ En `app/src/main/java/com/example/crosswalker/CraftArt.kt`, dentro de `ToolArtwo
 
 (Reutiliza el ícono de "esperar" como marcador visual más cercano hasta que se genere arte dedicado.)
 
-- [ ] **Step 5: Actualizar el título de nivel 1 en el test instrumentado existente**
+- [x] **Step 5: Actualizar el título de nivel 1 en el test instrumentado existente**
 
 En `app/src/androidTest/java/com/example/crosswalker/NavigationTransitionsTest.kt`, reemplaza las dos ocurrencias de `"Primeros pasos"` por `"Mi primer cruce"`.
 
-- [ ] **Step 6: Verificar que el test de contenido pasa**
+- [x] **Step 6: Verificar que el test de contenido pasa**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.game.SimulationTest"`
 Expected: PASS. Si `allLevelsHaveASafeSolutionWithTheirAvailableTools` falla para algún nivel específico, el mensaje indica cuál (`Level N (título)`); ajusta el `offset` de ese nivel en `campaign.json` (súmale o réstale entre 0.1 y 0.3) y vuelve a correr el test hasta que pase — los números de arriba son el punto de partida, no son sagrados.
 
-- [ ] **Step 7: Correr toda la suite JVM**
+- [x] **Step 7: Correr toda la suite JVM**
 
 Run: `./gradlew :app:testDebugUnitTest`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/src/main/assets/campaign.json app/src/main/java/com/example/crosswalker/CraftArt.kt app/src/androidTest/java/com/example/crosswalker/NavigationTransitionsTest.kt app/src/test/java/com/example/crosswalker/SimulationTest.kt
@@ -573,7 +573,7 @@ git commit -m "feat: contenido de los 12 niveles con fichas y mapas progresivos"
 - Consumes: `Level.tutorial/introLines/lesson/readyMessage` (Task 1/3), `DialogueBox` (existente).
 - Produces: `DialogueBox(..., onAdvance: (() -> Unit)? = null)`; `Session.introIndex: Int`.
 
-- [ ] **Step 1: Escribir el test instrumentado que falla**
+- [x] **Step 1: Escribir el test instrumentado que falla**
 
 Crea `app/src/androidTest/java/com/example/crosswalker/TutorialTest.kt`:
 
@@ -614,12 +614,12 @@ class TutorialTest {
 }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.TutorialTest"`
 Expected: FAIL (hoy el mensaje mostrado es siempre `level.lesson` desde el inicio; no hay cola de `introLines` ni avance al tocar la caja).
 
-- [ ] **Step 3: `DialogueBox` gana `onAdvance`**
+- [x] **Step 3: `DialogueBox` gana `onAdvance`**
 
 En `app/src/main/java/com/example/crosswalker/Dialogue.kt`, en la firma de `DialogueBox`, añade el parámetro:
 
@@ -649,7 +649,7 @@ por:
                 }
 ```
 
-- [ ] **Step 4: `Session` gana `introIndex` y deja de pisar el mensaje en el tutorial**
+- [x] **Step 4: `Session` gana `introIndex` y deja de pisar el mensaje en el tutorial**
 
 En `app/src/main/java/com/example/crosswalker/MainActivity.kt`, en la clase `Session`:
 
@@ -673,7 +673,7 @@ por:
         plan=next; if(!level.tutorial) message=t.description
 ```
 
-- [ ] **Step 5: `Game` calcula el mensaje reactivo y lo pasa a `DialogueBox`**
+- [x] **Step 5: `Game` calcula el mensaje reactivo y lo pasa a `DialogueBox`**
 
 En `app/src/main/java/com/example/crosswalker/MainActivity.kt`, dentro de `fun Game(s:Session,click:()->Unit)`, justo antes de la línea que hoy invoca `DialogueBox`, añade:
 
@@ -704,17 +704,17 @@ por:
                 Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id),onAdvance=onAdvance)
 ```
 
-- [ ] **Step 6: Verificar que el test pasa**
+- [x] **Step 6: Verificar que el test pasa**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.TutorialTest"`
 Expected: PASS.
 
-- [ ] **Step 7: Correr la suite instrumentada completa**
+- [x] **Step 7: Correr la suite instrumentada completa**
 
 Run: `./gradlew :app:connectedDebugAndroidTest`
 Expected: PASS (incluye `NavigationTransitionsTest`, ya actualizado en Task 3).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/Dialogue.kt app/src/main/java/com/example/crosswalker/MainActivity.kt app/src/androidTest/java/com/example/crosswalker/TutorialTest.kt
@@ -732,7 +732,7 @@ git commit -m "feat: tutorial del nivel 1 con dialogo paso a paso"
 **Interfaces:**
 - Consumes: `Level.tools/newTools` (Task 1/3), `ToolArtwork` (existente, Task 3 le añadió `phone_away`).
 
-- [ ] **Step 1: Escribir el test instrumentado que falla**
+- [x] **Step 1: Escribir el test instrumentado que falla**
 
 Crea `app/src/androidTest/java/com/example/crosswalker/LevelContentTest.kt`:
 
@@ -771,12 +771,12 @@ class LevelContentTest {
 }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.LevelContentTest"`
 Expected: FAIL (hoy el diálogo de nivel no muestra "FICHA NUEVA", y el panel de fichas muestra las 10, no solo las del nivel).
 
-- [ ] **Step 3: Filtrar el panel de fichas por `level.tools`**
+- [x] **Step 3: Filtrar el panel de fichas por `level.tools`**
 
 En `app/src/main/java/com/example/crosswalker/MainActivity.kt`, dentro de `Game`, cambia:
 
@@ -790,7 +790,7 @@ por:
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category && it.id in s.level.tools}.forEach { t ->
 ```
 
-- [ ] **Step 4: Añadir la tarjeta "FICHA NUEVA" al diálogo de nivel**
+- [x] **Step 4: Añadir la tarjeta "FICHA NUEVA" al diálogo de nivel**
 
 En `WorldMap`, dentro de `chosen?.let { l -> PaperDialog(...) { ... } }`, justo después de la línea:
 
@@ -813,17 +813,17 @@ añade:
         }
 ```
 
-- [ ] **Step 5: Verificar que el test pasa**
+- [x] **Step 5: Verificar que el test pasa**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.LevelContentTest"`
 Expected: PASS.
 
-- [ ] **Step 6: Correr la suite instrumentada completa**
+- [x] **Step 6: Correr la suite instrumentada completa**
 
 Run: `./gradlew :app:connectedDebugAndroidTest`
 Expected: PASS (`NavigationTransitionsTest`, `TutorialTest`, `LevelContentTest`).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/MainActivity.kt app/src/androidTest/java/com/example/crosswalker/LevelContentTest.kt
