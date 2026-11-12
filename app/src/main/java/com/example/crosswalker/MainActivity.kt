@@ -78,7 +78,7 @@ class Session(val repo: GameRepository): ViewModel() {
     var message by mutableStateOf("")
     var introIndex by mutableIntStateOf(0)
     fun enter(l: Level) { transition(ScreenMotion.FORWARD) { level=l; reset(); screen="game" } }
-    fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; frame++ }
+    fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; frame++ }
     fun toggle(t: Tool) {
         val next=plan.copyPlan()
         val target=if(t.category=="street") next.street else next.people.getValue(selected).skills
@@ -239,10 +239,16 @@ class MainActivity: ComponentActivity() {
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",style=BodyText,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label -> CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick={val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next},label={Text(label)}) } }
             Row { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}});Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
             Crossfade(targetState=s.tab, animationSpec=tween(180), label="toolCategory") { category ->
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category && it.id in s.level.tools}.forEach { t ->
+            val toolScroll=rememberScrollState()
+            Box(Modifier.fillMaxWidth()) {
+            // When the cards overflow, leave a gutter on the right for the "more" arrow.
+            Row(Modifier.fillMaxWidth().padding(end=if(toolScroll.maxValue>0) 16.dp else 0.dp).horizontalScroll(toolScroll),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category && it.id in s.level.tools}.forEach { t ->
                 val active=if(t.category=="street") t.id in s.plan.street else t.id in s.plan.people.getValue(s.selected).skills
-                Column(Modifier.width(88.dp).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable {s.toggle(t);click()}.padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,minLines=2,maxLines=2,textAlign=TextAlign.Center);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
+                Column(Modifier.width(84.dp).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable {s.toggle(t);click()}.padding(horizontal=4.dp,vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,minLines=2,maxLines=2,textAlign=TextAlign.Center);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
             } }
+            // A fifth card can hide past the right edge: blink an arrow in the gutter until the player scrolls.
+            if(toolScroll.canScrollForward) Box(Modifier.align(Alignment.CenterEnd).rotate(-90f)) { MoreTextArrow(Orange.dark,HudStrong.copy(fontSize=14.sp,lineHeight=14.sp)) }
+            }
             }
             // The tutorial drives the box itself: a tap-through intro, then a
             // nudge that follows whatever the player has done so far.

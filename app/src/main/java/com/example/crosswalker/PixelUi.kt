@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.DrawModifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -227,12 +228,12 @@ fun textOn(face: Color): Color =
 }
 
 /** Blinking \u25BC: there is more to read. */
-@Composable fun MoreTextArrow(color: Color = Ink) {
+@Composable fun MoreTextArrow(color: Color = Ink, style: TextStyle = HudStrong) {
     val transition = rememberInfiniteTransition(label = "more")
     val phase by transition.animateFloat(0f, 2f,
         infiniteRepeatable(tween(900, easing = { it }), RepeatMode.Restart), label = "blink")
     val on = phase < 1.2f
-    Text("\u25BC", color = if (on) color else Color.Transparent, style = HudStrong,
+    Text("\u25BC", color = if (on) color else Color.Transparent, style = style,
         modifier = Modifier.absoluteOffset(y = if (on) 0.dp else PX))
 }
 

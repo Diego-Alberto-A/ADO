@@ -836,22 +836,22 @@ git commit -m "feat: fichas por nivel y tarjeta de ficha nueva al elegir nivel"
 
 **Files:** ninguno (solo verificación; no se espera código nuevo salvo arreglos puntuales si algo se ve mal).
 
-- [ ] **Step 1: Compilar e instalar**
+- [x] **Step 1: Compilar e instalar**
 
 Run: `./gradlew :app:installDebug`
 Expected: `BUILD SUCCESSFUL`, instalado en el emulador/dispositivo conectado.
 
-- [ ] **Step 2: Lanzar la app y jugar el tutorial completo**
+- [x] **Step 2: Lanzar la app y jugar el tutorial completo**
 
 Abrir la app, tocar JUGAR, tocar "Mi primer cruce", tocar "PREPARAR EL PLAN", tocar la caja de diálogo 6 veces (una por línea de `introLines`), confirmar que el mensaje cambia a la línea de `lesson`, tocar MIRAR, confirmar que cambia a `readyMessage`, tocar "PONER EL PLAN EN MARCHA" y confirmar que Ana cruza.
 
-- [ ] **Step 3: Revisar 2-3 niveles más**
+- [x] **Step 3: Revisar 2-3 niveles más**
 
 Entrar al nivel 4 ("Camino a la escuela") desde el mapa: confirmar que el diálogo previo muestra "FICHA NUEVA" con Zona escolar y Paso cebra. Entrar al nivel 8 ("Un compañero especial"): confirmar que Mateo se mueve muy lento sin Paso cebra y a velocidad normal con él. Entrar al nivel 10 ("La parada del camión"): confirmar que Tomás no reacciona a tiempo sin "Guarda el celular".
 
-- [ ] **Step 4: Si algo se ve mal (fichas con ícono incorrecto, carriles que se ven encimados, un nivel imposible de resolver a ojo), anotarlo y ajustar el dato puntual en `campaign.json` o `CraftArt.kt`, luego repetir desde el Step 1.**
+- [x] **Step 4: Si algo se ve mal (fichas con ícono incorrecto, carriles que se ven encimados, un nivel imposible de resolver a ojo), anotarlo y ajustar el dato puntual en `campaign.json` o `CraftArt.kt`, luego repetir desde el Step 1.**
 
-- [ ] **Step 5: Commit final (si hubo ajustes en este paso)**
+- [x] **Step 5: Commit final (si hubo ajustes en este paso)**
 
 ```bash
 git add -A
