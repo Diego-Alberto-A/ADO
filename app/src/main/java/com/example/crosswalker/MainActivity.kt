@@ -251,21 +251,7 @@ class MainActivity: ComponentActivity() {
     }
     chosen?.let { l -> PaperDialog("NIVEL ${l.id}",{chosen=null}) {
         Text(l.title,style=TitleText,color=Ink)
-        // The tutorial's `lesson` is an in-game nudge; the card shows its opening line instead.
-        Text(if(l.tutorial) l.introLines.getOrElse(1) { l.lesson } else l.lesson,style=BodyText,color=Ink)
-        if(!l.tutorial) {
-            Text(levelConditions(l),style=BodyText,color=Tree.dark)
-            Text("Objetivo: todos deben llegar sin choques, con atención y tras Mirar o Confirmar alto. Llegar por suerte sin comprobar no cuenta como un plan seguro.",style=BodyText,color=Ink)
-        }
-        Text("☺ ${l.walkers.size} PEATONES    ● ${l.budget} FICHAS",style=HudStrong,color=Tree.dark)
-        Text("★ Llega al otro lado\n★★ Resuelve sin ayuda de emergencia\n★★★ Usa pocas fichas",style=BodyText,color=Ink)
-        if(!l.tutorial && l.parCost>0) Text("Meta de eficiencia: ${l.parCost} fichas o menos para ★★★, sin ayuda de emergencia.",style=BodyText,color=Tree.dark)
-        if(l.newTools.isNotEmpty()) {
-            Text("FICHA NUEVA",style=HudStrong,color=Orange.dark)
-            l.newTools.forEach { id -> val t=s.repo.tools.first { it.id==id }
-                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) { ToolArtwork(t.id);Column { Text(t.label,style=BodyStrong,color=Ink);Text(t.explanation(l),style=BodyText,color=Ink) } }
-            }
-        }
+        Text("★ Llega al otro lado\n★★ Resuelve sin choques\n★★★ Usa pocas fichas",style=BodyText,color=Ink)
         PaperButton("▶  PREPARAR EL PLAN") {chosen=null;s.enter(l)}
     } }
 }
@@ -428,12 +414,3 @@ class MainActivity: ComponentActivity() {
     }
 }
 
-fun levelConditions(level: Level): String = buildList {
-    add(if(level.night) "Noche" else "Día")
-    add(when(level.weather) { "rain" -> "Lluvia: más distancia de frenado"; "fog" -> "Niebla: menos visibilidad"; else -> "Piso seco" })
-    val names=listOf("Izquierda","Centro","Derecha")
-    val blocked=level.sight.indices.filter { level.sight[it]<.5f }
-    if(blocked.isNotEmpty()) add("Vista reducida: " + blocked.joinToString { names[it] })
-    if("crosswalk" in level.tools) add("Paso accesible disponible: " + level.accessible.joinToString { names[it] })
-    if(level.island) add("Espacio para isla en el Centro")
-}.joinToString(" · ")

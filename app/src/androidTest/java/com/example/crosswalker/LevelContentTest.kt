@@ -16,12 +16,14 @@ class LevelContentTest {
         ui.waitUntil(5000) { !session.transitioning }
     }
 
-    @Test fun levelDialogShowsNewToolCard() {
+    @Test fun levelDialogIsLimitedToTitleStarsAndPlayButton() {
         ui.runOnIdle { session.repo.save(3, 1) }   // unlock level 4 for this run
         tap("JUGAR")
         tap("Ver entre los coches")
-        ui.onNodeWithText("FICHA NUEVA", substring = true).performScrollTo().assertIsDisplayed()
-        ui.onNodeWithText("Zona lenta", substring = true).performScrollTo().assertIsDisplayed()
+        ui.onNodeWithText("Ver entre los coches", substring = true).assertIsDisplayed()
+        ui.onNodeWithText("Llega al otro lado", substring = true).assertIsDisplayed()
+        ui.onNodeWithText("PREPARAR EL PLAN", substring = true).assertIsDisplayed()
+        ui.onNodeWithText("FICHA NUEVA", substring = true).assertDoesNotExist()
     }
 
     @Test fun toolPaletteOnlyShowsFichasAvailableForThisLevel() {
