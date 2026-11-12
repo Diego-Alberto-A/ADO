@@ -56,7 +56,7 @@ librerías nuevas), JUnit4 (JVM, `app/src/test`), Compose UI testing + Espresso 
 - Produces: los 10 recursos `R.raw.*` y `R.drawable.pointer_hand` que todas las tareas siguientes
   de audio y de tutorial consumen por nombre.
 
-- [ ] **Step 1: Añadir `/latestAssets` al `.gitignore`**
+- [x] **Step 1: Añadir `/latestAssets` al `.gitignore`**
 
 Añade esta línea al final de `.gitignore`, bajo el comentario existente de `/NewAssets`:
 
@@ -65,7 +65,7 @@ Añade esta línea al final de `.gitignore`, bajo el comentario existente de `/N
 /latestAssets
 ```
 
-- [ ] **Step 2: Escribir el script de empaquetado**
+- [x] **Step 2: Escribir el script de empaquetado**
 
 Crea `tools/package_audio_assets.py`:
 
@@ -146,18 +146,18 @@ if __name__ == "__main__":
     write_credits()
 ```
 
-- [ ] **Step 2b: Verificar que `Pillow` está disponible**
+- [x] **Step 2b: Verificar que `Pillow` está disponible**
 
 Run: `python3 -c "import PIL; print(PIL.__version__)"`
 Expected: imprime una versión (ya se usó `PIL` en `tools/package_kenney_assets.py`, debería estar
 instalado). Si falla, instala con `pip install Pillow` antes de continuar.
 
-- [ ] **Step 3: Correr el script**
+- [x] **Step 3: Correr el script**
 
 Run: `cd /home/carrera_juanpa/repos/kotlin/ADO && python3 tools/package_audio_assets.py`
 Expected: imprime cada archivo copiado, sin excepciones. `audios/SFX.zip` no aparece en la salida.
 
-- [ ] **Step 4: Verificar los archivos generados**
+- [x] **Step 4: Verificar los archivos generados**
 
 Run:
 ```bash
@@ -170,13 +170,13 @@ Expected: `raw/` tiene exactamente 10 archivos (`music_menu.ogg`, `music_world1.
 `sfx_collapse.wav`, `music_gameover.mp3`, `music_win.mp3`, `voice_talking.mp3`); el `.webp` existe;
 el archivo de créditos tiene el contenido de arriba.
 
-- [ ] **Step 5: Confirmar que el proyecto sigue compilando con los recursos nuevos**
+- [x] **Step 5: Confirmar que el proyecto sigue compilando con los recursos nuevos**
 
 Run: `./gradlew :app:compileDebugKotlin -q`
 Expected: `BUILD SUCCESSFUL` (añadir recursos a `res/raw` no requiere tocar Gradle; AGP los indexa
 solo, generando `R.raw.music_menu`, etc.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add .gitignore tools/package_audio_assets.py app/src/main/res/raw app/src/main/res/drawable-nodpi/pointer_hand.webp app/src/main/assets/licenses/audio-credits.txt
@@ -200,7 +200,7 @@ git commit -m "feat(audio): empaquetar musica, sfx y puntero desde latestAssets"
 lógica de "qué recurso toca" se puede probar en JVM puro sin un emulador; `SoundEngine` (Task 3) es
 una envoltura fina de Android que no vale la pena testear con asserts falsos.
 
-- [ ] **Step 1: Escribir el test que falla**
+- [x] **Step 1: Escribir el test que falla**
 
 Crea `app/src/test/java/com/example/crosswalker/audio/AudioMappingTest.kt`:
 
@@ -228,12 +228,12 @@ class AudioMappingTest {
 }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.audio.AudioMappingTest" -q`
 Expected: FAIL — `musicForScreen` no existe todavía.
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Crea `app/src/main/java/com/example/crosswalker/audio/AudioMapping.kt`:
 
@@ -255,12 +255,12 @@ import com.example.crosswalker.R
 }
 ```
 
-- [ ] **Step 4: Verificar que pasa**
+- [x] **Step 4: Verificar que pasa**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.audio.AudioMappingTest" -q`
 Expected: `BUILD SUCCESSFUL`, 3 tests en verde.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/audio/AudioMapping.kt app/src/test/java/com/example/crosswalker/audio/AudioMappingTest.kt
@@ -283,7 +283,7 @@ git commit -m "feat(audio): mapeo puro de pantalla/mundo a pista de musica"
   `stopVoice()`, `release()`. Todas las tareas siguientes de audio llaman a estos métodos por
   nombre exacto.
 
-- [ ] **Step 1: Escribir el test instrumentado que falla**
+- [x] **Step 1: Escribir el test instrumentado que falla**
 
 Crea `app/src/androidTest/java/com/example/crosswalker/audio/SoundEngineTest.kt`:
 
@@ -332,12 +332,12 @@ class SoundEngineTest {
 }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.audio.SoundEngineTest"`
 Expected: FAIL para compilar — `SoundEngine` no existe.
 
-- [ ] **Step 3: Implementar `SoundEngine`**
+- [x] **Step 3: Implementar `SoundEngine`**
 
 Crea `app/src/main/java/com/example/crosswalker/audio/SoundEngine.kt`:
 
@@ -406,13 +406,13 @@ class SoundEngine(private val context: Context, private val enabled: () -> Boole
 }
 ```
 
-- [ ] **Step 4: Verificar que pasa**
+- [x] **Step 4: Verificar que pasa**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.audio.SoundEngineTest"`
 Expected: `BUILD SUCCESSFUL`, 3 tests en verde (necesita el emulador/dispositivo levantado, igual que
 las demás pruebas instrumentadas del proyecto).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/audio/SoundEngine.kt app/src/androidTest/java/com/example/crosswalker/audio/SoundEngineTest.kt
@@ -432,7 +432,7 @@ git commit -m "feat(audio): SoundEngine (musica, voz y sfx sobre MediaPlayer/Sou
 - Consumes: `SoundEngine` (Task 3), `musicForScreen` (Task 2).
 - Produces: nada nuevo para otras tareas (es el punto de enganche final de música/click/enter).
 
-- [ ] **Step 1: Escribir el test instrumentado que falla**
+- [x] **Step 1: Escribir el test instrumentado que falla**
 
 Crea `app/src/androidTest/java/com/example/crosswalker/SoundHooksTest.kt`. Verifica, a través de la
 UI real, que entrar a un nivel del Mundo 1 deja sonando `music_world1` y que volver al mapa deja
@@ -464,7 +464,7 @@ class SoundHooksTest {
 }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.SoundHooksTest"`
 Expected: FAIL (o se cuelga) — hoy no hay `SoundEngine` conectado a `Session`, así que esto en
@@ -472,7 +472,7 @@ realidad ya pasaría por accidente; el valor real de este test llega en el Step 
 afirmamos que la música cambia. Antes de implementar, confirma al menos que el flujo de UI
 (`JUGAR` → nivel 1 → `PREPARAR EL PLAN`) compila y corre sin excepción.
 
-- [ ] **Step 3: Conectar `SoundEngine` en `Crosswalker()` y en `Session`**
+- [x] **Step 3: Conectar `SoundEngine` en `Crosswalker()` y en `Session`**
 
 En `MainActivity.kt`, dentro de `class Session`, añade un campo para que la UI pueda consultarlo en
 pruebas y en `Game()` más adelante (Task 8 lo necesita):
@@ -520,7 +520,7 @@ En `Session.enter(l: Level)`, añade el SFX de entrada justo antes de cambiar de
 fun enter(l: Level) { transition(ScreenMotion.FORWARD) { sound?.playSfx(R.raw.sfx_enter_level); level=l; reset(); screen="game" } }
 ```
 
-- [ ] **Step 4: Verificar que el test pasa y que nada se rompió**
+- [x] **Step 4: Verificar que el test pasa y que nada se rompió**
 
 Run:
 ```bash
@@ -531,7 +531,7 @@ Expected: ambos en verde. Instala manualmente y confirma de oído: Inicio/Mapa s
 (la pista "Jump and Run - Tropics"), entrar a un nivel del Mundo 1 cambia a `music_world1`
 ("Market on the Sea"), los botones ya no pitan con el tono viejo sino con `buttonPressing.mp3`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/MainActivity.kt app/src/androidTest/java/com/example/crosswalker/SoundHooksTest.kt
@@ -550,7 +550,7 @@ git commit -m "feat(audio): musica por pantalla/mundo y sfx de botones y entrada
 - Produces: `Simulation.collapsedWalkerId: String?` y `Simulation.collapsedLane: Lane?`, ambos
   `private set`, que `Board.kt` (Task 6) y `Game()` (Task 8) leen por nombre exacto.
 
-- [ ] **Step 1: Escribir el test que falla**
+- [x] **Step 1: Escribir el test que falla**
 
 Añade a `app/src/test/java/com/example/crosswalker/SimulationTest.kt`, después de
 `unprotectedTrafficCanTriggerFriendlyRetry`:
@@ -565,12 +565,12 @@ Añade a `app/src/test/java/com/example/crosswalker/SimulationTest.kt`, después
 }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.SimulationTest" -q`
 Expected: FAIL — `collapsedWalkerId`/`collapsedLane` no existen todavía.
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 En `Simulation.kt`, junto a la declaración de `reason`:
 
@@ -596,12 +596,12 @@ if(near && !yielding && !officer && !signalled && time >= stopUntil) {
 `reason` se actualiza en la Task 8, junto con el resto del copy del choque, para no mezclar un
 cambio de comportamiento con uno de redacción.)
 
-- [ ] **Step 4: Verificar que pasa**
+- [x] **Step 4: Verificar que pasa**
 
 Run: `./gradlew :app:testDebugUnitTest -q`
 Expected: `BUILD SUCCESSFUL`, 20 tests en verde (19 existentes + el nuevo).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/game/Simulation.kt app/src/test/java/com/example/crosswalker/SimulationTest.kt
@@ -621,7 +621,7 @@ git commit -m "feat(game): Simulation expone que peaton y carril causaron el cho
 No hay test automatizado para este paso (el resto de `Board.kt` tampoco lo tiene: es dibujo directo
 sobre `Canvas`/`nativeCanvas`); se verifica manualmente jugando un nivel hasta chocar.
 
-- [ ] **Step 1: Sprite de frente congelado para el peatón golpeado**
+- [x] **Step 1: Sprite de frente congelado para el peatón golpeado**
 
 En el bucle `level.walkers.forEachIndexed { i,w -> ... }` (línea ~138), localiza:
 
@@ -641,7 +641,7 @@ sprite(art,x-15,y-38,30f,42f)
 (`w.sprite` sin sufijo es el sprite de frente, ya empaquetado por `tools/package_kenney_assets.py`
 — ver `save(trim(tile(FRONT, row)), name)` en ese script.)
 
-- [ ] **Step 2: Velo con dos agujeros (el peatón golpeado y su carril)**
+- [x] **Step 2: Velo con dos agujeros (el peatón golpeado y su carril)**
 
 Añade estos imports al principio de `Board.kt`:
 
@@ -674,19 +674,19 @@ semitransparente — ya se usa `Paint`/`nativeCanvas` directamente en este archi
 falta ninguna librería nueva. `sim.people.first{...}` siempre encuentra a alguien porque
 `collapsedWalkerId` se pone exactamente desde `p.walker.id` en `Simulation.tick()`.)
 
-- [ ] **Step 3: Verificar que compila**
+- [x] **Step 3: Verificar que compila**
 
 Run: `./gradlew :app:compileDebugKotlin -q`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 4: Verificación manual**
+- [x] **Step 4: Verificación manual**
 
 Run: `./gradlew :app:installDebug -q` y, con el emulador abierto, juega cualquier nivel sin elegir
 ninguna ficha de seguridad para forzar un choque. Confirma: el tablero se oscurece, el peatón
 golpeado se ve de frente (no de espaldas) y congelado, su carril permanece visible con el auto, el
 resto del tablero queda oscuro.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/Board.kt
@@ -700,7 +700,7 @@ git commit -m "feat(ui): mostrar el choque literal con velo y peaton de frente"
 **Files:**
 - Modify: `app/src/main/java/com/example/crosswalker/Board.kt`
 
-- [ ] **Step 1: Velo con un agujero por peatón (sin agujero de auto)**
+- [x] **Step 1: Velo con un agujero por peatón (sin agujero de auto)**
 
 Justo encima del bloque añadido en la Task 6 (o debajo, el orden entre ambos no importa porque las
 condiciones son mutuamente excluyentes — `RETRY` y `WON` nunca son el mismo `phase`), añade:
@@ -721,18 +721,18 @@ if(sim?.phase==Phase.WON) {
 }
 ```
 
-- [ ] **Step 2: Verificar que compila**
+- [x] **Step 2: Verificar que compila**
 
 Run: `./gradlew :app:compileDebugKotlin -q`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 3: Verificación manual**
+- [x] **Step 3: Verificación manual**
 
 Instala y gana cualquier nivel. Confirma que el tablero se oscurece y los peatones con su corazón
 quedan resaltados con fuerza sobre el fondo oscuro. (El retraso del modal hasta la mitad de la
 canción se verifica en la Task 8, que es cuando ese modal empieza a depender del audio.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/Board.kt
@@ -749,7 +749,7 @@ git commit -m "feat(ui): velo de victoria resaltando a los peatones y sus corazo
 **Interfaces:**
 - Consumes: `SoundEngine` (vía `s.sound`, Task 4), `Simulation.collapsedWalkerId` (Task 5).
 
-- [ ] **Step 1: `Session` gana el estado del modal retrasado**
+- [x] **Step 1: `Session` gana el estado del modal retrasado**
 
 En `class Session`, junto a `var paused by mutableStateOf(false)`:
 
@@ -763,7 +763,7 @@ En `reset()`, añade `showResultDialog=false` a la lista de reinicios (edita la 
 fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; showResultDialog=false; frame++ }
 ```
 
-- [ ] **Step 2: Reaccionar a la transición a `Phase.RETRY`/`Phase.WON` dentro de `Game()`**
+- [x] **Step 2: Reaccionar a la transición a `Phase.RETRY`/`Phase.WON` dentro de `Game()`**
 
 En `Game(s:Session,click:()->Unit)`, justo después de `val cost=s.plan.cost(s.repo.tools)`, añade
 un efecto que dispara la coreografía exactamente una vez por simulación:
@@ -783,7 +783,7 @@ LaunchedEffect(sim?.phase) {
 }
 ```
 
-- [ ] **Step 3: Retrasar el modal de victoria, mostrar el de reintento de inmediato**
+- [x] **Step 3: Retrasar el modal de victoria, mostrar el de reintento de inmediato**
 
 Localiza el bloque final de `Game()`:
 
@@ -799,7 +799,7 @@ if(sim?.phase==Phase.RETRY || (sim?.phase==Phase.WON && s.showResultDialog)) {
     val won=sim.phase==Phase.WON
 ```
 
-- [ ] **Step 4: Actualizar el copy del choque**
+- [x] **Step 4: Actualizar el copy del choque**
 
 En el mismo bloque, cambia:
 
@@ -822,7 +822,7 @@ reason = if(level.night) "De noche, un auto no pudo verte a tiempo. Usa el refle
 
 (El `reason` del timeout de 90s, más abajo en `tick()`, no cambia: ese caso no es un choque.)
 
-- [ ] **Step 5: Verificar que compila y que los tests existentes siguen en verde**
+- [x] **Step 5: Verificar que compila y que los tests existentes siguen en verde**
 
 Run:
 ```bash
@@ -833,14 +833,14 @@ Expected: `BUILD SUCCESSFUL` en ambos. (El test JVM `allLevelsHaveASafeSolutionW
 no depende del texto de `reason`, solo lo imprime en el mensaje de fallo si algo sale mal, así que
 no se rompe con el cambio de redacción.)
 
-- [ ] **Step 6: Verificación manual**
+- [x] **Step 6: Verificación manual**
 
 Instala y fuerza un choque: confirma que la música del mundo se corta al instante, suena el golpe,
 y un segundo después empieza la música de game over, con el modal de "¡Cuidado!" ya visible desde
 el principio (no espera). Gana un nivel: confirma que el modal de "¡BUEN CAMINO!" tarda en
 aparecer hasta que `win.mp3` lleva la mitad reproducida.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/MainActivity.kt app/src/main/java/com/example/crosswalker/game/Simulation.kt
@@ -858,7 +858,7 @@ git commit -m "feat(audio): coreografia de sonido para choque y victoria, copy a
 **Interfaces:**
 - Consumes: `SoundEngine.loopVoice`/`stopVoice` (Task 3).
 
-- [ ] **Step 1: `DialogueBox` recibe el motor de sonido**
+- [x] **Step 1: `DialogueBox` recibe el motor de sonido**
 
 En `Dialogue.kt`, cambia la firma:
 
@@ -900,7 +900,7 @@ DisposableEffect(Unit) { onDispose { voice?.stopVoice() } }
 
 (añádelo junto al `Box(modifier...)` existente, antes del `Column`).
 
-- [ ] **Step 2: Pasar el motor desde `Game()`**
+- [x] **Step 2: Pasar el motor desde `Game()`**
 
 En `MainActivity.kt`, localiza la llamada existente:
 
@@ -918,18 +918,18 @@ if(s.repo.guidance) DialogueBox(displayMessage,selectedWalker.name,walkerAccent(
     Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id),onAdvance=onAdvance,voice=s.sound)
 ```
 
-- [ ] **Step 3: Verificar que compila**
+- [x] **Step 3: Verificar que compila**
 
 Run: `./gradlew :app:compileDebugKotlin -q`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 4: Verificación manual**
+- [x] **Step 4: Verificación manual**
 
 Entra al nivel 1 (tutorial) y confirma de oído que, mientras el texto se escribe, suena de fondo el
 murmullo de `talkingsynth` además de los blips por letra de siempre, y que se detiene en cuanto el
 texto termina de escribirse.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/Dialogue.kt app/src/main/java/com/example/crosswalker/MainActivity.kt
@@ -940,7 +940,7 @@ git commit -m "feat(audio): voz de fondo durante el tecleo del dialogo"
 
 ### Task 10: Checkpoint de Parte 1
 
-- [ ] **Step 1: Suite completa**
+- [x] **Step 1: Suite completa**
 
 Run:
 ```bash
@@ -950,7 +950,7 @@ Run:
 ```
 Expected: las tres en verde.
 
-- [ ] **Step 2: Playtest manual de 10-15 minutos**
+- [x] **Step 2: Playtest manual de 10-15 minutos**
 
 Recorre: Inicio → Mapa (3 mundos, confirma `music_menu` en todos) → un nivel de cada mundo (confirma
 el cambio a `music_world{N}`) → forzar un choque (Task 6/8) → ganar un nivel (Task 7/8) → el
@@ -958,7 +958,7 @@ tutorial del nivel 1 (voz de fondo, Task 9). Anota cualquier ajuste de volumen/t
 mal (por ejemplo, si 1 segundo de espera antes de `music_gameover` se siente corto o largo,
 ajustar el `delay(1000)` de la Task 8) y corrige antes de continuar a la Parte 2.
 
-- [ ] **Step 3: Commit de ajustes, si hubo**
+- [x] **Step 3: Commit de ajustes, si hubo**
 
 ```bash
 git add -A
@@ -981,7 +981,7 @@ git commit -m "fix: ajustes de playtest de audio"
   (siempre devuelve un paso concreto; que el tutorial ya haya terminado del todo se decide aparte,
   en la Task 14, antes incluso de llamarla). Las Tasks 12-14 consumen ambos por nombre exacto.
 
-- [ ] **Step 1: Escribir el test que falla**
+- [x] **Step 1: Escribir el test que falla**
 
 Crea `app/src/test/java/com/example/crosswalker/TutorialStepTest.kt`:
 
@@ -1018,12 +1018,12 @@ class TutorialStepTest {
 }
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.TutorialStepTest" -q`
 Expected: FAIL — ni `TutorialStep` ni `tutorialStepFor` existen.
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Crea `app/src/main/java/com/example/crosswalker/TutorialStep.kt`:
 
@@ -1056,12 +1056,12 @@ fun tutorialStepFor(introIndex: Int, introLineCount: Int, lookChosen: Boolean): 
 (La rama `introIndex < introLineCount - 1` cubre los índices 0-4 del nivel 1 real, que tiene 6
 líneas: por eso el test usa `count=6` y espera `"crossing"` justo en `introIndex==5`.)
 
-- [ ] **Step 4: Verificar que pasa**
+- [x] **Step 4: Verificar que pasa**
 
 Run: `./gradlew :app:testDebugUnitTest --tests "com.example.crosswalker.TutorialStepTest" -q`
 Expected: `BUILD SUCCESSFUL`, 6 tests en verde.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/TutorialStep.kt app/src/test/java/com/example/crosswalker/TutorialStepTest.kt
@@ -1086,7 +1086,7 @@ git commit -m "feat(tutorial): paso activo del tutorial como funcion pura"
 No hay test unitario para este archivo (son contenedores de estado Compose + un modifier — se
 verifican indirectamente por el test instrumentado de la Task 15).
 
-- [ ] **Step 1: Implementar `TutorialController`**
+- [x] **Step 1: Implementar `TutorialController`**
 
 Crea `app/src/main/java/com/example/crosswalker/TutorialOverlay.kt`:
 
@@ -1136,12 +1136,12 @@ directo del contenido de pantalla dentro del mismo `Box` raíz de `Crosswalker()
 origen de dibujo local coincide exactamente con el origen raíz de Compose — usar la misma base de
 coordenadas en ambos lados es lo que hace que el agujero quede exactamente sobre el botón real.)
 
-- [ ] **Step 2: Verificar que compila**
+- [x] **Step 2: Verificar que compila**
 
 Run: `./gradlew :app:compileDebugKotlin -q`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/TutorialOverlay.kt
@@ -1158,7 +1158,7 @@ git commit -m "feat(tutorial): TutorialController y el modifier tutorialTarget"
 **Interfaces:**
 - Consumes: `TutorialController` (Task 12), `R.drawable.pointer_hand` (Task 1).
 
-- [ ] **Step 1: Añadir el composable al mismo archivo**
+- [x] **Step 1: Añadir el composable al mismo archivo**
 
 Añade al final de `TutorialOverlay.kt`:
 
@@ -1241,12 +1241,12 @@ hace falta `LocalDensity` ni convertir a dp en ningún momento: tanto `boundsInR
 8× en `pointer_hand.webp` mantiene el look pixel-art sin que Compose vuelva a escalarlo de forma
 borrosa.)
 
-- [ ] **Step 2: Verificar que compila**
+- [x] **Step 2: Verificar que compila**
 
 Run: `./gradlew :app:compileDebugKotlin -q`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/TutorialOverlay.kt
@@ -1264,7 +1264,7 @@ git commit -m "feat(tutorial): overlay con velo recortado, manita parpadeante y 
 **Interfaces:**
 - Consumes: `TutorialController`, `TutorialOverlay`, `tutorialStepFor` (Tasks 11-13).
 
-- [ ] **Step 1: Persistir si el tutorial ya se completó**
+- [x] **Step 1: Persistir si el tutorial ya se completó**
 
 En `GameRepository.kt`, junto a `var sound`/`var guidance`:
 
@@ -1274,7 +1274,7 @@ var tutorialDone: Boolean
     set(value) { prefs.edit().putBoolean("tutorial_done",value).apply() }
 ```
 
-- [ ] **Step 2: `Session` gana el controlador y calcula el paso activo**
+- [x] **Step 2: `Session` gana el controlador y calcula el paso activo**
 
 En `class Session`, junto a `var introIndex`:
 
@@ -1293,7 +1293,7 @@ s.tutorialController.step = if (s.tutorialActive)
     tutorialStepFor(s.introIndex, s.level.introLines.size, lookChosen) else null
 ```
 
-- [ ] **Step 3: Envolver PAUSA, FICHAS y la pestaña HABILIDADES**
+- [x] **Step 3: Envolver PAUSA, FICHAS y la pestaña HABILIDADES**
 
 Localiza (sección final de `Game()`):
 
@@ -1327,7 +1327,7 @@ Envuelve solo el primer `CraftChip` (el único que el tutorial señala):
 Row { Box(Modifier.tutorialTarget("tab_skill",s.tutorialController){s.tab="skill"}) { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}}) };Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
 ```
 
-- [ ] **Step 4: Envolver los 3 chips de cruce**
+- [x] **Step 4: Envolver los 3 chips de cruce**
 
 Localiza:
 
@@ -1344,7 +1344,7 @@ Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangeme
 } }
 ```
 
-- [ ] **Step 5: Envolver la ficha MIRAR y el botón de lanzar**
+- [x] **Step 5: Envolver la ficha MIRAR y el botón de lanzar**
 
 Localiza, dentro del `Row` que dibuja las fichas:
 
@@ -1374,7 +1374,7 @@ val launch = { click();if(s.tutorialActive) s.repo.tutorialDone=true;s.simulatio
 Box(Modifier.tutorialTarget("launch",s.tutorialController,launch)) { PaperButton("▶   PONER EL PLAN EN MARCHA",onClick=launch) }
 ```
 
-- [ ] **Step 6: Que la caja de diálogo también sea un objetivo de tutorial**
+- [x] **Step 6: Que la caja de diálogo también sea un objetivo de tutorial**
 
 Localiza la llamada a `DialogueBox` (ya tocada en la Task 9) y envuélvela. Su único trabajo durante
 el tutorial es avanzar `introIndex` — el paso `"launch"` ya se encarga de marcar `tutorialDone` por
@@ -1392,7 +1392,7 @@ if(s.repo.guidance) Box(Modifier.heightIn(min=56.dp).tutorialTarget("dialogue",s
 (Quita el `Modifier.heightIn(min=56.dp)` que antes iba directo en `DialogueBox` — ahora vive en el
 `Box` que lo envuelve.)
 
-- [ ] **Step 7: Montar el overlay**
+- [x] **Step 7: Montar el overlay**
 
 En `Crosswalker()`, dentro del `Box` principal, después de `ScreenTransitions(s) { ... }` y antes de
 los `if(s.dialog==...)`:
@@ -1401,17 +1401,17 @@ los `if(s.dialog==...)`:
 if (s.screen=="game" && s.tutorialActive) TutorialOverlay(s.tutorialController)
 ```
 
-- [ ] **Step 8: Verificar que compila**
+- [x] **Step 8: Verificar que compila**
 
 Run: `./gradlew :app:compileDebugKotlin -q`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 9: Verificar que los tests JVM existentes siguen en verde**
+- [x] **Step 9: Verificar que los tests JVM existentes siguen en verde**
 
 Run: `./gradlew :app:testDebugUnitTest -q`
 Expected: `BUILD SUCCESSFUL` — esta tarea no toca lógica pura, solo wiring de Compose.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add app/src/main/java/com/example/crosswalker/MainActivity.kt app/src/main/java/com/example/crosswalker/data/GameRepository.kt
@@ -1425,13 +1425,13 @@ git commit -m "feat(tutorial): enganchar el overlay guiado a los controles reale
 **Files:**
 - Modify: `app/src/androidTest/java/com/example/crosswalker/TutorialTest.kt`
 
-- [ ] **Step 1: Leer el test actual antes de tocarlo**
+- [x] **Step 1: Leer el test actual antes de tocarlo**
 
 Run: `cat app/src/androidTest/java/com/example/crosswalker/TutorialTest.kt`
 (Confirma el estilo existente — `createAndroidComposeRule`, navegación `JUGAR`→nivel 1→
 `PREPARAR EL PLAN` — para mantenerlo en el reemplazo.)
 
-- [ ] **Step 2: Escribir el test nuevo**
+- [x] **Step 2: Escribir el test nuevo**
 
 Reemplaza el contenido de `app/src/androidTest/java/com/example/crosswalker/TutorialTest.kt` por:
 
@@ -1477,7 +1477,7 @@ class TutorialTest {
 }
 ```
 
-- [ ] **Step 3: Ejecutarlo y ajustar según lo que realmente pinte la UI**
+- [x] **Step 3: Ejecutarlo y ajustar según lo que realmente pinte la UI**
 
 Run: `./gradlew :app:connectedDebugAndroidTest --tests "com.example.crosswalker.TutorialTest"`
 Expected: los tres tests en verde. Si algún selector de texto no calza con el string real en
@@ -1485,13 +1485,13 @@ pantalla (por ejemplo, por el `substring` o el `contentDescription` exacto de `H
 el selector al texto real observado en el fallo, no cambies el comportamiento de la app para que el
 test pase.
 
-- [ ] **Step 4: Correr toda la suite instrumentada**
+- [x] **Step 4: Correr toda la suite instrumentada**
 
 Run: `./gradlew :app:connectedDebugAndroidTest -q`
 Expected: `BUILD SUCCESSFUL`, todos los tests (los nuevos de audio y tutorial, más los ya
 existentes) en verde.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/androidTest/java/com/example/crosswalker/TutorialTest.kt
@@ -1502,7 +1502,7 @@ git commit -m "test: reescribir TutorialTest para el flujo guiado con mascara"
 
 ### Task 16: Checkpoint final de Parte 2
 
-- [ ] **Step 1: Suite completa**
+- [x] **Step 1: Suite completa**
 
 Run:
 ```bash
@@ -1512,7 +1512,7 @@ Run:
 ```
 Expected: las tres en verde.
 
-- [ ] **Step 2: Playtest manual completo del tutorial**
+- [x] **Step 2: Playtest manual completo del tutorial**
 
 Juega el nivel 1 de principio a fin: confirma que cada línea narrativa solo avanza tocando la caja
 de diálogo (tocar cualquier otro botón no hace nada mientras esa línea está activa); que PAUSA y
@@ -1522,9 +1522,52 @@ fuera no avanza); que PAUSA sigue funcionando en cualquier momento; que, al rein
 desde "VOLVER A INTENTAR" o desde el mapa, el tutorial guiado no vuelve a aparecer (ya quedó
 marcado como completo).
 
-- [ ] **Step 3: Commit de ajustes, si hubo**
+- [x] **Step 3: Commit de ajustes, si hubo**
 
 ```bash
 git add -A
 git commit -m "fix: ajustes de playtest del tutorial guiado"
 ```
+
+---
+
+## Nota posterior a la implementación
+
+Durante la implementación se encontraron y corrigieron varios puntos que el plan no había previsto
+correctamente, y el usuario pidió dos cambios de diseño adicionales a mitad de camino. Quedan
+documentados aquí para quien lea este plan después:
+
+- **El cruce no avanzaba el tutorial.** El `pick` de los chips de cruce (Task 14) solo aplicaba la
+  elección; le faltaba `if(s.tutorialActive) s.introIndex++` para salir del último paso narrativo.
+- **`TutorialController` necesitaba estado observable de Compose.** `spotlightRects`/`tapTargets`
+  como `var` planas (sin `mutableStateOf`) nunca disparaban una recomposición del overlay cuando un
+  hijo reportaba su posición. Se sustituyó por un registro persistente `Map<(id, token), (Rect,
+  onTap)>` que cada composable mantiene actualizado siempre, no solo mientras su id coincide con el
+  paso activo — así el rect ya está listo apenas cambia el paso, sin depender de que
+  `onGloballyPositioned` vuelva a dispararse (solo lo hace si el layout cambia de verdad).
+- **Desfase de coordenadas.** El overlay vive dentro del mismo `Box` con `systemBarsPadding()` que
+  el resto de la pantalla, así que `boundsInRoot()` no coincidía con su origen local. Se resta el
+  origen propio del overlay (capturado con su propio `onGloballyPositioned`) de cada rect.
+- **Rediseño de capas, a pedido del usuario:** el velo, sus agujeros y el recuadro de borde se
+  dibujan en un `Canvas` sin contenido propio (nunca puede oscurecer lo que dibuja, porque no dibuja
+  nada salvo el velo mismo); la manita y la caja de diálogo van siempre por encima del velo, nunca
+  oscurecidas; la caja de diálogo queda siempre legible (no solo cuando es el objetivo del paso); la
+  manita se posiciona debajo del objetivo que de verdad hay que tocar (`tapId`), no siempre el mismo
+  que el señalado (`spotlightId`) — en los pasos puramente informativos (PAUSA, FICHAS, la pestaña)
+  eso significa que señalan una cosa y la manita apunta a la caja de diálogo, que es lo que hay que
+  tocar.
+- **PAUSA no era la excepción que el plan pedía.** El overlay solo dejaba pasar el toque de PAUSA
+  durante su propio paso informativo (`tapId="dialogue"` ahí, no `"pause"`), contradiciendo "PAUSA
+  permanece activa siempre". Se añadió como excepción incondicional en el cálculo de `taps`.
+- **Un solo toque en el diálogo avanza la línea, ya no hacen falta dos.** El overlay llama
+  directamente a `advanceDialogue` (que solo mueve `introIndex`), sin pasar por el `onClick` interno
+  de `DialogueBox` que antes completaba el tecleo en el primer toque y avanzaba en el segundo. Es un
+  cambio de comportamiento menor (ya no se puede "forzar" el texto a aparecer completo de un toque
+  sin avanzar) que se aceptó en vez de hospedar el estado `revealed` fuera de `DialogueBox`.
+- **Secuencia de choque, a pedido del usuario:** ya no basta con 1 segundo de espera antes de la
+  música de game over — ahora el modal de reintento espera a que esa música termine por completo.
+  `SoundEngine.playOneShot` ganó un parámetro `onComplete` (vía `MediaPlayer.setOnCompletionListener`);
+  si el sonido está apagado o el reproductor no pudo crearse, los callbacks (`onHalfway` y
+  `onComplete`) se disparan de inmediato para que ningún modal se quede esperando una música que
+  nunca sonará (este mismo defecto ya afectaba silenciosamente al caso de victoria, y se corrigió
+  ahí también).
