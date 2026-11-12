@@ -167,6 +167,17 @@ private const val PIXEL = 1f
             p.textSize=12f;p.typeface=typeface;p.textAlign=Paint.Align.CENTER
             color(hex);c.drawText(glyph,x,top+h-4,p)
         }
+        /** Same cream bubble as above, but holding the phone icon instead of a
+         * glyph — the tail points down at whoever's holding it, so it reads as
+         * a comic marker instead of the icon floating loose over their head. */
+        fun phoneBubble(x:Float,y:Float) {
+            val w=22f; val h=17f; val left=x-w/2; val top=y-h
+            color(INK);c.drawRect(left-1,top-1,left+w+1,top+h+1,p)
+            c.drawPath(Path().apply {moveTo(x-5,top+h);lineTo(x+1,top+h+5);lineTo(x+3,top+h);close()},p)
+            color("#F4EAD0");c.drawRect(left,top,left+w,top+h,p)
+            c.drawPath(Path().apply {moveTo(x-4,top+h);lineTo(x,top+h+3);lineTo(x+2,top+h);close()},p)
+            sprite("phone",x-4,top+2,8f,13f)
+        }
         level.walkers.forEachIndexed { i,w ->
             val person=sim?.people?.find {it.walker.id==w.id}
             val x=(person?.x ?: Simulation.crossings[plan.people[w.id]?.crossing ?: 1])*360f + if(planning)(i-(level.walkers.size-1)/2f)*19f else 0f
@@ -179,8 +190,8 @@ private const val PIXEL = 1f
             sprite(art,x-15,y-38,30f,42f)
             val skills=plan.people[w.id]?.skills ?: emptySet()
             if("visible" in skills) {color("#FFE07A");c.drawCircle(x,y-19,4f,p)}
-            // The phone floats over its owner until "Guarda el celular" puts it away.
-            if(w.kind=="phone" && "phone_away" !in skills) sprite("phone",x-6,maxOf(y-60f,4f),12f,19f)
+            // A comic marker points down at whoever's holding the phone, until "Guarda el celular" puts it away.
+            if(w.kind=="phone" && "phone_away" !in skills) phoneBubble(x,maxOf(y-60f,4f)+17f)
             // Clamped: a walker who just reached the far kerb sits against the
             // top of the board, and the bubble would be drawn off-canvas.
             val bubbleY=maxOf(y-40f,26f)
