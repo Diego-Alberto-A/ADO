@@ -285,7 +285,7 @@ class MainActivity: ComponentActivity() {
             val onAdvance:(()->Unit)?=if(s.level.tutorial && !introDone) ({ s.introIndex++ }) else null
             if(s.repo.guidance) DialogueBox(displayMessage,selectedWalker.name,walkerAccent(selectedWalker.sprite),
                 remember(s.level,s.repo.tools) { Lexicon.of(s.level,s.repo.tools) },
-                Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id),onAdvance=onAdvance)
+                Modifier.heightIn(min=56.dp),blip=blip(selectedWalker.id),onAdvance=onAdvance,voice=s.sound)
             PaperButton("▶   PONER EL PLAN EN MARCHA") {click();s.simulation=Simulation(s.level,s.plan)}
         } else if(sim!=null) {
             PaperButton(if(sim!!.emergencyUsed) "AYUDA UTILIZADA" else "✋  PARAR TRÁFICO · 1 USO",Brick,enabled=!sim.emergencyUsed && sim.phase==Phase.RUNNING) {sim.emergency();s.frame++;click()}

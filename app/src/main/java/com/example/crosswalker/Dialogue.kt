@@ -87,7 +87,8 @@ fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedSt
     lexicon: Lexicon,
     modifier: Modifier = Modifier,
     blip: () -> Unit = {},
-    onAdvance: (() -> Unit)? = null
+    onAdvance: (() -> Unit)? = null,
+    voice: com.example.crosswalker.audio.SoundEngine? = null
 ) {
     var revealed by remember(text) { mutableIntStateOf(0) }
     val done = revealed >= text.length
@@ -99,15 +100,19 @@ fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedSt
             .9f at 0; 1.05f at 120; 1f at 200
         })
     }
-    // Roughly 40 characters a second, with a voice blip every third one.
+    // Roughly 40 characters a second, with a voice blip every third one, and a
+    // murmullo de fondo (talkingsynth) mientras dura el tecleo.
     LaunchedEffect(text) {
         revealed = 0
+        voice?.loopVoice(com.example.crosswalker.R.raw.voice_talking)
         while (revealed < text.length) {
             delay(25)
             revealed++
             if (revealed % 3 == 0) blip()
         }
+        voice?.stopVoice()
     }
+    DisposableEffect(Unit) { onDispose { voice?.stopVoice() } }
 
     Box(modifier.graphicsLayer {
         scaleX = entry.value; scaleY = entry.value
