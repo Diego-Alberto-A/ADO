@@ -42,12 +42,19 @@ class SoundEngine(private val context: Context, private val enabled: () -> Boole
         sfxIds[resId]?.let { pool.play(it, 1f, 1f, 1, 0, 1f) }
     }
 
-    /** Un `MediaPlayer` propio (no el de la música de fondo), con callback opcional a mitad de su duración. */
-    fun playOneShot(@RawRes resId: Int, onHalfway: (() -> Unit)? = null): MediaPlayer? {
-        if (!enabled()) return null
-        val player = MediaPlayer.create(context, resId) ?: return null
+    /**
+     * Un `MediaPlayer` propio (no el de la música de fondo), con callbacks opcionales a mitad de
+     * su duración y al terminar. Si el sonido está apagado (o el `MediaPlayer` no pudo crearse),
+     * ambos callbacks se disparan de inmediato: quien los use para decidir cuándo mostrar algo en
+     * pantalla (p. ej. un modal) nunca se queda esperando una música que nunca va a sonar.
+     */
+    fun playOneShot(@RawRes resId: Int, onHalfway: (() -> Unit)? = null, onComplete: (() -> Unit)? = null): MediaPlayer? {
+        if (!enabled()) { onHalfway?.invoke(); onComplete?.invoke(); return null }
+        val player = MediaPlayer.create(context, resId)
+        if (player == null) { onHalfway?.invoke(); onComplete?.invoke(); return null }
         player.start()
         if (onHalfway != null) handler.postDelayed({ onHalfway() }, (player.duration / 2).toLong())
+        if (onComplete != null) player.setOnCompletionListener { onComplete() }
         return player
     }
 

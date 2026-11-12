@@ -244,14 +244,24 @@ class MainActivity: ComponentActivity() {
     s.tutorialController.step = if (s.tutorialActive)
         tutorialStepFor(s.introIndex, s.level.introLines.size, lookChosen) else null
     LaunchedEffect(sim?.phase) {
+        val engine = s.sound
         when (sim?.phase) {
             Phase.RETRY -> if (sim.collapsedWalkerId != null) {
-                s.sound?.stopMusic()
-                s.sound?.playSfx(R.raw.sfx_collapse)
+                // Choque: se ve al peatón congelado un segundo, luego suena la música de game
+                // over completa, y solo cuando termina aparece el modal de reintento.
+                engine?.stopMusic()
+                engine?.playSfx(R.raw.sfx_collapse)
                 kotlinx.coroutines.delay(1000)
-                s.sound?.playOneShot(R.raw.music_gameover)
+                if (engine != null) engine.playOneShot(R.raw.music_gameover, onComplete = { s.showResultDialog = true })
+                else s.showResultDialog = true
+            } else {
+                // Reintento por tiempo agotado (sin choque): no hay nada que esperar a ver.
+                s.showResultDialog = true
             }
-            Phase.WON -> s.sound?.playOneShot(R.raw.music_win) { s.showResultDialog = true }
+            Phase.WON -> {
+                if (engine != null) engine.playOneShot(R.raw.music_win, onHalfway = { s.showResultDialog = true })
+                else s.showResultDialog = true
+            }
             else -> {}
         }
     }
@@ -266,7 +276,7 @@ class MainActivity: ComponentActivity() {
         if(preparing) {
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) { s.level.walkers.forEach { w -> CraftChip(selected=s.selected==w.id,onClick={s.selected=w.id;click()},label={Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {if(s.selected==w.id) FocusCursor(Ink);WalkerArtwork(w);Text(w.name+if(s.plan.people.getValue(w.id).skills.isNotEmpty()) " ✓" else "")}}) } }
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",style=BodyText,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label ->
-                val pick = { val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next }
+                val pick = { val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next;if(s.tutorialActive) s.introIndex++ }
                 Box(Modifier.tutorialTarget("crossing",s.tutorialController,pick)) { CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick=pick,label={Text(label)}) }
             } }
             Row { Box(Modifier.tutorialTarget("tab_skill",s.tutorialController){s.tab="skill"}) { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}}) };Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
@@ -313,7 +323,7 @@ class MainActivity: ComponentActivity() {
             TokenCounter(s.level.budget-cost,s.level.budget,Modifier.tutorialTarget("tokens",s.tutorialController){})
         }
     }
-    if(sim?.phase==Phase.RETRY || (sim?.phase==Phase.WON && s.showResultDialog)) {
+    if((sim?.phase==Phase.RETRY || sim?.phase==Phase.WON) && s.showResultDialog) {
         val won=sim.phase==Phase.WON
         PaperDialog(if(won) "¡BUEN CAMINO!" else "OTRO PLAN, OTRA OPORTUNIDAD",{},dismissible=false,accent=if(won) Tree else Brick) {
             if(won) Row { repeat(3) { i -> PixelImage(R.drawable.star,if(i<sim.stars(cost)) "Estrella obtenida" else "Estrella pendiente",Modifier.size(52.dp),alpha=if(i<sim.stars(cost)) 1f else .25f) } } else Text("↻",fontSize=52.sp,color=Taxi.dark)
