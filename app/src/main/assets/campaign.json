@@ -160,7 +160,8 @@
         "visible",
         "eye"
       ],
-      "parCost": 2
+      "parCost": 2,
+      "blockedCrossing": 2
     },
     {
       "id": 3,
@@ -188,8 +189,10 @@
         {
           "y": 0.68,
           "speed": -0.11,
-          "offset": 0.97,
-          "car": "car_blue"
+          "offset": 0.6,
+          "car": "car_blue",
+          "twoWay": true,
+          "oncomingOffset": 0.55
         }
       ],
       "tools": [
@@ -228,7 +231,9 @@
           "y": 0.35,
           "speed": 0.19,
           "offset": 0.6,
-          "car": "car_coral"
+          "car": "car_coral",
+          "twoWay": true,
+          "oncomingOffset": 0.9
         },
         {
           "y": 0.68,
@@ -281,14 +286,18 @@
         {
           "y": 0.35,
           "speed": 0.14,
-          "offset": 0.6,
-          "car": "car_coral"
+          "offset": 0.25,
+          "car": "car_coral",
+          "twoWay": true,
+          "oncomingOffset": 1.1
         },
         {
           "y": 0.68,
           "speed": -0.13,
           "offset": 0.97,
-          "car": "car_blue"
+          "car": "car_blue",
+          "twoWay": true,
+          "oncomingOffset": 0.5
         }
       ],
       "tools": [
@@ -502,7 +511,8 @@
         "crosswalk"
       ],
       "newTools": [],
-      "parCost": 3
+      "parCost": 3,
+      "blockedCrossing": 2
     },
     {
       "id": 10,
@@ -532,13 +542,17 @@
           "y": 0.35,
           "speed": 0.13,
           "offset": 0.6,
-          "car": "car_coral"
+          "car": "car_coral",
+          "twoWay": true,
+          "oncomingOffset": 1.0
         },
         {
           "y": 0.68,
           "speed": -0.12,
           "offset": 0.97,
-          "car": "car_blue"
+          "car": "car_blue",
+          "twoWay": true,
+          "oncomingOffset": 0.7
         }
       ],
       "tools": [
@@ -616,7 +630,8 @@
         0.95,
         0.4
       ],
-      "parCost": 7
+      "parCost": 7,
+      "blockedCrossing": 2
     },
     {
       "id": 12,

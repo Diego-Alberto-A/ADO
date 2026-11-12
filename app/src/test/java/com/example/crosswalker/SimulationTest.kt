@@ -68,10 +68,11 @@ class SimulationTest {
         val a=Simulation(l,p); val b=Simulation(l,p);p.people.values.first().skills.clear()
         repeat(300) { a.tick();b.tick();assertEquals(a.people.first().y,b.people.first().y,0f); assertEquals(a.carX(l.lanes.first()),b.carX(l.lanes.first()),0f) }
     }
-    @Test fun reflectorNeverGrantsCollisionImmunity() {
+    @Test fun reflectorAloneNeverWins() {
         val l=levels[8].copy(lanes=listOf(Lane(.7f,.15f,.4f,"car_blue")))
         val s=finish(Simulation(l,plan(l,1,setOf("visible"))))
-        assertEquals(Phase.RETRY,s.phase);assertNotNull(s.collapsedWalkerId); assertTrue(s.impactSpeed>0f)
+        assertEquals(Phase.RETRY,s.phase)
+        assertTrue(s.reason.contains("Mirar") || s.reason.contains("Confirmar alto"))
     }
     @Test fun inaccessibleKerbFailsWithAnExplanation() {
         val l=levels[2];val s=finish(Simulation(l,plan(l,2,setOf("look"),setOf("crosswalk"))))
@@ -113,5 +114,30 @@ class SimulationTest {
     }
     @Test fun budgetCountsPersonalCardsPerPersonAndStreetOnce() {
         val l=levels[4];val p=plan(l,1,setOf("look"),setOf("speed_zone"));assertEquals(5,p.cost(tools))
+    }
+    @Test fun lanesLackingLookOrEyeNeverWinEvenWhenTheWalkPhysicallySurvives() {
+        for(l in levels.filter { !it.tutorial }) {
+            for(c in 0..2) {
+                val p = plan(l,c,emptySet())
+                p.people.forEach { (id,a) -> if(l.walkers.first{it.id==id}.kind=="phone" && "phone_away" in l.tools) a.skills.add("phone_away") }
+                if("crosswalk" in l.tools) p.street.add("crosswalk")
+                val sim = finish(Simulation(l,p))
+                assertNotEquals("level=${l.id} crossing=$c won without look/eye", Phase.WON, sim.phase)
+            }
+        }
+    }
+    @Test fun twoWayLanesStillLetALookingWalkerThrough() {
+        fun solved(levelId: Int, crossing: Int, street: Set<String> = emptySet()): Boolean {
+            val l = levels.first { it.id == levelId }
+            val p = plan(l, crossing, setOf("look"), street)
+            p.people.forEach { (id,a) -> if(l.walkers.first{it.id==id}.kind=="phone" && "phone_away" in l.tools) a.skills.add("phone_away") }
+            return finish(Simulation(l, p)).phase == Phase.WON
+        }
+        assertTrue(solved(3, 0, setOf("crosswalk")))
+        assertTrue(solved(3, 1, setOf("crosswalk")))
+        assertTrue(solved(4, 2, setOf("speed_zone")))
+        assertTrue(solved(5, 0)); assertTrue(solved(5, 1)); assertTrue(solved(5, 2))
+        assertTrue(solved(10, 0, setOf("speed_zone")))
+        assertTrue(solved(10, 2, setOf("speed_zone")))
     }
 }
