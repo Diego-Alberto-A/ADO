@@ -78,8 +78,9 @@ class Session(val repo: GameRepository): ViewModel() {
     var message by mutableStateOf("")
     var introIndex by mutableIntStateOf(0)
     var sound: com.example.crosswalker.audio.SoundEngine? = null
+    var showResultDialog by mutableStateOf(false)
     fun enter(l: Level) { transition(ScreenMotion.FORWARD) { sound?.playSfx(R.raw.sfx_enter_level); level=l; reset(); screen="game" } }
-    fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; frame++ }
+    fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; showResultDialog=false; frame++ }
     fun toggle(t: Tool) {
         val next=plan.copyPlan()
         val target=if(t.category=="street") next.street else next.people.getValue(selected).skills
@@ -236,6 +237,18 @@ class MainActivity: ComponentActivity() {
     val planning=sim==null
     val selectedWalker=s.level.walkers.first { it.id==s.selected }
     val cost=s.plan.cost(s.repo.tools)
+    LaunchedEffect(sim?.phase) {
+        when (sim?.phase) {
+            Phase.RETRY -> if (sim.collapsedWalkerId != null) {
+                s.sound?.stopMusic()
+                s.sound?.playSfx(R.raw.sfx_collapse)
+                kotlinx.coroutines.delay(1000)
+                s.sound?.playOneShot(R.raw.music_gameover)
+            }
+            Phase.WON -> s.sound?.playOneShot(R.raw.music_win) { s.showResultDialog = true }
+            else -> {}
+        }
+    }
     // No title, no phase label: the board runs to the top edge and the only
     // chrome left floats over it — pause on one side, the budget on the other.
     Box(Modifier.fillMaxSize()) {
@@ -286,11 +299,11 @@ class MainActivity: ComponentActivity() {
             TokenCounter(s.level.budget-cost,s.level.budget)
         }
     }
-    if(sim?.phase==Phase.WON || sim?.phase==Phase.RETRY) {
+    if(sim?.phase==Phase.RETRY || (sim?.phase==Phase.WON && s.showResultDialog)) {
         val won=sim.phase==Phase.WON
         PaperDialog(if(won) "¡BUEN CAMINO!" else "OTRO PLAN, OTRA OPORTUNIDAD",{},dismissible=false,accent=if(won) Tree else Brick) {
             if(won) Row { repeat(3) { i -> PixelImage(R.drawable.star,if(i<sim.stars(cost)) "Estrella obtenida" else "Estrella pendiente",Modifier.size(52.dp),alpha=if(i<sim.stars(cost)) 1f else .25f) } } else Text("↻",fontSize=52.sp,color=Taxi.dark)
-            Text(if(won) "¡Todos llegaron a salvo!" else "Nos detenemos a tiempo.",style=TitleSmall,color=Ink)
+            Text(if(won) "¡Todos llegaron a salvo!" else "¡Cuidado! Un auto golpeó a alguien.",style=TitleSmall,color=Ink)
             Text(if(won) "Usaste $cost de ${s.level.budget} fichas. Tus buenas decisiones hacen una ciudad más segura." else sim.reason,style=BodyText,color=Ink)
             if(won && s.level.id<s.repo.levels.size) PaperButton("SIGUIENTE CAMINO  →") {s.enter(s.repo.levels[s.level.id])}
             PaperButton(if(won) "VOLVER A INTENTAR" else "✎  MEJORAR MI PLAN",if(won) Neutral else Tree) {s.simulation=null;s.message=s.level.lesson}

@@ -82,7 +82,7 @@ class Simulation(val level: Level, source: Plan) {
                     phase = Phase.RETRY
                     collapsedWalkerId = p.walker.id
                     collapsedLane = l
-                    reason = if(level.night) "De noche, usa el reflector para que puedan verte." else "Un coche estaba muy cerca. Prueba mirar antes de cruzar o cambia el punto de cruce."
+                    reason = if(level.night) "De noche, un auto no pudo verte a tiempo. Usa el reflector para que te vean." else "El auto no alcanzó a frenar a tiempo. Mira antes de cruzar o cambia el punto de cruce."
                     return
                 }
             }
