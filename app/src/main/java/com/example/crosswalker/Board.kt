@@ -46,7 +46,11 @@ private const val PIXEL = 1f
             "walker_rust" to R.drawable.walker_rust,"walker_rust_w0" to R.drawable.walker_rust_w0,"walker_rust_w1" to R.drawable.walker_rust_w1,"walker_rust_w2" to R.drawable.walker_rust_w2,
             "phone" to R.drawable.phone,
             "house" to R.drawable.house,"tree" to R.drawable.tree,"tree_autumn" to R.drawable.tree_autumn,
-            "stop" to R.drawable.stop_sign,"signal" to R.drawable.traffic_light)
+            "stop" to R.drawable.stop_sign,"signal" to R.drawable.traffic_light,
+            "decor_fence_barrio" to R.drawable.decor_fence_barrio,"decor_mailbox_barrio" to R.drawable.decor_mailbox_barrio,
+            "decor_building_campus" to R.drawable.decor_building_campus,"decor_bikerack_campus" to R.drawable.decor_bikerack_campus,
+            "decor_building_city" to R.drawable.decor_building_city,"decor_busstop_city" to R.drawable.decor_busstop_city,
+            "obstacle_barricade_barrio" to R.drawable.obstacle_barricade_barrio,"obstacle_cone_campus" to R.drawable.obstacle_cone_campus)
             .mapValues { resources.getDrawable(it.value, null)!!.apply { setFilterBitmap(false) } }
     }
     // Ground textures tile at 16 board units, matching one source tile of the pack.
@@ -90,9 +94,15 @@ private const val PIXEL = 1f
 
         ground(0f,0f,360f,460f,"grass")
 
-        // Far side of the street: houses, trees and the kerb the walkers aim for.
-        sprite("house",18f,0f,78f,64f);sprite("house",232f,2f,68f,60f)
-        sprite("tree",107f,4f,36f,52f);sprite("tree_autumn",310f,2f,34f,56f)
+        // Each world dresses the same board layout with its own set-dressing.
+        val decor=when(level.world) {
+            1 -> listOf("decor_building_campus","decor_building_campus","decor_bikerack_campus","tree","tree","decor_bikerack_campus")
+            2 -> listOf("decor_building_city","decor_building_city","decor_busstop_city","tree_autumn","tree","decor_busstop_city")
+            else -> listOf("house","house","decor_fence_barrio","decor_mailbox_barrio","tree","tree_autumn")
+        }
+        // Far side of the street: decoration, and the kerb the walkers aim for.
+        sprite(decor[0],18f,0f,78f,64f);sprite(decor[1],232f,2f,68f,60f)
+        sprite(decor[2],107f,4f,36f,52f);sprite(decor[3],310f,2f,34f,56f)
         ground(0f,56f,360f,16f,"walk")
         rect(0f,56f,360f,PIXEL*2,ASPHALT)
 
@@ -118,8 +128,8 @@ private const val PIXEL = 1f
         // Near side: the pavement the pedestrians wait on.
         ground(0f,335f,360f,125f,"walk")
         rect(0f,335f,360f,PIXEL*2,ASPHALT)
-        // Kerbside trees sit on the near pavement, clear of the crossing zones.
-        sprite("tree",4f,386f,28f,44f);sprite("tree_autumn",328f,386f,28f,44f)
+        // Kerbside decoration sits on the near pavement, clear of the crossing zones.
+        sprite(decor[4],4f,386f,28f,44f);sprite(decor[5],328f,386f,28f,44f)
         if(level.tutorial && plan.people.values.any {"signal" in it.skills}) sprite("signal",320f,294f,32f,48f)
         if(!level.tutorial) {
             if("speed_zone" in plan.street) { sprite("stop",12f,300f,24f,32f);label("ZONA LENTA",62f,326f,8f,WORLD_TEXT) }
