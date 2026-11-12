@@ -34,9 +34,6 @@ class Simulation(val level: Level, source: Plan) {
     val plan = source.copyPlan()
     var phase = Phase.RUNNING; private set
     var time = 0f; private set
-    var emergencyUsed = false; private set
-    private var stopUntil = 0f
-    val emergencyRemaining: Float get() = maxOf(0f, stopUntil - time)
     private val trafficClocks = level.lanes.associateWith { 0f }.toMutableMap()
     var reason = ""; private set
     var collapsedWalkerId: String? = null; private set
@@ -54,10 +51,9 @@ class Simulation(val level: Level, source: Plan) {
             return wrap(car.x + direction(lane) * car.speed * ahead)
         }
         val multiplier = (if("school" in plan.street) .7f else 1f) * (if("bump" in plan.street) .65f else 1f)
-        val t = trafficClocks.getValue(lane) + if(time < stopUntil) 0f else ahead
+        val t = trafficClocks.getValue(lane) + ahead
         return (((lane.offset + lane.speed * multiplier * t) % 1.4f + 1.4f) % 1.4f) - .2f
     }
-    fun emergency() { if(phase == Phase.RUNNING && !emergencyUsed) { emergencyUsed = true; stopUntil = time + 3f } }
     fun tick(dt: Float = STEP) {
         if(phase != Phase.RUNNING) return
         require(dt > 0f && dt.isFinite())
@@ -73,7 +69,7 @@ class Simulation(val level: Level, source: Plan) {
         time += dt
         val signalled = people.any { p -> "signal" in (plan.people[p.walker.id]?.skills ?: emptySet()) && abs(p.x-.5f)<.05f && !p.done }
         val officer = "officer" in plan.street && time < 6f
-        if(time >= stopUntil && !officer && !signalled) {
+        if(!officer && !signalled) {
             level.lanes.forEach { lane ->
                 val yield = people.any { p ->
                     val actions = plan.people[p.walker.id]?.skills ?: emptySet()
@@ -101,12 +97,12 @@ class Simulation(val level: Level, source: Plan) {
             if(lane != null && looking) {
                 val duration = (p.y - lane.y + .075f) / velocity
                 val hazard = (0..30).any { sample -> abs(carX(lane, duration * sample / 30) - p.x) < .135f }
-                if(hazard && !officer && !signalled && time >= stopUntil) continue
+                if(hazard && !officer && !signalled) continue
             }
             p.y -= velocity * dt
             for(l in level.lanes) {
                 val near = abs(p.y-l.y)<.066f && abs(p.x-carX(l))<.115f
-                if(near && !yielding && !officer && !signalled && time >= stopUntil) {
+                if(near && !yielding && !officer && !signalled) {
                     phase = Phase.RETRY
                     collapsedWalkerId = p.walker.id
                     collapsedLane = l
@@ -163,7 +159,7 @@ class Simulation(val level: Level, source: Plan) {
                 val atRoad = p.y > lane.y - .09f && p.y <= .94f
                 val marked = "crosswalk" in plan.street && crossing(p) in level.accessible
                 !p.done && atRoad && distance > .10f && distance < detection &&
-                    (marked || (red && crossing(p) == 1) || time < stopUntil)
+                    (marked || (red && crossing(p) == 1))
             }
             val target = targets.minByOrNull { (it.x - car.x) * dir }
             val distance = target?.let { (it.x - car.x) * dir - .12f }
@@ -260,7 +256,7 @@ class Simulation(val level: Level, source: Plan) {
         val x=interval(x0,x1,px,.115f); val y=interval(y0,y1,ly,.065f)
         return maxOf(0f,x.first,y.first) < minOf(1f,x.second,y.second)
     }
-    fun stars(cost: Int): Int = if(phase != Phase.WON) 0 else if(emergencyUsed) 1 else if(cost <= if(level.parCost>0 && !level.tutorial) level.parCost.toFloat() else level.budget * .65f) 3 else 2
+    fun stars(cost: Int): Int = if(phase != Phase.WON) 0 else if(cost <= if(level.parCost>0 && !level.tutorial) level.parCost.toFloat() else level.budget * .65f) 3 else 2
     companion object { const val STEP = .05f; val crossings = listOf(.25f,.5f,.75f) }
 }
 

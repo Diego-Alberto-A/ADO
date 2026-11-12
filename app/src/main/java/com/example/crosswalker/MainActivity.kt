@@ -222,10 +222,7 @@ class MainActivity: ComponentActivity() {
 }
 @Composable fun Eyebrow(text:String) { Text(text.uppercase(),style=HudStrong,letterSpacing=2.sp,color=Asphalt) }
 @Composable fun PaperButton(text:String,accent:Accent=Tree,enabled:Boolean=true,onClick:()->Unit) {
-    val stop=text.startsWith("\u270B")
-    PixelButton(text.removePrefix("\u270B").trim(),accent,enabled,
-        leading=if(stop) ({ PixelImage(R.drawable.icon_officer,null,Modifier.size(25.dp)) }) else null,
-        onClick=onClick)
+    PixelButton(text,accent,enabled,onClick=onClick)
 }
 @Composable fun WorldMap(s:Session,click:()->Unit) {
     var chosen by remember { mutableStateOf<Level?>(null) }
@@ -365,7 +362,6 @@ class MainActivity: ComponentActivity() {
             Box(Modifier.tutorialTarget("launch",s.tutorialController,launch)) { PaperButton("▶   PONER EL PLAN EN MARCHA",onClick=launch) }
         } else if(sim!=null) {
             if(!s.level.tutorial) Text(sim.feedback.ifEmpty { "Observa cada carril: los coches necesitan tiempo y espacio para detenerse." },style=BodyText,color=Ink)
-            PaperButton(if(sim!!.emergencyUsed) "AYUDA UTILIZADA" else "✋  PARAR TRÁFICO · 1 USO",Brick,enabled=!sim.emergencyUsed && sim.phase==Phase.RUNNING) {sim.emergency();s.frame++;click()}
         }
         }
         }

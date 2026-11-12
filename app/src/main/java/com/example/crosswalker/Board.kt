@@ -196,7 +196,6 @@ private const val PIXEL = 1f
             // top of the board, and the bubble would be drawn off-canvas.
             val bubbleY=maxOf(y-40f,26f)
             if(person?.done==true) bubble(x+14,bubbleY,"♥","#D9483F")
-            else if(sim!=null && sim.emergencyRemaining>0f) bubble(x+14,bubbleY,"!","#D98A1C")
         }
         // Choque: oscurecer todo el tablero excepto al peatón golpeado y su carril.
         if(sim?.phase==Phase.RETRY && sim.collapsedWalkerId!=null) {
@@ -232,7 +231,6 @@ private const val PIXEL = 1f
             p.alpha=38;c.drawRect(0f,335f,360f,125f,p)
             p.alpha=255;color("#F5E6C5");c.drawCircle(195f,22f,9f,p)
         }
-        if(sim!=null && sim.emergencyRemaining>0f) label("ALTO",180f,330f,13f,"#F27A6B")
         c.restore()
     }
 }

@@ -82,11 +82,6 @@ class SimulationTest {
         repeat(90) {a.tick(1f)};repeat(1800) {b.tick(.05f)}
         assertEquals(Phase.RETRY,a.phase);assertEquals(b.phase,a.phase);assertEquals(b.collapsedWalkerId,a.collapsedWalkerId)
     }
-    @Test fun emergencyIsSingleUseAndNotAnInstantStop() {
-        val l=levels[1]; val s=Simulation(l,plan(l,1,emptySet()));val lane=l.lanes.first()
-        s.emergency();s.tick();assertTrue(s.carSpeed(lane)>0f)
-        repeat(80){s.tick()};s.emergency();assertEquals(0f,s.emergencyRemaining,0f)
-    }
     @Test fun phoneAwayAloneDoesNotCheckTraffic() {
         val l=levels[1];assertEquals(Phase.RETRY,finish(Simulation(l,plan(l,1,setOf("phone_away")))).phase)
     }
