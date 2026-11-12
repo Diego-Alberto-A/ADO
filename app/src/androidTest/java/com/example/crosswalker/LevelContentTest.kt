@@ -19,9 +19,9 @@ class LevelContentTest {
     @Test fun levelDialogShowsNewToolCard() {
         ui.runOnIdle { session.repo.save(3, 1) }   // unlock level 4 for this run
         tap("JUGAR")
-        tap("Camino a la escuela")
+        tap("Ver entre los coches")
         ui.onNodeWithText("FICHA NUEVA", substring = true).performScrollTo().assertIsDisplayed()
-        ui.onNodeWithText("Zona escolar", substring = true).performScrollTo().assertIsDisplayed()
+        ui.onNodeWithText("Zona lenta", substring = true).performScrollTo().assertIsDisplayed()
     }
 
     @Test fun toolPaletteOnlyShowsFichasAvailableForThisLevel() {

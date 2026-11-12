@@ -1,0 +1,46 @@
+{
+  "id": 1,
+  "world": 0,
+  "title": "Mi primer cruce",
+  "lesson": "Toca MIRAR: cuesta 1 ficha y me hace esperar un hueco seguro antes de entrar a cada carril.",
+  "budget": 3,
+  "night": false,
+  "walkers": [
+    {
+      "id": "ana",
+      "name": "Ana",
+      "kind": "impulsive",
+      "speed": 0.12,
+      "sprite": "walker_coral"
+    }
+  ],
+  "lanes": [
+    {
+      "y": 0.5,
+      "speed": 0.11,
+      "offset": 0.6,
+      "car": "car_coral"
+    }
+  ],
+  "tools": [
+    "look"
+  ],
+  "newTools": [
+    "look"
+  ],
+  "tutorial": true,
+  "introLines": [
+    "¡Hola! Soy Ana. Te acompañaré en tu primer cruce. Toca este diálogo para seguir.",
+    "Nuestro objetivo es llegar a la otra acera sin que nos alcance ningún coche. Primero preparamos un plan.",
+    "Este es el mapa del cruce. Aquí verás la calle, los coches y a los peatones que debes ayudar.",
+    "Yo también estoy en el mapa. Antes de salir, mira los carriles: cada coche sigue su propia dirección.",
+    "Arriba está PAUSA (Ⅱ). Puedes descansar, reiniciar el intento o volver al mapa desde ahí.",
+    "Estas son tus FICHAS ●. Las habilidades y mejoras cuestan fichas; el contador muestra cuántas te quedan.",
+    "Aquí eliges al peatón que vas a preparar. En este primer camino solo estoy yo: Ana.",
+    "En HABILIDADES eliges lo que hace cada peatón. Hoy aprenderemos a MIRAR antes de entrar a un carril.",
+    "LA CALLE reúne mejoras que protegen el camino. Las conocerás en los siguientes niveles.",
+    "Los tres cruces indican por dónde saldré. Elegir el camino no basta: también necesito una habilidad segura.",
+    "Ahora elige mi cruce: Izquierda, Centro o Derecha. Toca una de estas opciones; te recomiendo el Centro."
+  ],
+  "readyMessage": "¡Plan listo! Toca PONER EL PLAN EN MARCHA. Caminaré sola siguiendo tus decisiones; observa cómo espero para cruzar."
+}

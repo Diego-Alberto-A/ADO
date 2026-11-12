@@ -13,9 +13,13 @@ data class TutorialStep(val spotlightId: String, val tapId: String = spotlightId
 fun tutorialStepFor(introIndex: Int, introLineCount: Int, lookChosen: Boolean): TutorialStep = when {
     introIndex < introLineCount - 1 -> when (introIndex) {
         0, 1 -> TutorialStep("dialogue")
-        2 -> TutorialStep("pause", "dialogue")
-        3 -> TutorialStep("tokens", "dialogue")
-        else -> TutorialStep("tab_skill", "dialogue")
+        2, 3 -> TutorialStep("board", "dialogue")
+        4 -> TutorialStep("pause", "dialogue")
+        5 -> TutorialStep("tokens", "dialogue")
+        6 -> TutorialStep("walkers", "dialogue")
+        7 -> TutorialStep("tab_skill", "dialogue")
+        8 -> TutorialStep("tab_street", "dialogue")
+        else -> TutorialStep("crossing", "dialogue")
     }
     introIndex == introLineCount - 1 -> TutorialStep("crossing")
     !lookChosen -> TutorialStep("tool_look")

@@ -131,7 +131,7 @@ fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedSt
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(colorize(text.take(revealed), lexicon), style = BodyText, color = Ink,
-                    maxLines = 3, modifier = Modifier.weight(1f).clearAndSetSemantics {})
+                    modifier = Modifier.weight(1f).clearAndSetSemantics {})
                 // The arrow blinks while typing, and keeps blinking when there is a next page.
                 if (!done || onAdvance != null) Box(Modifier.padding(start = 8.dp)) { MoreTextArrow() }
             }

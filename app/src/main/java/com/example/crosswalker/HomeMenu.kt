@@ -64,6 +64,15 @@ import com.example.crosswalker.ui.theme.*
                     PaperButton("★  LOGROS", Neutral, enabled = enabled) { click(); s.dialog = "achievements" }
                 }
             }
+            Column(Modifier.widthIn(max = 360.dp).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                PaperButton("↻  REINICIAR PROGRESO", Neutral, enabled = enabled) {
+                    click(); s.dialog = "resetProgress"
+                }
+                Text("Vuelve al primer cruce y juega desde cero", color = Asphalt, style = BodyText,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
         }
 
     }

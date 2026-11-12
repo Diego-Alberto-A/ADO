@@ -5,199 +5,686 @@
     "La ciudad de noche"
   ],
   "tools": [
-    {"id":"look","label":"Mirar","icon":"◉","cost":1,"description":"Espera un hueco seguro antes de entrar a cada carril.","category":"skill"},
-    {"id":"wait","label":"Esperar","icon":"Ⅱ","cost":1,"description":"Espera tres segundos en el bordillo antes de salir.","category":"skill"},
-    {"id":"eye","label":"Contacto","icon":"☺","cost":2,"description":"El conductor te ve y cede el paso durante el día.","category":"skill"},
-    {"id":"signal","label":"Semáforo","icon":"▣","cost":3,"description":"En el cruce central, solicita detener el tráfico.","category":"skill"},
-    {"id":"visible","label":"Reflector","icon":"✦","cost":2,"description":"Permite que los conductores te vean y cedan el paso de noche.","category":"skill"},
-    {"id":"phone_away","label":"Guarda el celular","icon":"✕","cost":1,"description":"Guarda el teléfono antes de cruzar para prestar atención a la calle.","category":"skill"},
-    {"id":"officer","label":"Agente","icon":"✋","cost":4,"description":"Detiene el tráfico al inicio: ¡crucen todos juntos y rápido!","category":"street"},
-    {"id":"school","label":"Zona escolar","icon":"⚑","cost":2,"description":"Reduce la velocidad del tráfico en toda la calle.","category":"street"},
-    {"id":"bump","label":"Reductor","icon":"≋","cost":2,"description":"Los coches circulan más despacio.","category":"street"},
-    {"id":"crosswalk","label":"Paso cebra","icon":"▤","cost":2,"description":"Un paso marcado hace el recorrido más rápido, y es indispensable para quien usa silla de ruedas.","category":"street"}
+    {
+      "id": "look",
+      "label": "Mirar",
+      "icon": "◉",
+      "cost": 1,
+      "description": "Espera un hueco seguro antes de entrar a cada carril.",
+      "category": "skill"
+    },
+    {
+      "id": "eye",
+      "label": "Confirmar alto",
+      "icon": "●",
+      "cost": 1,
+      "description": "Espera a que TODOS los coches estén detenidos antes del cruce. Útil con un paso marcado o semáforo; no pide paso ni obliga a frenar. Sin ellos puede dejarte esperando.",
+      "category": "skill"
+    },
+    {
+      "id": "visible",
+      "label": "Reflector",
+      "icon": "●",
+      "cost": 1,
+      "description": "De noche, permite que los conductores te detecten antes. No ilumina tu vista ni obliga a frenar. De día no aporta ventaja.",
+      "category": "skill"
+    },
+    {
+      "id": "phone_away",
+      "label": "Guardar celular",
+      "icon": "●",
+      "cost": 1,
+      "description": "Quita la distracción de Tomás y recupera su paso normal. No comprueba el tráfico. No cambia nada en quien no lleva celular.",
+      "category": "skill"
+    },
+    {
+      "id": "speed_zone",
+      "label": "Zona lenta",
+      "icon": "●",
+      "cost": 3,
+      "description": "Reduce la velocidad de circulación al 55 %. Da más tiempo y reduce la distancia de frenado; no detiene los coches ni elimina los choques.",
+      "category": "street"
+    },
+    {
+      "id": "crosswalk",
+      "label": "Paso accesible",
+      "icon": "●",
+      "cost": 2,
+      "description": "Paso marcado con rampas en los cruces indicados. Permite cruzar a Mateo y avisa a conductores que puedan verte. No acelera peatones ni garantiza que frenen.",
+      "category": "street"
+    },
+    {
+      "id": "signal",
+      "label": "Fase peatonal",
+      "icon": "●",
+      "cost": 3,
+      "description": "En el Centro: rojo vehicular desde el inicio, paso peatonal del segundo 3 al 16 de cada ciclo de 22 s. Espera luz y tiempo suficiente; confirma el alto. No actúa en cruces laterales.",
+      "category": "street"
+    },
+    {
+      "id": "lighting",
+      "label": "Iluminar cruce",
+      "icon": "●",
+      "cost": 2,
+      "description": "Ilumina el Centro de noche para ver y ser visto antes. No elimina niebla ni obstáculos. De día o en cruces laterales no ayuda.",
+      "category": "street"
+    },
+    {
+      "id": "refuge",
+      "label": "Isla de refugio",
+      "icon": "●",
+      "cost": 3,
+      "description": "Solo en niveles con espacio para isla y solo en el Centro: divide el recorrido en dos tramos y permite esperar protegido a mitad. No reduce velocidad ni sustituye Mirar o Confirmar alto.",
+      "category": "street"
+    }
   ],
   "levels": [
     {
-      "id": 1, "world": 0, "title": "Mi primer cruce",
-      "lesson": "Ahora toca HABILIDADES y elige la ficha MIRAR, para que sepa si viene un coche.",
-      "budget": 3, "night": false,
-      "walkers": [{"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"}],
-      "lanes": [{"y":0.50,"speed":0.11,"offset":0.60,"car":"car_coral"}],
-      "tools": ["look"], "newTools": ["look"], "tutorial": true,
+      "id": 1,
+      "world": 0,
+      "title": "Mi primer cruce",
+      "lesson": "Toca MIRAR: cuesta 1 ficha y me hace esperar un hueco seguro antes de entrar a cada carril.",
+      "budget": 3,
+      "night": false,
+      "walkers": [
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.5,
+          "speed": 0.11,
+          "offset": 0.6,
+          "car": "car_coral"
+        }
+      ],
+      "tools": [
+        "look"
+      ],
+      "newTools": [
+        "look"
+      ],
+      "tutorial": true,
       "introLines": [
-        "¡Hola! Soy Ana.",
-        "Hoy aprenderás a cruzar la calle sin peligro. Vamos paso a paso.",
-        "Arriba a la izquierda está PAUSA (Ⅱ), por si quieres detenerte un momento.",
-        "Arriba a la derecha están tus FICHAS ●: cada decisión cuesta algunas, ¡hoy tienes de sobra!",
-        "Hay dos pestañas: HABILIDADES son para mí, y LA CALLE protege todo el camino. Hoy usamos HABILIDADES.",
-        "Elige por dónde cruzo: Izquierda, Centro o Derecha. Te recomiendo el Centro."
+        "¡Hola! Soy Ana. Te acompañaré en tu primer cruce. Toca este diálogo para seguir.",
+        "Nuestro objetivo es llegar a la otra acera sin que nos alcance ningún coche. Primero preparamos un plan.",
+        "Este es el mapa del cruce. Aquí verás la calle, los coches y a los peatones que debes ayudar.",
+        "Yo también estoy en el mapa. Antes de salir, mira los carriles: cada coche sigue su propia dirección.",
+        "Arriba está PAUSA (Ⅱ). Puedes descansar, reiniciar el intento o volver al mapa desde ahí.",
+        "Estas son tus FICHAS ●. Las habilidades y mejoras cuestan fichas; el contador muestra cuántas te quedan.",
+        "Aquí eliges al peatón que vas a preparar. En este primer camino solo estoy yo: Ana.",
+        "En HABILIDADES eliges lo que hace cada peatón. Hoy aprenderemos a MIRAR antes de entrar a un carril.",
+        "LA CALLE reúne mejoras que protegen el camino. Las conocerás en los siguientes niveles.",
+        "Los tres cruces indican por dónde saldré. Elegir el camino no basta: también necesito una habilidad segura.",
+        "Ahora elige mi cruce: Izquierda, Centro o Derecha. Toca una de estas opciones; te recomiendo el Centro."
       ],
-      "readyMessage": "¡Muy bien! Toca PONER EL PLAN EN MARCHA para intentarlo."
+      "readyMessage": "¡Plan listo! Toca PONER EL PLAN EN MARCHA. Caminaré sola siguiendo tus decisiones; observa cómo espero para cruzar."
     },
     {
-      "id": 2, "world": 0, "title": "Para y mira",
-      "lesson": "Para y mira antes de cruzar: así evitas las prisas.",
-      "budget": 6, "night": false,
+      "id": 2,
+      "world": 0,
+      "title": "Un mensaje puede esperar",
+      "lesson": "Tomás necesita guardar el celular y comprobar el tráfico. Un reflector no ayuda de día.",
+      "budget": 3,
+      "night": false,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"}
+        {
+          "id": "tomas",
+          "name": "Tomás",
+          "kind": "phone",
+          "speed": 0.11,
+          "sprite": "walker_slate"
+        }
       ],
       "lanes": [
-        {"y":0.35,"speed":0.13,"offset":0.40,"car":"car_coral"},
-        {"y":0.65,"speed":-0.12,"offset":0.90,"car":"car_blue"}
+        {
+          "y": 0.5,
+          "speed": 0.09,
+          "offset": 0.28,
+          "car": "car_coral"
+        }
       ],
-      "tools": ["look","wait","bump"], "newTools": ["wait","bump"]
+      "tools": [
+        "look",
+        "phone_away",
+        "visible",
+        "eye"
+      ],
+      "newTools": [
+        "phone_away",
+        "visible",
+        "eye"
+      ],
+      "parCost": 2
     },
     {
-      "id": 3, "world": 0, "title": "Cada quien su paso",
-      "lesson": "Mira al conductor a los ojos: así sabes que te vio. Luz necesita más tiempo para cruzar.",
-      "budget": 8, "night": false,
+      "id": 3,
+      "world": 0,
+      "title": "Un cruce para Mateo",
+      "lesson": "El paso accesible tiene rampas a la Izquierda y en el Centro. Una rampa no sustituye mirar.",
+      "budget": 4,
+      "night": false,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"},
-        {"id":"luz","name":"Luz","kind":"slow","speed":0.075,"sprite":"walker_green"}
+        {
+          "id": "mateo",
+          "name": "Mateo",
+          "kind": "wheelchair",
+          "speed": 0.095,
+          "sprite": "walker_chair"
+        }
       ],
       "lanes": [
-        {"y":0.35,"speed":0.14,"offset":0.45,"car":"car_yellow"},
-        {"y":0.65,"speed":-0.13,"offset":1.00,"car":"car_green"}
+        {
+          "y": 0.35,
+          "speed": 0.13,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.11,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","eye","bump"], "newTools": ["eye"]
+      "tools": [
+        "look",
+        "eye",
+        "crosswalk",
+        "visible"
+      ],
+      "newTools": [
+        "crosswalk"
+      ],
+      "accessible": [
+        0,
+        1
+      ],
+      "parCost": 3
     },
     {
-      "id": 4, "world": 0, "title": "Camino a la escuela",
-      "lesson": "Cerca de la escuela, el tráfico va más despacio y el paso cebra te hace cruzar más rápido.",
-      "budget": 10, "night": false,
+      "id": 4,
+      "world": 0,
+      "title": "Ver entre los coches",
+      "lesson": "La Izquierda tiene la vista bloqueada. Luz necesita más tiempo: un cruce despejado y menos velocidad ayudan.",
+      "budget": 4,
+      "night": false,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"},
-        {"id":"luz","name":"Luz","kind":"slow","speed":0.075,"sprite":"walker_green"}
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
       ],
       "lanes": [
-        {"y":0.28,"speed":0.15,"offset":0.35,"car":"car_coral"},
-        {"y":0.49,"speed":-0.14,"offset":0.90,"car":"car_blue"},
-        {"y":0.70,"speed":0.13,"offset":0.60,"car":"car_yellow"}
+        {
+          "y": 0.35,
+          "speed": 0.19,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.18,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","eye","school","crosswalk"], "newTools": ["school","crosswalk"]
+      "tools": [
+        "look",
+        "eye",
+        "speed_zone",
+        "lighting"
+      ],
+      "newTools": [
+        "speed_zone",
+        "lighting"
+      ],
+      "sight": [
+        0.16,
+        0.95,
+        0.95
+      ],
+      "parCost": 4
     },
     {
-      "id": 5, "world": 1, "title": "La gran avenida",
-      "lesson": "Una avenida grande tiene más carriles: usa lo que ya sabes y ten paciencia.",
-      "budget": 10, "night": false,
+      "id": 5,
+      "world": 1,
+      "title": "Dos sentidos, dos comprobaciones",
+      "lesson": "Un coche que cede en un carril no detiene al otro. Prepara a Tomás y a Ana por separado.",
+      "budget": 6,
+      "night": false,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"},
-        {"id":"luz","name":"Luz","kind":"slow","speed":0.075,"sprite":"walker_green"}
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        },
+        {
+          "id": "tomas",
+          "name": "Tomás",
+          "kind": "phone",
+          "speed": 0.11,
+          "sprite": "walker_slate"
+        }
       ],
       "lanes": [
-        {"y":0.24,"speed":0.17,"offset":0.30,"car":"car_coral"},
-        {"y":0.40,"speed":-0.16,"offset":0.95,"car":"car_blue"},
-        {"y":0.56,"speed":0.15,"offset":0.55,"car":"car_yellow"},
-        {"y":0.72,"speed":-0.14,"offset":1.10,"car":"car_green"}
+        {
+          "y": 0.35,
+          "speed": 0.14,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.13,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","eye","crosswalk"], "newTools": []
+      "tools": [
+        "look",
+        "eye",
+        "phone_away",
+        "speed_zone",
+        "crosswalk"
+      ],
+      "newTools": [],
+      "parCost": 3
     },
     {
-      "id": 6, "world": 1, "title": "El cruce con semáforo",
-      "lesson": "El semáforo detiene el tráfico, pero solo si cruzas por el Centro.",
-      "budget": 8, "night": false,
+      "id": 6,
+      "world": 1,
+      "title": "El verde también termina",
+      "lesson": "El semáforo solo protege el Centro y tiene un tiempo limitado. Mira o confirma que los vehículos pararon.",
+      "budget": 8,
+      "night": false,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"}
+        {
+          "id": "mateo",
+          "name": "Mateo",
+          "kind": "wheelchair",
+          "speed": 0.095,
+          "sprite": "walker_chair"
+        },
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
       ],
       "lanes": [
-        {"y":0.28,"speed":0.14,"offset":0.40,"car":"car_coral"},
-        {"y":0.49,"speed":-0.13,"offset":0.95,"car":"car_blue"},
-        {"y":0.70,"speed":0.12,"offset":0.65,"car":"car_yellow"}
+        {
+          "y": 0.26,
+          "speed": 0.16,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.5,
+          "speed": -0.15,
+          "offset": 0.97,
+          "car": "car_blue"
+        },
+        {
+          "y": 0.74,
+          "speed": 0.14,
+          "offset": 0.35,
+          "car": "car_yellow"
+        }
       ],
-      "tools": ["look","wait","eye","crosswalk","signal"], "newTools": ["signal"]
+      "tools": [
+        "look",
+        "eye",
+        "signal",
+        "crosswalk",
+        "visible"
+      ],
+      "newTools": [
+        "signal"
+      ],
+      "parCost": 4
     },
     {
-      "id": 7, "world": 1, "title": "El agente de tránsito",
-      "lesson": "El agente detiene el tráfico al inicio: ¡crucen todos juntos y rápido!",
-      "budget": 11, "night": false,
+      "id": 7,
+      "world": 1,
+      "title": "La lluvia alarga el frenado",
+      "lesson": "Piso mojado: los coches tardan más en detenerse. Luz camina despacio; combina visibilidad del cruce y velocidad segura.",
+      "budget": 7,
+      "night": false,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"},
-        {"id":"luz","name":"Luz","kind":"slow","speed":0.075,"sprite":"walker_green"}
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        },
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
       ],
       "lanes": [
-        {"y":0.24,"speed":0.16,"offset":0.35,"car":"car_coral"},
-        {"y":0.40,"speed":-0.15,"offset":1.00,"car":"car_blue"},
-        {"y":0.56,"speed":0.14,"offset":0.60,"car":"car_yellow"},
-        {"y":0.72,"speed":-0.13,"offset":1.15,"car":"car_green"}
+        {
+          "y": 0.35,
+          "speed": 0.17,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.16,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","eye","crosswalk","signal","officer"], "newTools": ["officer"]
+      "tools": [
+        "look",
+        "eye",
+        "speed_zone",
+        "crosswalk",
+        "lighting"
+      ],
+      "newTools": [],
+      "weather": "rain",
+      "sight": [
+        0.25,
+        0.95,
+        0.9
+      ],
+      "parCost": 4
     },
     {
-      "id": 8, "world": 1, "title": "Un compañero especial",
-      "lesson": "Mateo usa silla de ruedas: necesita el paso cebra para cruzar a tiempo.",
-      "budget": 9, "night": false,
+      "id": 8,
+      "world": 1,
+      "title": "Una pausa protegida",
+      "lesson": "La isla del Centro divide la avenida en dos tramos. Mateo necesita además una rampa; esperar en un carril no es un refugio.",
+      "budget": 11,
+      "night": false,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"},
-        {"id":"mateo","name":"Mateo","kind":"wheelchair","speed":0.10,"sprite":"walker_chair"}
+        {
+          "id": "mateo",
+          "name": "Mateo",
+          "kind": "wheelchair",
+          "speed": 0.095,
+          "sprite": "walker_chair"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
       ],
       "lanes": [
-        {"y":0.28,"speed":0.13,"offset":0.40,"car":"car_coral"},
-        {"y":0.49,"speed":-0.12,"offset":0.90,"car":"car_blue"},
-        {"y":0.70,"speed":0.11,"offset":0.60,"car":"car_yellow"}
+        {
+          "y": 0.35,
+          "speed": 0.15,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.14,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","eye","crosswalk","signal"], "newTools": []
+      "tools": [
+        "look",
+        "eye",
+        "crosswalk",
+        "refuge",
+        "speed_zone",
+        "signal"
+      ],
+      "newTools": [
+        "refuge"
+      ],
+      "island": true,
+      "accessible": [
+        1
+      ],
+      "parCost": 4
     },
     {
-      "id": 9, "world": 2, "title": "Luces al anochecer",
-      "lesson": "De noche hace falta el reflector para que los conductores te vean.",
-      "budget": 5, "night": true,
-      "walkers": [{"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"}],
-      "lanes": [{"y":0.50,"speed":0.12,"offset":0.60,"car":"car_coral"}],
-      "tools": ["look","visible"], "newTools": ["visible"]
-    },
-    {
-      "id": 10, "world": 2, "title": "La parada del camión",
-      "lesson": "Tomás va viendo su celular: si no lo guarda, Mirar no sirve de nada.",
-      "budget": 8, "night": true,
+      "id": 9,
+      "world": 2,
+      "title": "Ver y ser visto",
+      "lesson": "De noche, reflector e iluminación hacen cosas distintas. Busca un hueco o confirma el alto; no confíes solo en que te vean.",
+      "budget": 5,
+      "night": true,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"tomas","name":"Tomás","kind":"phone","speed":0.11,"sprite":"walker_slate"}
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
       ],
       "lanes": [
-        {"y":0.35,"speed":0.14,"offset":0.45,"car":"car_blue"},
-        {"y":0.65,"speed":-0.13,"offset":1.00,"car":"car_yellow"}
+        {
+          "y": 0.35,
+          "speed": 0.18,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.17,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","visible","phone_away"], "newTools": ["phone_away"]
+      "tools": [
+        "look",
+        "eye",
+        "visible",
+        "lighting",
+        "speed_zone",
+        "crosswalk"
+      ],
+      "newTools": [],
+      "parCost": 3
     },
     {
-      "id": 11, "world": 2, "title": "Juntos de noche",
-      "lesson": "De noche, cuida especialmente a quien camina más despacio.",
-      "budget": 11, "night": true,
+      "id": 10,
+      "world": 2,
+      "title": "La parada oculta el tráfico",
+      "lesson": "El Centro está tapado por la parada. Busca los laterales despejados, guarda el celular y prepara la visibilidad nocturna.",
+      "budget": 8,
+      "night": true,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"},
-        {"id":"luz","name":"Luz","kind":"slow","speed":0.075,"sprite":"walker_green"}
+        {
+          "id": "tomas",
+          "name": "Tomás",
+          "kind": "phone",
+          "speed": 0.11,
+          "sprite": "walker_slate"
+        },
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
       ],
       "lanes": [
-        {"y":0.28,"speed":0.16,"offset":0.40,"car":"car_coral"},
-        {"y":0.49,"speed":-0.15,"offset":0.95,"car":"car_blue"},
-        {"y":0.70,"speed":0.14,"offset":0.65,"car":"car_yellow"}
+        {
+          "y": 0.35,
+          "speed": 0.13,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.12,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","visible","officer","bump"], "newTools": []
+      "tools": [
+        "look",
+        "eye",
+        "phone_away",
+        "visible",
+        "lighting",
+        "speed_zone",
+        "crosswalk"
+      ],
+      "newTools": [],
+      "sight": [
+        0.95,
+        0.16,
+        0.95
+      ],
+      "accessible": [
+        0,
+        2
+      ],
+      "parCost": 6
     },
     {
-      "id": 12, "world": 2, "title": "Una ciudad segura",
-      "lesson": "Pon en práctica todo lo que aprendiste en tu ciudad.",
-      "budget": 11, "night": true,
+      "id": 11,
+      "world": 2,
+      "title": "Niebla y pasos cortos",
+      "lesson": "La niebla no desaparece con una lámpara. La isla permite esperar a salvo; reduce la velocidad y prepara a Luz.",
+      "budget": 10,
+      "night": true,
       "walkers": [
-        {"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"},
-        {"id":"leo","name":"Leo","kind":"distracted","speed":0.10,"sprite":"walker_blue"},
-        {"id":"luz","name":"Luz","kind":"slow","speed":0.075,"sprite":"walker_green"}
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        },
+        {
+          "id": "ana",
+          "name": "Ana",
+          "kind": "impulsive",
+          "speed": 0.12,
+          "sprite": "walker_coral"
+        }
       ],
       "lanes": [
-        {"y":0.24,"speed":0.19,"offset":0.30,"car":"car_coral"},
-        {"y":0.40,"speed":-0.18,"offset":1.00,"car":"car_blue"},
-        {"y":0.56,"speed":0.17,"offset":0.60,"car":"car_yellow"},
-        {"y":0.72,"speed":-0.16,"offset":1.20,"car":"car_green"}
+        {
+          "y": 0.35,
+          "speed": 0.17,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.16,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
       ],
-      "tools": ["look","wait","visible","signal","officer","school","bump","crosswalk","phone_away"], "newTools": []
+      "tools": [
+        "look",
+        "eye",
+        "visible",
+        "lighting",
+        "speed_zone",
+        "refuge",
+        "signal"
+      ],
+      "newTools": [],
+      "weather": "fog",
+      "island": true,
+      "sight": [
+        0.4,
+        0.95,
+        0.4
+      ],
+      "parCost": 7
+    },
+    {
+      "id": 12,
+      "world": 2,
+      "title": "La ciudad de todos",
+      "lesson": "Lluvia y noche: planifica la rampa de Mateo, la atención de Tomás y el tiempo de Luz. No hay una ficha que lo resuelva todo.",
+      "budget": 13,
+      "night": true,
+      "walkers": [
+        {
+          "id": "mateo",
+          "name": "Mateo",
+          "kind": "wheelchair",
+          "speed": 0.095,
+          "sprite": "walker_chair"
+        },
+        {
+          "id": "tomas",
+          "name": "Tomás",
+          "kind": "phone",
+          "speed": 0.11,
+          "sprite": "walker_slate"
+        },
+        {
+          "id": "luz",
+          "name": "Luz",
+          "kind": "slow",
+          "speed": 0.075,
+          "sprite": "walker_green"
+        }
+      ],
+      "lanes": [
+        {
+          "y": 0.35,
+          "speed": 0.16,
+          "offset": 0.6,
+          "car": "car_coral"
+        },
+        {
+          "y": 0.68,
+          "speed": -0.15,
+          "offset": 0.97,
+          "car": "car_blue"
+        }
+      ],
+      "tools": [
+        "look",
+        "eye",
+        "phone_away",
+        "visible",
+        "lighting",
+        "speed_zone",
+        "crosswalk",
+        "refuge",
+        "signal"
+      ],
+      "newTools": [],
+      "weather": "rain",
+      "island": true,
+      "accessible": [
+        1
+      ],
+      "sight": [
+        0.25,
+        0.95,
+        0.4
+      ],
+      "parCost": 9
     }
   ]
 }

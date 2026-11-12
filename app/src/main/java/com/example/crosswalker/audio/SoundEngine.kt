@@ -19,6 +19,7 @@ import com.example.crosswalker.R
 class SoundEngine(private val context: Context, private val enabled: () -> Boolean) {
     private val handler = Handler(Looper.getMainLooper())
     private var music: MediaPlayer? = null
+    private val oneShots = mutableSetOf<MediaPlayer>()
     private var voice: MediaPlayer? = null
     private val attrs = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
@@ -52,10 +53,21 @@ class SoundEngine(private val context: Context, private val enabled: () -> Boole
         if (!enabled()) { onHalfway?.invoke(); onComplete?.invoke(); return null }
         val player = MediaPlayer.create(context, resId)
         if (player == null) { onHalfway?.invoke(); onComplete?.invoke(); return null }
+        oneShots.add(player)
+        player.setOnCompletionListener {
+            oneShots.remove(player)
+            player.release()
+            onComplete?.invoke()
+        }
         player.start()
-        if (onHalfway != null) handler.postDelayed({ onHalfway() }, (player.duration / 2).toLong())
-        if (onComplete != null) player.setOnCompletionListener { onComplete() }
+        if (onHalfway != null) handler.postDelayed({ if (player in oneShots) onHalfway() }, (player.duration / 2).toLong())
         return player
+    }
+
+    fun stopOneShots() {
+        handler.removeCallbacksAndMessages(null)
+        oneShots.forEach { it.release() }
+        oneShots.clear()
     }
 
     fun loopVoice(@RawRes resId: Int) {
@@ -66,5 +78,5 @@ class SoundEngine(private val context: Context, private val enabled: () -> Boole
 
     fun stopVoice() { voice?.release(); voice = null }
 
-    fun release() { stopMusic(); stopVoice(); pool.release() }
+    fun release() { stopOneShots(); stopMusic(); stopVoice(); pool.release() }
 }

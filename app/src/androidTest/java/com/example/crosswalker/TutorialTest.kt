@@ -72,32 +72,32 @@ class TutorialTest {
         val level = session.level
         // Las primeras líneas (0..4) son narrativas/informativas: su único toque válido es la
         // propia caja de diálogo, sin importar qué más señalen (PAUSA, FICHAS, la pestaña...).
-        for (i in 0..4) {
+        for (i in 0 until session.level.introLines.lastIndex) {
             ui.onNodeWithContentDescription(level.introLines[i]).assertIsDisplayed()
             tapDialogue(level.introLines[i])
         }
-        assertEquals(5, session.introIndex)
+        assertEquals(session.level.introLines.lastIndex, session.introIndex)
     }
 
     @Test fun crossingStepRequiresTappingAChipNotTheDialogue() {
         enterTutorial()
         val level = session.level
-        advanceNarrationLines(5)
-        assertEquals(5, session.introIndex)
+        advanceNarrationLines(session.level.introLines.lastIndex)
+        assertEquals(session.level.introLines.lastIndex, session.introIndex)
         val crossingBefore = session.plan.people.getValue(session.selected).crossing
         // Tocar la caja de diálogo en este paso no debe hacer nada: el objetivo ahora es el cruce.
-        tapDialogue(level.introLines[5])
-        assertEquals(5, session.introIndex)
+        tapDialogue(level.introLines.last())
+        assertEquals(session.level.introLines.lastIndex, session.introIndex)
         assertEquals(crossingBefore, session.plan.people.getValue(session.selected).crossing)
         // Tocar "Der." sí es el objetivo válido: aplica la elección real y avanza el tutorial.
         tapText("Der.")
         assertEquals(2, session.plan.people.getValue(session.selected).crossing)
-        assertEquals(6, session.introIndex)
+        assertEquals(session.level.introLines.size, session.introIndex)
     }
 
     @Test fun toolAndLaunchStepsRequireTappingThoseExactControls() {
         enterTutorial()
-        advanceNarrationLines(5)
+        advanceNarrationLines(session.level.introLines.lastIndex)
         tapText("Der.")
         // Fase de habilidad: tocar MIRAR es el único objetivo válido (el nivel 1 solo ofrece esa
         // ficha, así que "LA CALLE" sirve de toque fuera de objetivo para esta comprobación).

@@ -74,13 +74,12 @@ private fun Modifier.signBolts(color: Color) = drawBehind {
 @Composable fun ToolArtwork(id: String) {
     val resource = when (id) {
         "look" -> R.drawable.icon_look
-        "wait" -> R.drawable.icon_wait
-        "eye" -> R.drawable.walker_blue
+        "refuge" -> R.drawable.icon_wait
+        "eye" -> R.drawable.icon_officer
         "signal" -> R.drawable.icon_signal
         "visible" -> R.drawable.star
-        "officer" -> R.drawable.icon_officer
-        "school" -> R.drawable.house
-        "bump" -> R.drawable.icon_bump
+        "lighting" -> R.drawable.star
+        "speed_zone" -> R.drawable.icon_bump
         "phone_away" -> R.drawable.icon_phone_away
         else -> R.drawable.icon_crosswalk
     }

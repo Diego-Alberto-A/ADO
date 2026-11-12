@@ -9,10 +9,7 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Al ganar, la música del nivel se corta y solo suena la de victoria; ninguna otra pista (ni la
- * del siguiente nivel) arranca hasta volver al menú.
- */
+/** Music resumes for the next attempt, including levels in the same world. */
 class VictoryMusicTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
     private val session get() = ViewModelProvider(ui.activity)[Session::class.java]
@@ -23,7 +20,7 @@ class VictoryMusicTest {
         ui.waitUntil(5000) { !session.transitioning }
     }
 
-    @Test fun winningStopsLevelMusicUntilBackInTheMenu() {
+    @Test fun winningRestartsLevelMusicOnNextLevel() {
         session.repo.tutorialDone = true   // sin overlay de tutorial, que no es lo que se prueba aquí
         session.repo.sound = true
         tap("JUGAR")
@@ -42,8 +39,8 @@ class VictoryMusicTest {
         tap("SIGUIENTE CAMINO")
         ui.runOnIdle {
             assertEquals(2, session.level.id)
-            assertTrue(session.musicSuspended)
-            assertFalse("el siguiente nivel no debe arrancar su música", session.sound!!.isMusicPlaying())
+            assertFalse(session.musicSuspended)
+            assertTrue("el siguiente nivel debe arrancar su música", session.sound!!.isMusicPlaying())
         }
         tap("Ⅱ")
         tap("VOLVER AL MAPA")

@@ -103,12 +103,16 @@ private const val PIXEL = 1f
             // Kerb edges, then the dashed centre line of the lane.
             rect(0f,y-32f,360f,PIXEL*2,MARKING);rect(0f,y+34f,360f,PIXEL*2,MARKING)
             for(i in 0..11) rect(i*32f+6f,y,18f,PIXEL*2,MARKING)
-            if("crosswalk" in plan.street) Simulation.crossings.forEach { x -> ground(x*360-16,y-30f,32f,64f,"crosswalk") }
+            if("crosswalk" in plan.street) Simulation.crossings.forEachIndexed { i,x -> if(level.tutorial || i in level.accessible) ground(x*360-16,y-30f,32f,64f,"crosswalk") }
             else if(lane==level.lanes.first()) ground(164f,y-30f,32f,64f,"crosswalk")
-            if("bump" in plan.street) for(i in 0..5) rect(272f+i%2*5,y-26+i*10,11f,6f,"#F5A94C")
+            if("speed_zone" in plan.street) for(i in 0..5) rect(272f+i%2*5,y-26+i*10,11f,6f,"#F5A94C")
             val x=preview.carX(lane)*360f
             c.save();if(lane.speed<0)c.scale(-1f,1f,x,y)
             sprite(lane.car,x-26,y-19,52f,38f);c.restore()
+            if(!level.tutorial && sim != null) {
+                if(sim.carSpeed(lane)<.002f) label("ALTO",x,y-24f,8f,"#FFE07A")
+                else if(sim.isBraking(lane)) label("FRENA",x,y-24f,8f,"#F27A6B")
+            }
         }
 
         // Near side: the pavement the pedestrians wait on.
@@ -116,10 +120,36 @@ private const val PIXEL = 1f
         rect(0f,335f,360f,PIXEL*2,ASPHALT)
         // Kerbside trees sit on the near pavement, clear of the crossing zones.
         sprite("tree",4f,386f,28f,44f);sprite("tree_autumn",328f,386f,28f,44f)
-        if("school" in plan.street) {rect(286f,314f,56f,20f,"#C6BC9F");rect(286f,314f,56f,PIXEL*2,"#8B8AB1");label("ESCUELA",314f,328f,9f,WORLD_TEXT)}
-        if("officer" in plan.street) sprite("stop",12f,300f,30f,42f)
-        // "Semáforo" is a per-pedestrian skill: show the pole once anyone relies on it.
-        if(plan.people.values.any {"signal" in it.skills}) sprite("signal",320f,294f,32f,48f)
+        if(level.tutorial && plan.people.values.any {"signal" in it.skills}) sprite("signal",320f,294f,32f,48f)
+        if(!level.tutorial) {
+            if("speed_zone" in plan.street) { sprite("stop",12f,300f,24f,32f);label("ZONA LENTA",62f,326f,8f,WORLD_TEXT) }
+            if("signal" in plan.street) {
+                sprite("signal",194f,294f,26f,40f)
+                val green=sim!=null && sim.time%22f in 3f..16f
+                label(if(green) "PASO: ${(16f-sim!!.time%22f).toInt()}s" else "ESPERA",180f,302f,8f,if(green) "#88D498" else "#FFE07A")
+            }
+            if(level.island && "refuge" in plan.street) {
+                rect(163f,196f,34f,25f,"#F4EAD0");rect(163f,196f,34f,3f,"#FFE07A")
+                label("ISLA",180f,212f,8f,INK)
+            }
+            Simulation.crossings.forEachIndexed { i,x ->
+                if(level.sight[i]<.5f) {
+                    sprite("car_blue",x*360-24,322f,48f,28f)
+                    label("VISTA TAPADA",x*360,319f,7f,"#FFE07A")
+                }
+                if("crosswalk" in plan.street && i in level.accessible) label("RAMPA",x*360,349f,7f,WORLD_TEXT)
+            }
+            if("lighting" in plan.street) {
+                color("#FFE07A");p.alpha=45;c.drawCircle(180f,210f,75f,p);p.alpha=255
+                label("LUZ",180f,88f,8f,"#FFE07A")
+            }
+            label(when(level.weather) { "rain" -> "LLUVIA · FRENADO LARGO"; "fog" -> "NIEBLA · VISTA REDUCIDA"; else -> if(level.night) "NOCHE" else "DÍA" },180f,452f,9f,WORLD_TEXT)
+            if(level.weather=="rain") {
+                color("#B7CFDD");p.alpha=95
+                for(i in 0..35) { val x=(i*47%360).toFloat();val y=(i*71%330).toFloat();c.drawLine(x,y,x-3,y+9,p) };p.alpha=255
+            }
+            if(level.weather=="fog") {color("#DDE2E9");p.alpha=40;c.drawRect(0f,56f,360f,330f,p);p.alpha=255}
+        }
         if(planning) Simulation.crossings.forEachIndexed { i,x ->
             val active=plan.people[selected]?.crossing==i
             color(if(active)"#FFFFFF" else "#8B8AB1");p.style=Paint.Style.STROKE;p.strokeWidth=if(active)2.5f else 1f;p.pathEffect=DashPathEffect(floatArrayOf(5f,5f),0f)

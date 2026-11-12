@@ -1,0 +1,62 @@
+Level 1:
+cross=0 people={ana=[look]} street=[] cost=1 time=6.9500084
+cross=1 people={ana=[look]} street=[] cost=1 time=6.9500084
+cross=2 people={ana=[look]} street=[] cost=1 time=9.150017
+Level 2:
+cross=0 people={tomas=[look, phone_away]} street=[] cost=2 time=7.690011
+cross=0 people={tomas=[look, phone_away, visible]} street=[] cost=3 time=7.690011
+cross=1 people={tomas=[look, phone_away]} street=[] cost=2 time=10.450068
+cross=1 people={tomas=[look, phone_away, visible]} street=[] cost=3 time=10.450068
+Level 3:
+cross=0 people={mateo=[look]} street=[crosswalk] cost=3 time=8.740029
+cross=0 people={mateo=[look, visible]} street=[crosswalk] cost=4 time=8.740029
+cross=0 people={mateo=[eye]} street=[crosswalk] cost=3 time=16.620209
+cross=0 people={mateo=[eye, visible]} street=[crosswalk] cost=4 time=16.620209
+Level 4:
+cross=1 people={luz=[look]} street=[speed_zone] cost=4 time=12.870124
+cross=2 people={luz=[look]} street=[speed_zone] cost=4 time=11.070083
+Level 5:
+cross=0 people={ana=[look], tomas=[look, phone_away]} street=[] cost=3 time=7.5500107
+cross=1 people={ana=[look], tomas=[look, phone_away]} street=[] cost=3 time=9.090037
+cross=2 people={ana=[look], tomas=[look, phone_away]} street=[] cost=3 time=7.5500107
+cross=0 people={ana=[look], tomas=[look, phone_away]} street=[speed_zone] cost=6 time=7.5500107
+Level 6:
+cross=1 people={mateo=[look], ana=[look]} street=[crosswalk] cost=4 time=18.02024
+cross=1 people={mateo=[look, visible], ana=[look, visible]} street=[crosswalk] cost=6 time=18.02024
+cross=1 people={mateo=[eye], ana=[eye]} street=[crosswalk] cost=4 time=18.940262
+cross=1 people={mateo=[eye, visible], ana=[eye, visible]} street=[crosswalk] cost=6 time=18.940262
+Level 7:
+cross=1 people={luz=[look], ana=[look]} street=[speed_zone] cost=5 time=14.940171
+cross=1 people={luz=[look], ana=[look]} street=[crosswalk] cost=4 time=24.54039
+cross=1 people={luz=[eye], ana=[eye]} street=[crosswalk] cost=4 time=24.690393
+cross=1 people={luz=[look], ana=[look]} street=[speed_zone, crosswalk] cost=7 time=15.220178
+Level 8:
+cross=1 people={mateo=[look], luz=[look]} street=[crosswalk] cost=4 time=23.620369
+cross=1 people={mateo=[eye], luz=[eye]} street=[crosswalk] cost=4 time=23.620369
+cross=1 people={mateo=[look], luz=[look]} street=[speed_zone, crosswalk] cost=7 time=12.340112
+cross=1 people={mateo=[eye], luz=[eye]} street=[speed_zone, crosswalk] cost=7 time=25.970423
+Level 9:
+cross=0 people={ana=[look]} street=[speed_zone] cost=4 time=6.920008
+cross=0 people={ana=[look, visible]} street=[speed_zone] cost=5 time=6.920008
+cross=1 people={ana=[look]} street=[speed_zone] cost=4 time=9.750052
+cross=1 people={ana=[look, visible]} street=[speed_zone] cost=5 time=9.750052
+cross=2 people={ana=[look]} street=[speed_zone] cost=4 time=7.5900106
+cross=2 people={ana=[look, visible]} street=[speed_zone] cost=5 time=7.5900106
+cross=1 people={ana=[look, visible]} street=[crosswalk] cost=4 time=15.870193
+cross=1 people={ana=[eye, visible]} street=[crosswalk] cost=4 time=15.870193
+cross=1 people={ana=[look]} street=[lighting] cost=3 time=7.890012
+Level 10:
+cross=0 people={tomas=[look, phone_away], ana=[look]} street=[speed_zone] cost=6 time=7.5500107
+cross=0 people={tomas=[look, phone_away, visible], ana=[look, visible]} street=[speed_zone] cost=8 time=7.5500107
+cross=2 people={tomas=[look, phone_away], ana=[look]} street=[speed_zone] cost=6 time=9.670051
+cross=2 people={tomas=[look, phone_away, visible], ana=[look, visible]} street=[speed_zone] cost=8 time=9.670051
+Level 11:
+cross=1 people={luz=[look, visible], ana=[look, visible]} street=[signal] cost=7 time=37.44048
+cross=1 people={luz=[eye, visible], ana=[eye, visible]} street=[signal] cost=7 time=37.44048
+cross=1 people={luz=[look, visible], ana=[look, visible]} street=[signal, lighting] cost=9 time=37.27048
+cross=1 people={luz=[eye, visible], ana=[eye, visible]} street=[signal, lighting] cost=9 time=37.27048
+Level 12:
+cross=1 people={mateo=[look, visible], tomas=[look, phone_away, visible], luz=[look, visible]} street=[crosswalk] cost=9 time=24.12038
+cross=1 people={mateo=[eye, visible], tomas=[eye, phone_away, visible], luz=[eye, visible]} street=[crosswalk] cost=9 time=24.12038
+cross=1 people={mateo=[look, visible], tomas=[look, phone_away, visible], luz=[look, visible]} street=[speed_zone, crosswalk] cost=12 time=28.990492
+cross=1 people={mateo=[eye, visible], tomas=[eye, phone_away, visible], luz=[eye, visible]} street=[speed_zone, crosswalk] cost=12 time=28.990492

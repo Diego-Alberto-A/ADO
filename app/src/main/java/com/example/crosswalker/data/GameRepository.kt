@@ -13,6 +13,12 @@ class GameRepository(context: Context) {
     fun stars(id: Int) = prefs.getInt("stars_$id",0)
     fun unlocked(id: Int) = id == 1 || stars(id-1)>0
     fun save(id: Int, stars: Int) { prefs.edit().putInt("stars_$id", maxOf(stars,stars(id))).apply() }
+    fun resetProgress() {
+        prefs.edit().apply {
+            prefs.all.keys.filter { it.startsWith("stars_") }.forEach { remove(it) }
+            putBoolean("tutorial_done", false)
+        }.apply()
+    }
     var sound: Boolean
         get() = prefs.getBoolean("sound",true)
         set(value) { prefs.edit().putBoolean("sound",value).apply() }

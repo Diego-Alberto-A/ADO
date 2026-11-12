@@ -58,15 +58,14 @@ class Session(val repo: GameRepository): ViewModel() {
     var transition: (ScreenMotion, () -> Unit) -> Unit = { _, action -> action() }
     fun navigate(destination: String) {
         if (destination != screen) transition(if (destination == "home" || (screen == "game" && destination == "map")) ScreenMotion.BACKWARD else ScreenMotion.FORWARD) {
-            if (screen == "game") { simulation=null; paused=false; world=level.world }
+            if (screen == "game") { sound?.stopOneShots(); simulation=null; paused=false; world=level.world }
             // Volver al menú (inicio o mapa) es lo único que vuelve a permitir música de fondo
             // después de una victoria.
             musicSuspended=false
             screen=destination
         }
     }
-    // Tras ganar, solo suena la música de victoria: ninguna otra pista arranca (ni la del siguiente
-    // nivel) hasta volver al menú.
+    // Suspend background music only while a result is being presented.
     var musicSuspended by mutableStateOf(false)
     fun changeWorld(next: Int) {
         if (next != world) transition(if (next < world) ScreenMotion.WORLD_BACKWARD else ScreenMotion.WORLD_FORWARD) { world=next }
@@ -88,13 +87,15 @@ class Session(val repo: GameRepository): ViewModel() {
     val tutorialController = TutorialController()
     val tutorialActive: Boolean get() = level.tutorial && !repo.tutorialDone
     fun enter(l: Level) { transition(ScreenMotion.FORWARD) { sound?.playSfx(R.raw.sfx_enter_level); level=l; reset(); screen="game" } }
-    fun reset() { plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; showResultDialog=false; frame++ }
+    var attempt by mutableIntStateOf(0)
+    fun resumePlanning() { sound?.stopOneShots(); musicSuspended=false; showResultDialog=false; simulation=null; message=level.lesson; attempt++ }
+    fun reset() { resumePlanning(); plan=Plan(level.walkers.associate { it.id to Assignment() }.toMutableMap()); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; message=level.lesson; introIndex=0; showResultDialog=false; frame++ }
     fun toggle(t: Tool) {
         val next=plan.copyPlan()
         val target=if(t.category=="street") next.street else next.people.getValue(selected).skills
         if(!target.remove(t.id)) target.add(t.id)
         if(next.cost(repo.tools)>level.budget) { message="No quedan fichas. Quita una acción para probar otra."; return }
-        plan=next; if(!level.tutorial) message=t.description
+        plan=next; if(!level.tutorial) message=t.explanation(level)
     }
 }
 class MainActivity: ComponentActivity() {
@@ -116,7 +117,7 @@ class MainActivity: ComponentActivity() {
     // La clave incluye `s.level.world` además de `s.world`: "SIGUIENTE CAMINO" puede llevar de un
     // nivel a otro de distinto mundo sin pasar por el mapa, así que `s.screen` se queda en "game" y
     // `s.world` (la pestaña del mapa) no cambia — solo `s.level.world` lo hace.
-    LaunchedEffect(s.screen, s.world, s.level.world, s.musicSuspended) {
+    LaunchedEffect(s.screen, s.world, s.level.world, s.musicSuspended, s.attempt) {
         if (!s.musicSuspended) com.example.crosswalker.audio.musicForScreen(s.screen, if (s.screen=="game") s.level.world else s.world)
             ?.let { sound.playMusic(it) }
     }
@@ -148,6 +149,32 @@ class MainActivity: ComponentActivity() {
         }
         }
         if (s.screen=="game" && s.tutorialActive) TutorialOverlay(s.tutorialController)
+        if(s.dialog=="resetProgress") PaperDialog("¿EMPEZAR DE NUEVO?", {s.dialog=""}, accent=Taxi) {
+            Text("Un nuevo camino te espera", style=TitleSmall, color=Ink)
+            Text("Se borrarán tus estrellas y logros. Solo quedará abierto el primer nivel y volverás a ver el tutorial. Esta acción no se puede deshacer.", style=BodyText, color=Ink)
+            Text("Tus ajustes de sonido y consejos se conservarán.", style=BodyText, color=Asphalt)
+            PaperButton("CONSERVAR MI PROGRESO", Tree) { s.dialog="" }
+            PaperButton("↻  SÍ, REINICIAR", Brick) {
+                s.repo.resetProgress()
+                s.world=0
+                s.level=s.repo.levels.first()
+                s.reset()
+                s.dialog="progressReset"
+            }
+        }
+        if(s.dialog=="progressReset") PaperDialog("¡UN NUEVO COMIENZO!", {s.dialog=""}, accent=Tree) {
+            Text("Todo listo para tu primer cruce. Tus estrellas y logros vuelven a empezar.", style=BodyText, color=Ink)
+            PaperButton("▶  JUGAR DESDE EL INICIO") { s.dialog=""; s.enter(s.repo.levels.first()) }
+            PaperButton("VOLVER AL MENÚ", Neutral) { s.dialog="" }
+        }
+        if(s.dialog.startsWith("tool:")) s.repo.tools.firstOrNull { it.id==s.dialog.substringAfter(":") }?.let { tool ->
+            PaperDialog(tool.label.uppercase(), {s.dialog=""}, accent=Sky) {
+                ToolArtwork(tool.id)
+                Text("${tool.cost} fichas · ${if(tool.category=="street") "Mejora compartida de la calle" else "Habilidad para un peatón"}", style=HudStrong, color=Tree.dark)
+                Text(tool.explanation(s.level), style=BodyText, color=Ink)
+                PaperButton("ENTENDIDO") {s.dialog=""}
+            }
+        }
         if(s.dialog=="settings") PaperDialog("A TU MANERA", {s.dialog=""}) {
             var sound by remember { mutableStateOf(s.repo.sound) }
             var guidance by remember { mutableStateOf(s.repo.guidance) }
@@ -229,12 +256,17 @@ class MainActivity: ComponentActivity() {
         Text(l.title,style=TitleText,color=Ink)
         // The tutorial's `lesson` is an in-game nudge; the card shows its opening line instead.
         Text(if(l.tutorial) l.introLines.getOrElse(1) { l.lesson } else l.lesson,style=BodyText,color=Ink)
+        if(!l.tutorial) {
+            Text(levelConditions(l),style=BodyText,color=Tree.dark)
+            Text("Objetivo: todos deben llegar sin choques, con atención y tras Mirar o Confirmar alto. Llegar por suerte sin comprobar no cuenta como un plan seguro.",style=BodyText,color=Ink)
+        }
         Text("☺ ${l.walkers.size} PEATONES    ● ${l.budget} FICHAS",style=HudStrong,color=Tree.dark)
         Text("★ Llega al otro lado\n★★ Resuelve sin ayuda de emergencia\n★★★ Usa pocas fichas",style=BodyText,color=Ink)
+        if(!l.tutorial && l.parCost>0) Text("Meta de eficiencia: ${l.parCost} fichas o menos para ★★★, sin ayuda de emergencia.",style=BodyText,color=Tree.dark)
         if(l.newTools.isNotEmpty()) {
             Text("FICHA NUEVA",style=HudStrong,color=Orange.dark)
             l.newTools.forEach { id -> val t=s.repo.tools.first { it.id==id }
-                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) { ToolArtwork(t.id);Column { Text(t.label,style=BodyStrong,color=Ink);Text(t.description,style=BodyText,color=Ink) } }
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) { ToolArtwork(t.id);Column { Text(t.label,style=BodyStrong,color=Ink);Text(t.explanation(l),style=BodyText,color=Ink) } }
             }
         }
         PaperButton("▶  PREPARAR EL PLAN") {chosen=null;s.enter(l)}
@@ -249,28 +281,24 @@ class MainActivity: ComponentActivity() {
     val lookChosen="look" in s.plan.people.getValue(s.selected).skills
     s.tutorialController.step = if (s.tutorialActive)
         tutorialStepFor(s.introIndex, s.level.introLines.size, lookChosen) else null
-    LaunchedEffect(sim?.phase) {
+    LaunchedEffect(sim, sim?.phase) {
         val engine = s.sound
         when (sim?.phase) {
-            Phase.RETRY -> if (sim.collapsedWalkerId != null) {
-                // Choque: se ve al peatón congelado un segundo, luego suena la música de game
-                // over completa, y solo cuando termina aparece el modal de reintento.
+            Phase.RETRY -> {
+                s.musicSuspended = true
                 engine?.stopMusic()
-                engine?.playSfx(R.raw.sfx_collapse)
-                kotlinx.coroutines.delay(1000)
-                if (engine != null) engine.playOneShot(R.raw.music_gameover, onComplete = { s.showResultDialog = true })
-                else s.showResultDialog = true
-            } else {
-                // Reintento por tiempo agotado (sin choque): no hay nada que esperar a ver.
+                if (sim.collapsedWalkerId != null) engine?.playSfx(R.raw.sfx_collapse)
+                engine?.playOneShot(R.raw.music_gameover)
+                // Show the collapse first; keep the result timing independent of audio settings.
+                delay(900)
                 s.showResultDialog = true
             }
             Phase.WON -> {
-                // Llegaron todos: se corta la música del nivel y solo suena la de victoria. Nada
-                // más vuelve a sonar hasta regresar al menú (ver `Session.musicSuspended`).
                 s.musicSuspended = true
                 engine?.stopMusic()
-                if (engine != null) engine.playOneShot(R.raw.music_win, onHalfway = { s.showResultDialog = true })
-                else s.showResultDialog = true
+                engine?.playOneShot(R.raw.music_win)
+                delay(900)
+                s.showResultDialog = true
             }
             else -> {}
         }
@@ -279,17 +307,17 @@ class MainActivity: ComponentActivity() {
     // chrome left floats over it — pause on one side, the budget on the other.
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize(),verticalArrangement=Arrangement.spacedBy(7.dp)) {
-        Board(s.level,s.plan,sim,s.selected,planning,Modifier.fillMaxWidth().weight(1f).heightIn(min=180.dp),frame) { crossing -> val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=crossing;s.plan=next;click() }
+        Board(s.level,s.plan,sim,s.selected,planning,Modifier.fillMaxWidth().weight(1f).heightIn(min=180.dp).tutorialTarget("board",s.tutorialController){},frame) { crossing -> val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=crossing;s.plan=next;click() }
         AnimatedContent(targetState=planning, label="planningControls",
             transitionSpec={ fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { preparing ->
         Column(Modifier.padding(horizontal=14.dp).padding(bottom=8.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
         if(preparing) {
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) { s.level.walkers.forEach { w -> CraftChip(selected=s.selected==w.id,onClick={s.selected=w.id;click()},label={Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {if(s.selected==w.id) FocusCursor(Ink);WalkerArtwork(w);Text(w.name+if(s.plan.people.getValue(w.id).skills.isNotEmpty()) " ✓" else "")}}) } }
+            Row(Modifier.fillMaxWidth().tutorialTarget("walkers",s.tutorialController){}.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) { s.level.walkers.forEach { w -> CraftChip(selected=s.selected==w.id,onClick={s.selected=w.id;click()},label={Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {if(s.selected==w.id) FocusCursor(Ink);WalkerArtwork(w);Text(w.name+if(s.plan.people.getValue(w.id).skills.isNotEmpty()) " ✓" else "")}}) } }
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { WalkerArtwork(selectedWalker,24.dp);Text("Cruce",style=BodyText,color=Ink);listOf("Izq.","Centro","Der.").forEachIndexed { i,label ->
                 val pick = { val next=s.plan.copyPlan();next.people.getValue(s.selected).crossing=i;s.plan=next;if(s.tutorialActive) s.introIndex++ }
                 Box(Modifier.tutorialTarget("crossing",s.tutorialController,pick)) { CraftChip(selected=s.plan.people.getValue(s.selected).crossing==i,onClick=pick,label={Text(label)}) }
             } }
-            Row { Box(Modifier.tutorialTarget("tab_skill",s.tutorialController){s.tab="skill"}) { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}}) };Spacer(Modifier.width(8.dp));CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) }
+            Row { Box(Modifier.tutorialTarget("tab_skill",s.tutorialController){s.tab="skill"}) { CraftChip(selected=s.tab=="skill",onClick={s.tab="skill"},label={Row(verticalAlignment=Alignment.CenterVertically) {WalkerArtwork(selectedWalker,24.dp);Spacer(Modifier.width(6.dp));Text("HABILIDADES")}}) };Spacer(Modifier.width(8.dp));Box(Modifier.tutorialTarget("tab_street",s.tutorialController){s.tab="street"}) { CraftChip(selected=s.tab=="street",onClick={s.tab="street"},label={Row(verticalAlignment=Alignment.CenterVertically) {PixelImage(R.drawable.house,null,Modifier.size(21.dp));Spacer(Modifier.width(6.dp));Text("LA CALLE")}}) } }
             Crossfade(targetState=s.tab, animationSpec=tween(180), label="toolCategory") { category ->
             val toolScroll=rememberScrollState()
             Box(Modifier.fillMaxWidth()) {
@@ -297,7 +325,10 @@ class MainActivity: ComponentActivity() {
             Row(Modifier.fillMaxWidth().padding(end=if(toolScroll.maxValue>0) 16.dp else 0.dp).horizontalScroll(toolScroll),horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.tools.filter {it.category==category && it.id in s.level.tools}.forEach { t ->
                 val active=if(t.category=="street") t.id in s.plan.street else t.id in s.plan.people.getValue(s.selected).skills
                 val pick = { s.toggle(t);click() }
-                Column(Modifier.width(84.dp).tutorialTarget(if(t.id=="look")"tool_look" else "",s.tutorialController,pick).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable(onClick=pick).padding(horizontal=4.dp,vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,minLines=2,maxLines=2,textAlign=TextAlign.Center);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark) }
+                Column(Modifier.width(84.dp).tutorialTarget(if(t.id=="look")"tool_look" else "",s.tutorialController,pick).pixelPanel(fill=if(active)Taxi.base else Cream,highlight=if(active)Taxi.light else CreamLight,shade=if(active)Taxi.dark else CreamDark).clickable(onClick=pick).padding(horizontal=4.dp,vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally) { ToolArtwork(t.id);Text(t.label.uppercase(),style=HudLabel,color=Ink,minLines=2,maxLines=2,textAlign=TextAlign.Center);Text("${if(active) "✓" else "+"} ${t.cost} ●",style=HudStrong,color=if(active)Ink else Orange.dark)
+                    if(!s.level.tutorial) Text("VER EFECTO",style=HudLabel,color=Sky.dark,
+                        modifier=Modifier.clickable { s.dialog="tool:${t.id}" }.padding(vertical=6.dp))
+                }
             } }
             // A fifth card can hide past the right edge: blink an arrow in the gutter until the player scrolls.
             if(toolScroll.canScrollForward) Box(Modifier.align(Alignment.CenterEnd).rotate(-90f)) { MoreTextArrow(Orange.dark,HudStrong.copy(fontSize=14.sp,lineHeight=14.sp)) }
@@ -314,14 +345,26 @@ class MainActivity: ComponentActivity() {
             }
             val onAdvance:(()->Unit)?=if(s.level.tutorial && !introDone) ({ s.introIndex++ }) else null
             val advanceDialogue = { if (s.introIndex < s.level.introLines.size - 1) s.introIndex++ }
-            if(s.repo.guidance) Box(Modifier.heightIn(min=56.dp).tutorialTarget("dialogue",s.tutorialController,advanceDialogue)) {
-                DialogueBox(displayMessage,selectedWalker.name,walkerAccent(selectedWalker.sprite),
-                    remember(s.level,s.repo.tools) { Lexicon.of(s.level,s.repo.tools) },
-                    blip=blip(selectedWalker.id),onAdvance=onAdvance,voice=s.sound)
+            if(s.repo.guidance || s.tutorialActive) Box(Modifier.heightIn(min=56.dp).tutorialTarget("dialogue",s.tutorialController,advanceDialogue)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.Bottom,
+                    horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    if(s.tutorialActive) {
+                        // Transparent pixel artwork stays on the same elevated layer as the dialogue.
+                        Column(horizontalAlignment=Alignment.CenterHorizontally) {
+                            WalkerArtwork(selectedWalker, 80.dp)
+                            Text("TU GUÍA", style=HudLabel, color=Tree.dark)
+                        }
+                    }
+                    DialogueBox(displayMessage,selectedWalker.name,walkerAccent(selectedWalker.sprite),
+                        remember(s.level,s.repo.tools) { Lexicon.of(s.level,s.repo.tools) },
+                        modifier=Modifier.weight(1f),
+                        blip=blip(selectedWalker.id),onAdvance=onAdvance,voice=s.sound)
+                }
             }
             val launch = { click();if(s.tutorialActive) s.repo.tutorialDone=true;s.simulation=Simulation(s.level,s.plan) }
             Box(Modifier.tutorialTarget("launch",s.tutorialController,launch)) { PaperButton("▶   PONER EL PLAN EN MARCHA",onClick=launch) }
         } else if(sim!=null) {
+            if(!s.level.tutorial) Text(sim.feedback.ifEmpty { "Observa cada carril: los coches necesitan tiempo y espacio para detenerse." },style=BodyText,color=Ink)
             PaperButton(if(sim!!.emergencyUsed) "AYUDA UTILIZADA" else "✋  PARAR TRÁFICO · 1 USO",Brick,enabled=!sim.emergencyUsed && sim.phase==Phase.RUNNING) {sim.emergency();s.frame++;click()}
         }
         }
@@ -337,10 +380,10 @@ class MainActivity: ComponentActivity() {
         val won=sim.phase==Phase.WON
         PaperDialog(if(won) "¡BUEN CAMINO!" else "OTRO PLAN, OTRA OPORTUNIDAD",{},dismissible=false,accent=if(won) Tree else Brick) {
             if(won) Row { repeat(3) { i -> PixelImage(R.drawable.star,if(i<sim.stars(cost)) "Estrella obtenida" else "Estrella pendiente",Modifier.size(52.dp),alpha=if(i<sim.stars(cost)) 1f else .25f) } } else Text("↻",fontSize=52.sp,color=Taxi.dark)
-            Text(if(won) "¡Todos llegaron a salvo!" else "¡Cuidado! Un auto golpeó a alguien.",style=TitleSmall,color=Ink)
+            Text(if(won) "¡Todos llegaron a salvo!" else if(sim.collapsedWalkerId!=null) "¡Cuidado! Hubo un choque." else "Necesitamos un plan más seguro.",style=TitleSmall,color=Ink)
             Text(if(won) "Usaste $cost de ${s.level.budget} fichas. Tus buenas decisiones hacen una ciudad más segura." else sim.reason,style=BodyText,color=Ink)
             if(won && s.level.id<s.repo.levels.size) PaperButton("SIGUIENTE CAMINO  →") {s.enter(s.repo.levels[s.level.id])}
-            PaperButton(if(won) "VOLVER A INTENTAR" else "✎  MEJORAR MI PLAN",if(won) Neutral else Tree) {s.simulation=null;s.message=s.level.lesson}
+            PaperButton(if(won) "VOLVER A INTENTAR" else "✎  MEJORAR MI PLAN",if(won) Neutral else Tree) {s.resumePlanning()}
             PaperButton("VOLVER AL MAPA",Neutral) {s.navigate("map")}
         }
     }
@@ -388,3 +431,13 @@ class MainActivity: ComponentActivity() {
         }
     }
 }
+
+fun levelConditions(level: Level): String = buildList {
+    add(if(level.night) "Noche" else "Día")
+    add(when(level.weather) { "rain" -> "Lluvia: más distancia de frenado"; "fog" -> "Niebla: menos visibilidad"; else -> "Piso seco" })
+    val names=listOf("Izquierda","Centro","Derecha")
+    val blocked=level.sight.indices.filter { level.sight[it]<.5f }
+    if(blocked.isNotEmpty()) add("Vista reducida: " + blocked.joinToString { names[it] })
+    if("crosswalk" in level.tools) add("Paso accesible disponible: " + level.accessible.joinToString { names[it] })
+    if(level.island) add("Espacio para isla en el Centro")
+}.joinToString(" · ")
