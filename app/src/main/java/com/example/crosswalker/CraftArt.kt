@@ -1,5 +1,6 @@
 package com.example.crosswalker
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
@@ -8,15 +9,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.crosswalker.ui.theme.*
+import com.example.crosswalker.game.Walker
 
 /** Pixel art is never smoothed: Compose scales these sprites nearest-neighbour. */
 @Composable fun PixelImage(id: Int, contentDescription: String?, modifier: Modifier = Modifier,
@@ -54,7 +62,99 @@ private fun Modifier.signBolts(color: Color) = drawBehind {
     }
 }
 
-@Composable fun WalkerArtwork(walker: com.example.crosswalker.game.Walker, size: Dp = 30.dp) {
+internal fun Walker.hasHeadphonesOn(skills: Set<String>): Boolean =
+    kind == "headphones" && "headphones_off" !in skills
+
+internal fun headphonesFit(width: Float, height: Float, walking: Boolean = false): Rect {
+    val top = height * if (walking) .025f else .06f
+    return Rect(width * .06f, top, width * .94f, top + height * .36f)
+}
+
+internal const val CHILD_ART_SCALE = .84f
+
+/** Worn on the back in the walking frames, with the straps visible from the front. */
+internal fun drawSchoolBackpack(
+    canvas: android.graphics.Canvas,
+    paint: android.graphics.Paint,
+    bounds: android.graphics.RectF,
+    fromBack: Boolean
+) {
+    canvas.save()
+    canvas.translate(bounds.left, bounds.top)
+    canvas.scale(bounds.width() / 12f, bounds.height() / 14f)
+    fun pixels(left: Float, top: Float, right: Float, bottom: Float, color: Int) {
+        paint.color = color
+        canvas.drawRect(left, top, right, bottom, paint)
+    }
+    val outline = 0xFF2B2540.toInt()
+    val yellow = 0xFFFFC23D.toInt()
+    val light = 0xFFFFE07A.toInt()
+    if (fromBack) {
+        pixels(5f, 8f, 7f, 9f, outline)
+        pixels(3f, 9f, 9f, 13f, outline)
+        pixels(4f, 9f, 8f, 12f, yellow)
+        pixels(4f, 10.5f, 8f, 12f, light)
+        pixels(5.5f, 11f, 6.5f, 12f, outline)
+    } else {
+        pixels(1.5f, 8.5f, 3.5f, 12.5f, outline)
+        pixels(8.5f, 8.5f, 10.5f, 12.5f, outline)
+        pixels(2f, 8.5f, 3f, 12f, yellow)
+        pixels(9f, 8.5f, 10f, 12f, yellow)
+        pixels(1f, 10f, 2f, 12f, light)
+        pixels(10f, 10f, 11f, 12f, light)
+    }
+    canvas.restore()
+}
+
+/** School crossing pictogram with a small walker beside a taller companion. */
+internal fun drawSchoolCrossingBadge(canvas: android.graphics.Canvas, paint: android.graphics.Paint,
+                                    left: Float, top: Float, size: Float) {
+    canvas.save()
+    canvas.translate(left, top)
+    canvas.scale(size / 24f, size / 24f)
+    val diamond = android.graphics.Path().apply {
+        moveTo(12f, 0f)
+        lineTo(24f, 12f)
+        lineTo(12f, 24f)
+        lineTo(0f, 12f)
+        close()
+    }
+    paint.color = Ink.toArgb()
+    canvas.drawPath(diamond, paint)
+    canvas.save()
+    canvas.scale(.83f, .83f, 12f, 12f)
+    paint.color = Taxi.light.toArgb()
+    canvas.drawPath(diamond, paint)
+    canvas.restore()
+
+    paint.color = Ink.toArgb()
+    canvas.drawRect(8f, 6f, 11f, 9f, paint)
+    canvas.drawRect(7f, 9f, 11f, 14f, paint)
+    canvas.drawRect(6f, 14f, 8f, 17f, paint)
+    canvas.drawRect(9f, 14f, 11f, 18f, paint)
+    canvas.drawRect(14f, 9f, 17f, 12f, paint)
+    canvas.drawRect(14f, 12f, 17f, 16f, paint)
+    canvas.drawRect(13f, 15f, 15f, 18f, paint)
+    canvas.drawRect(16f, 15f, 18f, 17f, paint)
+    canvas.drawRect(11f, 11f, 13f, 13f, paint)
+    canvas.drawRect(12f, 12f, 14f, 14f, paint)
+    canvas.restore()
+}
+
+@Composable
+private fun SchoolCrossingBadge(size: Dp) {
+    val paint = androidx.compose.runtime.remember { android.graphics.Paint() }
+    Canvas(Modifier.size(size)) {
+        drawIntoCanvas { drawSchoolCrossingBadge(it.nativeCanvas, paint, 0f, 0f, this.size.width) }
+    }
+}
+
+@Composable fun WalkerArtwork(
+    walker: Walker,
+    size: Dp = 30.dp,
+    skills: Set<String> = emptySet(),
+    child: Boolean = false
+) {
     val resource = when (walker.sprite) {
         "walker_coral" -> R.drawable.walker_coral
         "walker_green" -> R.drawable.walker_green
@@ -63,24 +163,58 @@ private fun Modifier.signBolts(color: Color) = drawBehind {
         "walker_rust" -> R.drawable.walker_rust
         else -> R.drawable.walker_blue
     }
-    Box(Modifier.size(size)) {
-        PixelImage(resource, walker.name, Modifier.size(size))
-        // A pedestrian glued to a phone wears it as a badge wherever the UI names them.
-        if (walker.kind == "phone") PixelImage(R.drawable.phone, "con celular",
-            Modifier.size(size * .45f).align(Alignment.TopEnd))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(size)) {
+            val artSize = if (child) size * CHILD_ART_SCALE else size
+            Box(Modifier.align(Alignment.BottomCenter).size(artSize)) {
+                PixelImage(resource, if (child) "${walker.name}, niña" else walker.name, Modifier.matchParentSize())
+                if (child) {
+                    val bitmap = ImageBitmap.imageResource(resource)
+                    val paint = androidx.compose.runtime.remember { android.graphics.Paint() }
+                    Canvas(Modifier.matchParentSize()) {
+                        val scale = minOf(this.size.width / bitmap.width, this.size.height / bitmap.height)
+                        val width = bitmap.width * scale
+                        val height = bitmap.height * scale
+                        val left = (this.size.width - width) / 2f
+                        val top = (this.size.height - height) / 2f
+                        drawIntoCanvas {
+                            drawSchoolBackpack(it.nativeCanvas, paint,
+                                android.graphics.RectF(left, top, left + width, top + height), fromBack = false)
+                        }
+                    }
+                }
+            }
+            // A pedestrian glued to a phone wears it as a badge wherever the UI names them.
+            if (walker.kind == "phone") PixelImage(R.drawable.phone, "con celular",
+                Modifier.size(size * .45f).align(Alignment.TopEnd))
+            if (walker.hasHeadphonesOn(skills)) {
+                val bitmap = ImageBitmap.imageResource(resource)
+                val scale = size.value / maxOf(bitmap.width, bitmap.height)
+                val width = bitmap.width * scale
+                val height = bitmap.height * scale
+                val fit = headphonesFit(width, height)
+                PixelImage(
+                    R.drawable.headphones, "con audífonos",
+                    Modifier.align(Alignment.TopCenter).offset(y = ((size.value - height) / 2 + fit.top).dp).size(fit.width.dp, fit.height.dp),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+        }
+        if (child) SchoolCrossingBadge(maxOf(16.dp, size * .5f))
     }
 }
 
 @Composable fun ToolArtwork(id: String) {
     val resource = when (id) {
         "look" -> R.drawable.icon_look
-        "refuge" -> R.drawable.icon_wait
-        "eye" -> R.drawable.icon_officer
-        "signal" -> R.drawable.icon_signal
-        "visible" -> R.drawable.star
-        "lighting" -> R.drawable.star
+        "visible" -> R.drawable.icon_reflector
+        "lighting" -> R.drawable.icon_streetlamp
+        "car_lights" -> R.drawable.icon_headlights
+        "escort" -> R.drawable.icon_escort
         "speed_zone" -> R.drawable.icon_bump
         "phone_away" -> R.drawable.icon_phone_away
+        "headphones_off" -> R.drawable.icon_headphones_off
+        "crosswalk" -> R.drawable.icon_crosswalk
         else -> R.drawable.icon_crosswalk
     }
     PixelImage(resource, null, Modifier.size(30.dp))

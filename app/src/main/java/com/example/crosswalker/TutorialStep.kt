@@ -1,5 +1,7 @@
 package com.example.crosswalker
 
+internal const val MAP_INTRO_INDEX = 2
+
 /** Qué se recorta del velo (`spotlightId`) y qué toque es válido ahora mismo (`tapId`). */
 data class TutorialStep(val spotlightId: String, val tapId: String = spotlightId)
 
@@ -10,10 +12,16 @@ data class TutorialStep(val spotlightId: String, val tapId: String = spotlightId
  * el tutorial completo de este nivel terminó vía `GameRepository.tutorialDone`) quien decide
  * cuándo no llamarla en absoluto y publicar `null` en el controlador.
  */
-fun tutorialStepFor(introIndex: Int, introLineCount: Int, lookChosen: Boolean): TutorialStep = when {
+fun tutorialStepFor(
+    introIndex: Int,
+    introLineCount: Int,
+    lookChosen: Boolean,
+    panelOpen: Boolean = true
+): TutorialStep = when {
+    !panelOpen && introIndex == MAP_INTRO_INDEX -> TutorialStep("board", "planning_panel")
+    !panelOpen -> TutorialStep("planning_panel")
     introIndex < introLineCount - 1 -> when (introIndex) {
-        0, 1 -> TutorialStep("dialogue")
-        2, 3 -> TutorialStep("board", "dialogue")
+        0, 1, MAP_INTRO_INDEX, 3 -> TutorialStep("dialogue")
         4 -> TutorialStep("pause", "dialogue")
         5 -> TutorialStep("tokens", "dialogue")
         6 -> TutorialStep("walkers", "dialogue")

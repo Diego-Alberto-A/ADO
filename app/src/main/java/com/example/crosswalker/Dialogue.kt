@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -20,14 +21,13 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.crosswalker.ui.theme.*
 import android.media.ToneGenerator
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 
-/** Words the dialogue tints: people in Tree, objects in Taxi, places in Sky. */
+/** Terms the dialogue marks by category. */
 data class Lexicon(
     val people: Set<String> = emptySet(),
     val objects: Set<String> = emptySet(),
@@ -37,13 +37,16 @@ data class Lexicon(
         private val PLACES = setOf("calle", "cruce", "banqueta", "carril", "escuela",
             "ciudad", "barrio", "acera", "esquina", "camino", "paso")
 
-        /** Names come from the level, tool words from the catalogue: no hard-coded copy. */
+        private val CONTROLS = setOf(
+            "abrir plan", "cerrar plan", "poner el plan en marcha", "habilidades",
+            "la calle", "pausa", "fichas", "pestaña", "panel", "mirar", "izquierda", "centro", "derecha"
+        )
+
         fun of(level: com.example.crosswalker.game.Level,
                tools: List<com.example.crosswalker.game.Tool>) = Lexicon(
             people = level.walkers.map { it.name.normalise() }.toSet(),
-            objects = tools.flatMap { it.label.split(" ") }.map { it.normalise() }
-                .filter { it.length > 3 }.toSet(),
-            places = PLACES
+            objects = tools.map { it.label.normalise() }.toSet() + CONTROLS.map { it.normalise() },
+            places = PLACES + "mapa del cruce"
         )
     }
 }
@@ -52,25 +55,34 @@ private fun String.normalise() = lowercase()
     .replace('á', 'a').replace('é', 'e').replace('í', 'i')
     .replace('ó', 'o').replace('ú', 'u')
 
-private val WORD = Regex("[\\p{L}]+")
-
-/** Tints the keywords it recognises; everything else stays ink. */
-fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedString {
-    var cursor = 0
-    for (match in WORD.findAll(text)) {
-        append(text.substring(cursor, match.range.first))
-        val word = match.value
-        val accent = when (word.normalise()) {
-            in lexicon.people -> Tree.dark
-            in lexicon.objects -> Orange.dark
-            in lexicon.places -> Sky.dark
-            else -> null
-        }
-        if (accent == null) append(word)
-        else withStyle(SpanStyle(color = accent, fontWeight = FontWeight.SemiBold)) { append(word) }
-        cursor = match.range.last + 1
+private class DialogueMarker(lexicon: Lexicon) {
+    private val colors = buildMap {
+        lexicon.places.forEach { put(it, Sky.light) }
+        lexicon.objects.forEach { put(it, Taxi.base) }
+        lexicon.people.forEach { put(it, Tree.light) }
     }
-    append(text.substring(cursor))
+    private val terms = colors.keys.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }
+    private val pattern = terms.takeIf { it.isNotEmpty() }?.let {
+        Regex("(?<![\\p{L}])(?:$it)(?![\\p{L}])")
+    }
+
+    fun matches(text: String) = pattern?.findAll(text.normalise())?.toList().orEmpty()
+
+    fun render(text: String, matches: List<MatchResult>, revealed: Int): AnnotatedString = buildAnnotatedString {
+        append(text)
+        matches.forEach { match ->
+            val start = match.range.first
+            val end = match.range.last + 1
+            addStyle(SpanStyle(fontWeight = FontWeight.SemiBold), start, end)
+            if (end <= revealed) {
+                val color = colors.getValue(match.value)
+                val emphasis = if (revealed == text.length) 0f else (1f - (revealed - end) / 9f).coerceIn(0f, 1f)
+                val marker = lerp(color.copy(alpha = .50f), color.copy(alpha = .95f), emphasis)
+                addStyle(SpanStyle(background = marker), start, end)
+            }
+        }
+        if (revealed < text.length) addStyle(SpanStyle(color = Color.Transparent), revealed, text.length)
+    }
 }
 
 /**
@@ -92,6 +104,8 @@ fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedSt
 ) {
     var revealed by remember(text) { mutableIntStateOf(0) }
     val done = revealed >= text.length
+    val marker = remember(lexicon) { DialogueMarker(lexicon) }
+    val matches = remember(marker, text) { marker.matches(text) }
     val entry = remember(text) { Animatable(.9f) }
 
     LaunchedEffect(text) {
@@ -130,10 +144,12 @@ fun colorize(text: String, lexicon: Lexicon): AnnotatedString = buildAnnotatedSt
                 .semantics { contentDescription = text }
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(colorize(text.take(revealed), lexicon), style = BodyText, color = Ink,
+                Text(marker.render(text, matches, revealed), style = BodyText, color = Ink,
                     modifier = Modifier.weight(1f).clearAndSetSemantics {})
                 // The arrow blinks while typing, and keeps blinking when there is a next page.
-                if (!done || onAdvance != null) Box(Modifier.padding(start = 8.dp)) { MoreTextArrow() }
+                Box(Modifier.width(20.dp).padding(start = 6.dp)) {
+                    if (!done || onAdvance != null) MoreTextArrow()
+                }
             }
         }
         // The name plate lands a beat after the box, leaning out of the corner.

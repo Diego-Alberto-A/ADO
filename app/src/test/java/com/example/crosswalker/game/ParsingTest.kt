@@ -43,4 +43,15 @@ class ParsingTest {
         assertEquals(listOf("¡Hola! Soy Ana.","Vamos paso a paso."), level.introLines)
         assertEquals("¡Lanza el plan!", level.readyMessage)
     }
+
+    @Test fun parseLevelReadsBlindSpotLaneFlag() {
+        val json = JSONObject(
+            """{"id":1,"world":0,"title":"t","lesson":"l","budget":3,"night":false,
+                "lanes":[{"y":0.5,"speed":0.11,"offset":0.6,"car":"car_coral","blindSpot":true}],
+                "walkers":[{"id":"ana","name":"Ana","kind":"impulsive","speed":0.12,"sprite":"walker_coral"}],
+                "tools":["look"]}"""
+        )
+        val level = parseLevel(json)
+        assertTrue(level.lanes.single().blindSpot)
+    }
 }

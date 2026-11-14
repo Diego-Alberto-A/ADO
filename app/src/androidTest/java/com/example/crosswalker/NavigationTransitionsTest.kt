@@ -25,11 +25,12 @@ class NavigationTransitionsTest {
         ui.onNodeWithText("A TU MANERA").assertDoesNotExist()
         tap("JUGAR")
         tap("MUNDO 2")
-        ui.onNodeWithText("Campus de innovación").assertIsDisplayed()
+        ui.onNodeWithText("La escuela").assertIsDisplayed()
         tap("MUNDO 1")
         tap("Mi primer cruce")
         tap("PREPARAR EL PLAN")
         ui.runOnIdle { assertEquals("game", session.screen) }
+        tap("ABRIR PLAN")
         tap("LA CALLE")
         tap("HABILIDADES")
         tap("Ⅱ")
@@ -40,7 +41,7 @@ class NavigationTransitionsTest {
         ui.onNodeWithText("PAUSA").assertDoesNotExist()
         tap("Ⅱ")
         tap("VOLVER AL MAPA")
-        ui.onNodeWithText("ELIGE TU PRÓXIMA AVENTURA").assertIsDisplayed()
+        ui.onNodeWithText("Mi pequeño barrio").assertIsDisplayed()
         tap("INICIO")
         ui.onNodeWithText("JUGAR").assertIsDisplayed()
     }

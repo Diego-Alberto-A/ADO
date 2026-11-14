@@ -21,6 +21,7 @@ class SoundEngine(private val context: Context, private val enabled: () -> Boole
     private var music: MediaPlayer? = null
     private val oneShots = mutableSetOf<MediaPlayer>()
     private var voice: MediaPlayer? = null
+    private var ambient: MediaPlayer? = null
     private val attrs = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
     private val pool = SoundPool.Builder().setMaxStreams(4).setAudioAttributes(attrs).build()
@@ -29,6 +30,8 @@ class SoundEngine(private val context: Context, private val enabled: () -> Boole
         .associateWith { pool.load(context, it, 1) }
 
     fun isMusicPlaying(): Boolean = music?.isPlaying == true
+
+    internal val musicPositionMs: Int get() = music?.currentPosition ?: 0
 
     fun playMusic(@RawRes resId: Int, loop: Boolean = true) {
         stopMusic()
@@ -78,5 +81,19 @@ class SoundEngine(private val context: Context, private val enabled: () -> Boole
 
     fun stopVoice() { voice?.release(); voice = null }
 
-    fun release() { stopOneShots(); stopMusic(); stopVoice(); pool.release() }
+    /** Weather ambience (e.g. rain), its own channel so it never fights the dialogue
+     * voice or the background music — all three can run at once, each looping on its
+     * own terms. A no-op if it's already looping this exact sound, so a caller can
+     * re-trigger every frame without restarting the loop from zero each time. */
+    private var ambientRes: Int? = null
+    fun loopAmbient(@RawRes resId: Int) {
+        if (ambientRes == resId && ambient?.isPlaying == true) return
+        stopAmbient()
+        ambientRes = resId
+        if (!enabled()) return
+        ambient = MediaPlayer.create(context, resId)?.apply { isLooping = true; start() }
+    }
+    fun stopAmbient() { ambient?.release(); ambient = null; ambientRes = null }
+
+    fun release() { stopOneShots(); stopMusic(); stopVoice(); stopAmbient(); pool.release() }
 }

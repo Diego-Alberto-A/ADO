@@ -11,7 +11,6 @@ class GameRepository(context: Context) {
     val tools = root.getJSONArray("tools").let { a -> List(a.length()) { parseTool(a.getJSONObject(it)) } }
     val levels = root.getJSONArray("levels").let { a -> List(a.length()) { parseLevel(a.getJSONObject(it)) } }
     fun stars(id: Int) = prefs.getInt("stars_$id",0)
-    fun unlocked(id: Int) = id == 1 || stars(id-1)>0
     fun save(id: Int, stars: Int) { prefs.edit().putInt("stars_$id", maxOf(stars,stars(id))).apply() }
     fun resetProgress() {
         prefs.edit().apply {

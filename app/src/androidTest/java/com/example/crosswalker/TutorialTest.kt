@@ -22,13 +22,14 @@ class TutorialTest {
     private val session get() = ViewModelProvider(ui.activity)[Session::class.java]
 
     private fun tapText(text: String, substring: Boolean = false) {
-        ui.onNodeWithText(text, substring = substring).performClick()
+        val node = ui.onNodeWithText(text, substring = substring)
+        if (session.screen == "game") node.performTouchInput { click() } else node.performClick()
         ui.waitForIdle()
     }
 
     /** Toca la caja de diálogo por su contenido actual. */
     private fun tapDialogue(line: String) {
-        ui.onNodeWithContentDescription(line).performClick()
+        ui.onNodeWithContentDescription(line).performTouchInput { click() }
         ui.waitForIdle()
     }
 
@@ -41,12 +42,44 @@ class TutorialTest {
         tapText("JUGAR")
         tapText("Mi primer cruce")
         tapText("PREPARAR EL PLAN", substring = true)
-        ui.waitForIdle()
+        ui.waitUntil(5000) { !session.transitioning }
+        ui.onNodeWithText("CERRAR PLAN", substring = true).assertDoesNotExist()
+        tapText("ABRIR PLAN", substring = true)
     }
 
     /** Avanza las líneas narrativas 0..hasta (exclusive) tocando la caja de diálogo una vez cada una. */
     private fun advanceNarrationLines(hasta: Int) {
-        for (i in 0 until hasta) tapDialogue(session.level.introLines[i])
+        for (i in 0 until hasta) {
+            if (i == MAP_INTRO_INDEX) tapText("ABRIR PLAN", substring = true)
+            else tapDialogue(session.level.introLines[i])
+        }
+    }
+
+    @Test fun mapLessonClosesThePanelAndRequiresReopeningIt() {
+        enterTutorial()
+        val lines = session.level.introLines
+        advanceNarrationLines(2)
+        ui.onNodeWithText("ABRIR PLAN", substring = true).assertIsDisplayed()
+        ui.onNodeWithText("HABILIDADES").assertDoesNotExist()
+        ui.onNodeWithContentDescription(lines[2]).assertIsDisplayed()
+        tapText("ABRIR PLAN", substring = true)
+        val guide = ui.onNodeWithContentDescription(lines[3])
+        guide.assertIsDisplayed()
+        val guideTop = guide.getBoundsInRoot().top
+        tapText("CERRAR PLAN", substring = true)
+        ui.onNodeWithContentDescription("Toca la pestaña con la mano", substring = true).assertIsDisplayed()
+        tapText("ABRIR PLAN", substring = true)
+        assertEquals(guideTop, guide.getBoundsInRoot().top)
+    }
+
+    @Test fun closingAndReopeningKeepsTheCurrentTutorialStep() {
+        enterTutorial()
+        tapDialogue(session.level.introLines.first())
+        tapText("CERRAR PLAN", substring = true)
+        ui.onNodeWithText("MIRAR").assertDoesNotExist()
+        tapText("ABRIR PLAN", substring = true)
+        ui.onNodeWithContentDescription(session.level.introLines[1]).assertIsDisplayed()
+        assertEquals(1, session.introIndex)
     }
 
     @Test fun tappingOutsideTheActiveTargetChangesNothing() {
@@ -70,12 +103,7 @@ class TutorialTest {
     @Test fun narrationLinesOnlyAdvanceByTappingTheDialogueItself() {
         enterTutorial()
         val level = session.level
-        // Las primeras líneas (0..4) son narrativas/informativas: su único toque válido es la
-        // propia caja de diálogo, sin importar qué más señalen (PAUSA, FICHAS, la pestaña...).
-        for (i in 0 until session.level.introLines.lastIndex) {
-            ui.onNodeWithContentDescription(level.introLines[i]).assertIsDisplayed()
-            tapDialogue(level.introLines[i])
-        }
+        advanceNarrationLines(level.introLines.lastIndex)
         assertEquals(session.level.introLines.lastIndex, session.introIndex)
     }
 
