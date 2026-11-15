@@ -15,8 +15,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -31,7 +29,7 @@ import kotlin.math.roundToInt
 // Modal buttons defer their action until the paper card has finished leaving.
 val LocalModalAction = staticCompositionLocalOf<((() -> Unit) -> Unit)> { { action -> action() } }
 
-enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE }
+enum class ScreenMotion { FORWARD, BACKWARD, FADE }
 
 @Composable fun ScreenTransitions(s: Session, content: @Composable () -> Unit) {
     val scope = rememberCoroutineScope()
@@ -45,7 +43,6 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE
     }
     var previous by remember { mutableStateOf<ImageBitmap?>(null) }
     var backwards by remember { mutableStateOf(false) }
-    var sliding by remember { mutableStateOf(false) }
     var fading by remember { mutableStateOf(false) }
 
     DisposableEffect(s) {
@@ -54,15 +51,14 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE
                 s.transitioning = true
                 scope.launch {
                     try {
-                        backwards = motion == ScreenMotion.BACKWARD || motion == ScreenMotion.WORLD_BACKWARD
-                        sliding = motion == ScreenMotion.WORLD_FORWARD || motion == ScreenMotion.WORLD_BACKWARD
+                        backwards = motion == ScreenMotion.BACKWARD
                         fading = motion == ScreenMotion.FADE
                         progress.snapTo(0f)
                         // Freeze the last screen before changing any level or simulation state.
                         previous = layer.toImageBitmap()
                         action()
                         withFrameNanos { }
-                        progress.animateTo(1f, tween(if (sliding) 420 else 700, easing = FastOutSlowInEasing))
+                        progress.animateTo(1f, tween(700, easing = FastOutSlowInEasing))
                     } finally {
                         previous = null
                         s.transitioning = false
@@ -101,17 +97,6 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE
                     if (fading) {
                         drawContent()
                         drawPrevious(1f - progress.value)
-                    } else if (sliding) {
-                        // Higher worlds enter from the right; lower worlds enter from the left.
-                        val direction = if (backwards) -1f else 1f
-                        clipRect {
-                            translate(left = -direction * size.width * progress.value) {
-                                drawPrevious()
-                            }
-                            translate(left = direction * size.width * (1f - progress.value)) {
-                                this@drawWithContent.drawContent()
-                            }
-                        }
                     } else {
                     val closing = backwards && s.screen != "home"
                     val fraction = if (closing) 1f - progress.value else progress.value

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
@@ -47,12 +48,16 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -83,7 +88,7 @@ class Session(val repo: GameRepository): ViewModel() {
     // Suspend background music only while a result is being presented.
     var musicSuspended by mutableStateOf(false)
     fun changeWorld(next: Int) {
-        if (next != world) transition(if (next < world) ScreenMotion.WORLD_BACKWARD else ScreenMotion.WORLD_FORWARD) { world=next }
+        if (!transitioning) world = next
     }
     var screen by mutableStateOf("home")
     var world by mutableIntStateOf(0)
@@ -108,7 +113,15 @@ class Session(val repo: GameRepository): ViewModel() {
     var showResultDialog by mutableStateOf(false)
     val tutorialController = TutorialController()
     val tutorialActive: Boolean get() = level.tutorial && !repo.tutorialDone
-    fun enter(l: Level) { transition(ScreenMotion.FORWARD) { sound?.playSfx(R.raw.sfx_enter_level); level=l; reset(); screen="game" } }
+    fun enter(l: Level) {
+        if (!repo.isLevelUnlocked(l.id)) return
+        transition(ScreenMotion.FORWARD) {
+            sound?.playSfx(R.raw.sfx_enter_level)
+            level = l
+            reset()
+            screen = "game"
+        }
+    }
     var attempt by mutableIntStateOf(0)
     fun resumePlanning() { sound?.stopOneShots(); musicSuspended=false; showResultDialog=false; simulation=null; planningPanelOpen=false; attempt++ }
     fun reset() { resumePlanning(); plan=initialPlan(); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; introIndex=0; showResultDialog=false; frame++ }
@@ -190,7 +203,9 @@ class MainActivity: ComponentActivity() {
         val sim=s.simulation
         if(sim!=null && !s.paused && !s.transitioning) while(sim.phase==Phase.RUNNING) {
             delay(50); sim.tick(); s.frame++
-            if(sim.phase==Phase.WON) { s.repo.save(s.level.id,sim.stars(s.plan.cost(s.repo.tools))); if(s.repo.sound) tone.startTone(ToneGenerator.TONE_PROP_ACK,180) }
+            if (sim.phase == Phase.WON && s.repo.sound) {
+                tone.startTone(ToneGenerator.TONE_PROP_ACK, 180)
+            }
         }
     }
     BackHandler(enabled=s.screen!="home" || s.dialog.isNotEmpty()) {
@@ -213,7 +228,7 @@ class MainActivity: ComponentActivity() {
         if (s.screen=="game" && s.tutorialActive) TutorialOverlay(s.tutorialController)
         if (s.dialog == "campaignComplete" && !s.transitioning) {
             PaperDialog("¡GRACIAS POR COMPLETAR EL JUEGO!", { s.dialog = "" }, accent = Taxi) {
-                PaperButton("CERRAR") { s.dialog = "" }
+                PaperButton("SEGUIR JUGANDO") { s.dialog = "" }
             }
         }
         if(s.dialog=="resetProgress") PaperDialog("¿EMPEZAR DE NUEVO?", {s.dialog=""}, accent=Taxi) {
@@ -316,36 +331,61 @@ class MainActivity: ComponentActivity() {
         }
         Text(s.repo.worlds[s.world],style=TitleText,color=Ink)
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) { s.repo.worlds.indices.forEach { w -> CraftChip(selected=s.world==w,onClick={s.changeWorld(w)},label={Text("MUNDO ${w+1}")}) } }
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(18.dp)) {
-            s.repo.levels.filter { it.world==s.world }.forEachIndexed { index,l ->
-                Row(
-                    Modifier.fillMaxWidth()
-                        .padding(start = if (index % 2 == 0) 0.dp else 35.dp, end = if (index % 2 == 0) 35.dp else 0.dp)
-                        .rotate(if (index % 2 == 0) -1f else 1f)
-                        .pixelPanel()
-                        .clickable { click(); chosen = l }
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Box(Modifier.size(60.dp).pixelSlot(), contentAlignment = Alignment.Center) {
-                        Text("${l.id}", color = Ink, style = TitleText)
+        AnimatedContent(
+            targetState = s.world,
+            modifier = Modifier.weight(1f).fillMaxWidth().clipToBounds(),
+            transitionSpec = {
+                val direction = if (targetState > initialState) 1 else -1
+                (slideInHorizontally(tween(280, easing = FastOutSlowInEasing)) { direction * it / 6 } +
+                    fadeIn(tween(280))) togetherWith
+                    (slideOutHorizontally(tween(220, easing = FastOutSlowInEasing)) { -direction * it / 6 } +
+                        fadeOut(tween(180)))
+            },
+            label = "worldLevels"
+        ) { world ->
+            val active = world == s.world
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState(), enabled = active)
+                    .then(if (active) Modifier else Modifier.clearAndSetSemantics {}),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                s.repo.levels.filter { it.world == world }.forEachIndexed { index,l ->
+                    val unlocked = s.repo.isLevelUnlocked(l.id)
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .padding(start = if (index % 2 == 0) 0.dp else 35.dp, end = if (index % 2 == 0) 35.dp else 0.dp)
+                            .rotate(if (index % 2 == 0) -1f else 1f)
+                            .pixelPanel()
+                            .clickable(enabled = active && unlocked) { click(); chosen = l }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(Modifier.size(60.dp).pixelSlot(), contentAlignment = Alignment.Center) {
+                            Text("${l.id}", color = Ink, style = TitleText)
+                        }
+                        Column(Modifier.weight(1f)) {
+                            Text(l.title, style = BodyStrong, color = Ink)
+                            if (unlocked) {
+                                PaperStars(s.repo.stars(l.id))
+                            } else {
+                                Text("BLOQUEADO", style = HudStrong, color = Brick.dark)
+                                Text("Completa el nivel anterior", style = HudLabel, color = Asphalt)
+                            }
+                        }
+                        val sceneryIcon = when (l.world) {
+                            1 -> R.drawable.decor_building_campus
+                            else -> if (index % 2 == 0) R.drawable.house else R.drawable.tree
+                        }
+                        PixelImage(sceneryIcon, null, Modifier.size(38.dp).rotate(3f),
+                            alpha = if (unlocked) 1f else .5f)
                     }
-                    Column(Modifier.weight(1f)) {
-                        Text(l.title, style = BodyStrong, color = Ink)
-                        PaperStars(s.repo.stars(l.id))
+                    if(index<3) Canvas(Modifier.fillMaxWidth().height(20.dp)) {
+                        val start=if(index%2==0) size.width*.27f else size.width*.72f
+                        val end=if(index%2==0) size.width*.72f else size.width*.27f
+                        val thread=androidx.compose.ui.graphics.Path().apply {moveTo(start,0f);cubicTo(start,size.height*.8f,end,size.height*.2f,end,size.height)}
+                        drawPath(thread,Brick.base,style=androidx.compose.ui.graphics.drawscope.Stroke(width=2.dp.toPx()))
                     }
-                    val sceneryIcon = when (l.world) {
-                        1 -> R.drawable.decor_building_campus
-                        else -> if (index % 2 == 0) R.drawable.house else R.drawable.tree
-                    }
-                    PixelImage(sceneryIcon, null, Modifier.size(38.dp).rotate(3f))
-                }
-                if(index<3) Canvas(Modifier.fillMaxWidth().height(20.dp)) {
-                    val start=if(index%2==0) size.width*.27f else size.width*.72f
-                    val end=if(index%2==0) size.width*.72f else size.width*.27f
-                    val thread=androidx.compose.ui.graphics.Path().apply {moveTo(start,0f);cubicTo(start,size.height*.8f,end,size.height*.2f,end,size.height)}
-                    drawPath(thread,Brick.base,style=androidx.compose.ui.graphics.drawscope.Stroke(width=2.dp.toPx()))
                 }
             }
         }
@@ -378,6 +418,7 @@ class MainActivity: ComponentActivity() {
                 s.showResultDialog = true
             }
             Phase.WON -> {
+                s.repo.save(sim.level.id, sim.stars(sim.plan.cost(s.repo.tools)))
                 s.musicSuspended = true
                 engine?.stopMusic()
                 engine?.playOneShot(R.raw.music_win)
@@ -475,7 +516,9 @@ class MainActivity: ComponentActivity() {
             if(won) Row { repeat(3) { i -> PixelImage(R.drawable.star,if(i<sim.stars(cost)) "Estrella obtenida" else "Estrella pendiente",Modifier.size(52.dp),alpha=if(i<sim.stars(cost)) 1f else .25f) } } else Text("↻",fontSize=52.sp,color=Taxi.dark)
             Text(if(won) "¡Todos llegaron a salvo!" else if(sim.collapsedWalkerId!=null) "¡Cuidado! Hubo un choque." else "Necesitamos un plan más seguro.",style=TitleSmall,color=Ink)
             Text(if(won) "Usaste $cost de ${s.level.budget} fichas. Tus buenas decisiones hacen una ciudad más segura." else sim.reason,style=BodyText,color=Ink)
-            if(won && s.level.id<s.repo.levels.size) PaperButton("SIGUIENTE CAMINO  →") {s.enter(s.repo.levels[s.level.id])}
+            if (won) s.repo.nextLevel(s.level.id)?.let { next ->
+                PaperButton("SIGUIENTE CAMINO  →") { s.enter(next) }
+            }
             PaperButton(if(won) "VOLVER A INTENTAR" else "✎  MEJORAR MI PLAN",if(won) Neutral else Tree) {s.resumePlanning()}
             PaperButton("VOLVER AL MAPA",Neutral) {s.navigate("map")}
         }

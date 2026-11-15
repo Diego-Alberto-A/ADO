@@ -76,7 +76,7 @@ private const val PIXEL = 1f
     }
     val impactT=minOf(1f,impactTick/30f)
     val slowMotion = "speed_zone" in plan.street && !level.tutorial && sim?.phase == Phase.RUNNING
-    val scenery = remember(level.world, level.id) { boardScenery(level.world, level.id) }
+    val scenery = remember(level) { boardScenery(level) }
     val context=androidx.compose.ui.platform.LocalContext.current
     val typeface=remember(context) { androidx.core.content.res.ResourcesCompat.getFont(context,R.font.pixelify_sans)?.let { android.graphics.Typeface.create(it, android.graphics.Typeface.BOLD) } }
     val resources=LocalResources.current
@@ -234,35 +234,17 @@ private const val PIXEL = 1f
 
         // Connect the existing crossings across the green strips between roads.
         // Keep the paths flat so they never read as a new obstacle or a traffic signal.
-        val roadCenters = level.lanes.map { it.y * 410f }.sorted()
-        val greenStrips = (listOf(72f) + roadCenters.map { it + 36f })
-            .zip(roadCenters.map { it - 32f } + listOf(335f))
         val paths = Simulation.crossings.filterIndexed { index, _ ->
             if (level.night && level.pedestrianCrossings.isNotEmpty()) level.hasMarkedCrossing(index)
             else index != level.blockedCrossing
         }
-        for ((top, bottom) in greenStrips) {
+        for ((top, bottom) in scenery.greenStrips) {
             val height = bottom - top
             if (height < 9f) continue
             for (crossing in paths) {
                 val left = crossing * 360f - 13f
                 rect(left - 2f, top, 30f, height, "#318981")
                 ground(left, top, 26f, height, "walk")
-            }
-            // Set small planting beds away from the crossing lines and from the road edges.
-            if (height >= 32f) {
-                val y = top + (height - 12f) / 2f
-                val bloom = when (level.world) {
-                    1 -> "#E1B17C"
-                    2 -> "#7D9CB2"
-                    else -> "#D4A47D"
-                }
-                for (x in listOf(25f, 335f)) {
-                    rect(x - 15f, y + 2f, 30f, 11f, "#2A746A")
-                    rect(x - 15f, y, 28f, 10f, "#437C61")
-                    rect(x - 12f, y + 1f, 23f, 6f, "#5CA181")
-                    for (offset in listOf(-9f, -1f, 7f)) rect(x + offset, y + 2f, 3f, 2f, bloom)
-                }
             }
         }
 

@@ -11,6 +11,16 @@ class GameRepository(context: Context) {
     val tools = root.getJSONArray("tools").let { a -> List(a.length()) { parseTool(a.getJSONObject(it)) } }
     val levels = root.getJSONArray("levels").let { a -> List(a.length()) { parseLevel(a.getJSONObject(it)) } }
     fun stars(id: Int) = prefs.getInt("stars_$id",0)
+    fun isLevelUnlocked(id: Int): Boolean {
+        val index = levels.indexOfFirst { it.id == id }
+        return index == 0 || (index > 0 && stars(levels[index - 1].id) > 0)
+    }
+
+    fun nextLevel(id: Int): Level? {
+        val index = levels.indexOfFirst { it.id == id }
+        return if (index >= 0) levels.getOrNull(index + 1) else null
+    }
+
     fun save(id: Int, stars: Int) { prefs.edit().putInt("stars_$id", maxOf(stars,stars(id))).apply() }
     fun resetProgress() {
         prefs.edit().apply {

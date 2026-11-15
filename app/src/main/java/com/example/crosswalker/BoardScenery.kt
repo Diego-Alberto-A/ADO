@@ -1,5 +1,7 @@
 package com.example.crosswalker
 
+import com.example.crosswalker.game.Level
+
 internal data class SceneryPixel(
     val x: Float, val y: Float, val width: Float, val height: Float, val color: String
 )
@@ -14,17 +16,21 @@ internal data class BoardScenery(
     val pixels: List<SceneryPixel>,
     val sprites: List<ScenerySprite>,
     val accentLights: List<SceneryPixel>,
-    val signs: List<ScenerySign>
+    val signs: List<ScenerySign>,
+    val greenStrips: List<Pair<Float, Float>>
 )
 
-/** Decorative layers for the far pavement and the outer edges of the near pavement. */
-internal fun boardScenery(world: Int, levelId: Int): BoardScenery {
+/** Decorative layers for the pavements and garden strips between lanes. */
+internal fun boardScenery(level: Level): BoardScenery {
     val pixels = mutableListOf<SceneryPixel>()
     val sprites = mutableListOf<ScenerySprite>()
     val lights = mutableListOf<SceneryPixel>()
     val signs = mutableListOf<ScenerySign>()
-    val mirrored = levelId % 2 == 0
-    val variant = (levelId - 1) % 4
+    val mirrored = level.id % 2 == 0
+    val variant = (level.id - 1) % 4
+    val roadCenters = level.lanes.map { it.y * 410f }.sorted()
+    val greenStrips = (listOf(72f) + roadCenters.map { it + 36f })
+        .zip(roadCenters.map { it - 32f } + listOf(335f))
 
     fun xPosition(x: Int, width: Int): Float = (if (mirrored) 360 - x - width else x).toFloat()
     fun pixel(x: Int, y: Int, width: Int, height: Int, color: String) {
@@ -41,6 +47,34 @@ internal fun boardScenery(world: Int, levelId: Int): BoardScenery {
         for (leaf in 3 until width - 3 step 5) {
             pixel(x + leaf, y + 2, 3, 3, "#50AD7B")
             pixel(x + leaf + 1, y, 2, 2, bloom)
+        }
+    }
+    fun flowerBed(x: Int, y: Int, bloom: String, accent: String) {
+        pixel(x + 2, y + 7, 34, 7, "#2C655D")
+        pixel(x, y + 1, 36, 10, "#527E68")
+        pixel(x + 2, y + 2, 32, 7, "#316A58")
+        for (flower in 0..4) {
+            val left = x + 4 + flower * 6
+            val top = y + flower % 2 * 3
+            pixel(left + 2, top + 3, 1, 5, "#8ABB7A")
+            pixel(left, top + 1, 5, 2, if (flower % 2 == 0) bloom else accent)
+            pixel(left + 1, top, 3, 4, if (flower % 2 == 0) bloom else accent)
+            pixel(left + 2, top + 1, 1, 2, "#FFE5A2")
+        }
+    }
+    fun puddle(x: Int, y: Int) {
+        pixel(x + 4, y, 21, 10, "#42677B")
+        pixel(x, y + 3, 29, 4, "#42677B")
+        pixel(x + 5, y + 2, 17, 2, "#719DB1")
+        pixel(x + 8, y + 6, 8, 1, "#ADD7E2")
+        pixel(x + 18, y + 5, 5, 1, "#8EBAC9")
+    }
+    fun mosaic(x: Int, y: Int, colors: List<String>) {
+        pixel(x, y, 30, 14, "#595671")
+        pixel(x + 1, y + 1, 28, 12, "#B0A4AA")
+        for (row in 0..2) for (column in 0..6) {
+            val color = colors[(column + row + variant) % colors.size]
+            pixel(x + 2 + column * 4, y + 2 + row * 4, 3, 3, color)
         }
     }
     fun bench(x: Int, y: Int) {
@@ -157,7 +191,7 @@ internal fun boardScenery(world: Int, levelId: Int): BoardScenery {
         pixel(x + 46, y + 4, 4, 3, "#2B2540")
     }
 
-    when (world) {
+    when (level.world) {
         1 -> {
             paving(5, 4, 350, 52)
             playCourt(12, 6)
@@ -173,6 +207,7 @@ internal fun boardScenery(world: Int, levelId: Int): BoardScenery {
             if (variant == 1 || variant == 3) hopscotch(330, 403)
             else prop("decor_bikerack_campus", 324, 379, 28, 24)
             planter(323, 431, 27, "#FFE07A")
+            mosaic(11, 435, listOf("#6C92AD", "#ECD69A", "#B7777E"))
         }
         2 -> {
             paving(5, 35, 350, 21)
@@ -186,6 +221,7 @@ internal fun boardScenery(world: Int, levelId: Int): BoardScenery {
             bench(10, 407)
             paving(316, 390, 40, 49)
             planter(322, 418, 29, "#7CC6F5")
+            mosaic(11, 440, listOf("#9C6C94", "#7CA9AB", "#E0AB82"))
         }
         else -> {
             val walls = listOf("#D7A98B", "#C28A83", "#ADB58A", "#D5A171")
@@ -204,7 +240,31 @@ internal fun boardScenery(world: Int, levelId: Int): BoardScenery {
             prop("decor_fence_barrio", 317, 369, 39, 26)
             planter(320, 408, 32, "#F27A6B")
             planter(323, 434, 25, "#FFE07A")
+            flowerBed(6, 437, "#ECA7BA", "#FFDB91")
         }
     }
-    return BoardScenery(pixels, sprites, lights, signs)
+
+    for ((top, bottom) in greenStrips) {
+        if (bottom - top < 22f) continue
+        val y = ((top + bottom) / 2f - 7f).toInt()
+        // These props stay at the outside edges, away from every possible crossing.
+        when (level.world) {
+            1 -> {
+                flowerBed(8, y, "#FFE19A", "#F0AA94")
+                if (level.weather == "rain") puddle(321, y + 2)
+                else mosaic(322, y, listOf("#709CBC", "#D6AF75", "#82AD96"))
+            }
+            2 -> {
+                flowerBed(8, y, "#9AC5E4", "#C7A3E0")
+                if (level.weather == "rain") puddle(321, y + 2)
+                else flowerBed(317, y, "#C7A3E0", "#88C3BB")
+            }
+            else -> {
+                flowerBed(8, y, "#F2A5AC", "#F8CA7B")
+                flowerBed(317, y, "#D7B4E0", "#FFD898")
+            }
+        }
+    }
+    if (level.weather == "rain") puddle(13, 343)
+    return BoardScenery(pixels, sprites, lights, signs, greenStrips)
 }
