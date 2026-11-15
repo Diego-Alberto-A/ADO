@@ -64,12 +64,20 @@ class Session(val repo: GameRepository): ViewModel() {
     var transitioning by mutableStateOf(false)
     var transition: (ScreenMotion, () -> Unit) -> Unit = { _, action -> action() }
     fun navigate(destination: String) {
-        if (destination != screen) transition(if (destination == "home" || (screen == "game" && destination == "map")) ScreenMotion.BACKWARD else ScreenMotion.FORWARD) {
+        if (destination == screen) return
+        val returningFromCredits = screen == "credits" && destination == "home"
+        val motion = when {
+            destination == "credits" || returningFromCredits -> ScreenMotion.FADE
+            destination == "home" || (screen == "game" && destination == "map") -> ScreenMotion.BACKWARD
+            else -> ScreenMotion.FORWARD
+        }
+        transition(motion) {
             if (screen == "game") { sound?.stopOneShots(); simulation=null; paused=false; world=level.world }
             // Volver al menú (inicio o mapa) es lo único que vuelve a permitir música de fondo
             // después de una victoria.
             musicSuspended=false
             screen=destination
+            if (returningFromCredits) dialog = "campaignComplete"
         }
     }
     // Suspend background music only while a result is being presented.
@@ -151,7 +159,7 @@ class MainActivity: ComponentActivity() {
         com.example.crosswalker.audio.musicForScreen(s.screen, if (s.screen == "game") s.level.world else s.world)
     val gameplayAttempt = if (s.screen == "game") s.attempt else null
     LaunchedEffect(musicTrack, gameplayAttempt) {
-        if (musicTrack != null) sound.playMusic(musicTrack) else sound.stopMusic()
+        if (musicTrack != null) sound.playMusic(musicTrack, loop = musicTrack != R.raw.end_song) else sound.stopMusic()
     }
     // Rain ambience: its own loop, independent of the music track, only while actually
     // on a rainy level's board — stops the instant you leave it or pause.
@@ -183,10 +191,16 @@ class MainActivity: ComponentActivity() {
                 "home" -> Home(s, enabled=!s.transitioning) { click() }
                 "map" -> WorldMap(s) { click() }
                 "game" -> Game(s) { click() }
+                "credits" -> CampaignCredits { click(); s.navigate("home") }
             }
         }
         }
         if (s.screen=="game" && s.tutorialActive) TutorialOverlay(s.tutorialController)
+        if (s.dialog == "campaignComplete" && !s.transitioning) {
+            PaperDialog("¡GRACIAS POR COMPLETAR EL JUEGO!", { s.dialog = "" }, accent = Taxi) {
+                PaperButton("CERRAR") { s.dialog = "" }
+            }
+        }
         if(s.dialog=="resetProgress") PaperDialog("¿EMPEZAR DE NUEVO?", {s.dialog=""}, accent=Taxi) {
             Text("Un nuevo camino te espera", style=TitleSmall, color=Ink)
             Text("Se borrarán tus estrellas y logros. Solo quedará abierto el primer nivel y volverás a ver el tutorial. Esta acción no se puede deshacer.", style=BodyText, color=Ink)
@@ -357,7 +371,7 @@ class MainActivity: ComponentActivity() {
                 engine?.stopMusic()
                 engine?.playOneShot(R.raw.music_win)
                 delay(900)
-                s.showResultDialog = true
+                if (s.level.id == 12) s.navigate("credits") else s.showResultDialog = true
             }
             else -> {}
         }

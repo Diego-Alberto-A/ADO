@@ -29,7 +29,7 @@ import kotlin.math.roundToInt
 // Modal buttons defer their action until the paper card has finished leaving.
 val LocalModalAction = staticCompositionLocalOf<((() -> Unit) -> Unit)> { { action -> action() } }
 
-enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD }
+enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE }
 
 @Composable fun ScreenTransitions(s: Session, content: @Composable () -> Unit) {
     val scope = rememberCoroutineScope()
@@ -38,6 +38,7 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD }
     var previous by remember { mutableStateOf<ImageBitmap?>(null) }
     var backwards by remember { mutableStateOf(false) }
     var sliding by remember { mutableStateOf(false) }
+    var fading by remember { mutableStateOf(false) }
 
     DisposableEffect(s) {
         s.transition = { motion, action ->
@@ -47,6 +48,7 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD }
                     try {
                         backwards = motion == ScreenMotion.BACKWARD || motion == ScreenMotion.WORLD_BACKWARD
                         sliding = motion == ScreenMotion.WORLD_FORWARD || motion == ScreenMotion.WORLD_BACKWARD
+                        fading = motion == ScreenMotion.FADE
                         progress.snapTo(0f)
                         // Freeze the last screen before changing any level or simulation state.
                         previous = layer.toImageBitmap()
@@ -74,9 +76,12 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD }
                 } else if (snapshot == null) {
                     drawContent()
                 } else {
-                    fun drawPrevious() = drawImage(snapshot,
-                        dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()))
-                    if (sliding) {
+                    fun drawPrevious(alpha: Float = 1f) = drawImage(snapshot,
+                        dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()), alpha = alpha)
+                    if (fading) {
+                        drawContent()
+                        drawPrevious(1f - progress.value)
+                    } else if (sliding) {
                         // Higher worlds enter from the right; lower worlds enter from the left.
                         val direction = if (backwards) -1f else 1f
                         clipRect {
