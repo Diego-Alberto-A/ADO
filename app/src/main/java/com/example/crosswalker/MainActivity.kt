@@ -25,9 +25,11 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.graphics.Color
@@ -351,34 +353,40 @@ class MainActivity: ComponentActivity() {
             ) {
                 s.repo.levels.filter { it.world == world }.forEachIndexed { index,l ->
                     val unlocked = s.repo.isLevelUnlocked(l.id)
+                    val card = if (unlocked) {
+                        Modifier.pixelPanel().clickable(enabled = active) { click(); chosen = l }
+                    } else {
+                        Modifier.pixelPanelDark().clearAndSetSemantics {
+                            contentDescription = "Nivel ${l.id}, ${l.title}, no disponible"
+                        }
+                    }
                     Row(
                         Modifier.fillMaxWidth()
                             .padding(start = if (index % 2 == 0) 0.dp else 35.dp, end = if (index % 2 == 0) 35.dp else 0.dp)
                             .rotate(if (index % 2 == 0) -1f else 1f)
-                            .pixelPanel()
-                            .clickable(enabled = active && unlocked) { click(); chosen = l }
+                            .then(card)
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Box(Modifier.size(60.dp).pixelSlot(), contentAlignment = Alignment.Center) {
-                            Text("${l.id}", color = Ink, style = TitleText)
+                        val slot = if (unlocked) Modifier.pixelSlot() else Modifier.background(Ink)
+                        Box(Modifier.size(60.dp).then(slot), contentAlignment = Alignment.Center) {
+                            Text("${l.id}", color = if (unlocked) Ink else KerbLight, style = TitleText)
                         }
-                        Column(Modifier.weight(1f)) {
-                            Text(l.title, style = BodyStrong, color = Ink)
-                            if (unlocked) {
+                        if (unlocked) {
+                            Column(Modifier.weight(1f)) {
+                                Text(l.title, style = BodyStrong, color = Ink)
                                 PaperStars(s.repo.stars(l.id))
-                            } else {
-                                Text("BLOQUEADO", style = HudStrong, color = Brick.dark)
-                                Text("Completa el nivel anterior", style = HudLabel, color = Asphalt)
                             }
+                            val sceneryIcon = when (l.world) {
+                                1 -> R.drawable.decor_building_campus
+                                else -> if (index % 2 == 0) R.drawable.house else R.drawable.tree
+                            }
+                            PixelImage(sceneryIcon, null, Modifier.size(38.dp).rotate(3f))
+                        } else {
+                            Text(l.title, modifier = Modifier.weight(1f), style = BodyStrong, color = KerbLight)
+                            LevelLock()
                         }
-                        val sceneryIcon = when (l.world) {
-                            1 -> R.drawable.decor_building_campus
-                            else -> if (index % 2 == 0) R.drawable.house else R.drawable.tree
-                        }
-                        PixelImage(sceneryIcon, null, Modifier.size(38.dp).rotate(3f),
-                            alpha = if (unlocked) 1f else .5f)
                     }
                     if(index<3) Canvas(Modifier.fillMaxWidth().height(20.dp)) {
                         val start=if(index%2==0) size.width*.27f else size.width*.72f
@@ -396,6 +404,19 @@ class MainActivity: ComponentActivity() {
         PaperButton("▶  PREPARAR EL PLAN") {chosen=null;s.enter(l)}
     } }
 }
+
+@Composable
+private fun LevelLock() {
+    Canvas(Modifier.size(38.dp)) {
+        val unit = size.width / 19f
+        drawRect(KerbLight, Offset(6f * unit, 2f * unit), Size(7f * unit, 2f * unit))
+        drawRect(KerbLight, Offset(5f * unit, 4f * unit), Size(2f * unit, 5f * unit))
+        drawRect(KerbLight, Offset(12f * unit, 4f * unit), Size(2f * unit, 5f * unit))
+        drawRect(Kerb, Offset(3f * unit, 8f * unit), Size(13f * unit, 9f * unit))
+        drawRect(Ink, Offset(9f * unit, 11f * unit), Size(unit, 3f * unit))
+    }
+}
+
 @Composable fun Game(s:Session,click:()->Unit) {
     val frame=s.frame
     val sim=s.simulation
