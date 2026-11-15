@@ -3,6 +3,7 @@ package com.example.crosswalker
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -10,10 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -88,7 +92,7 @@ private class DialogueMarker(lexicon: Lexicon) {
 /**
  * A dialogue box in the Animal Crossing / classic Pokémon tradition: cream
  * bubble with a double border, a tilted name plate breaking out of the top-left
- * corner, text that types itself and a blinking arrow while it does.
+ * corner, text that types itself and an animated tap prompt.
  *
  * Tapping completes the line, as pressing A would.
  */
@@ -100,10 +104,12 @@ private class DialogueMarker(lexicon: Lexicon) {
     modifier: Modifier = Modifier,
     blip: () -> Unit = {},
     onAdvance: (() -> Unit)? = null,
-    voice: com.example.crosswalker.audio.SoundEngine? = null
+    voice: com.example.crosswalker.audio.SoundEngine? = null,
+    showTapHint: Boolean = true
 ) {
     var revealed by remember(text) { mutableIntStateOf(0) }
     val done = revealed >= text.length
+    val canTap = !done || onAdvance != null
     val marker = remember(lexicon) { DialogueMarker(lexicon) }
     val matches = remember(marker, text) { marker.matches(text) }
     val entry = remember(text) { Animatable(.9f) }
@@ -136,8 +142,13 @@ private class DialogueMarker(lexicon: Lexicon) {
             Modifier.fillMaxWidth()
                 .pixelPanel(fill = Cream, innerBorder = CreamDark, corner = 4.dp)
                 // Tapping completes the line; tapping a finished line turns the page.
-                .clickable(interactionSource = null, indication = null) {
-                    if (done && onAdvance != null) onAdvance() else revealed = text.length
+                .clickable(
+                    interactionSource = null,
+                    indication = null,
+                    enabled = canTap,
+                    onClickLabel = if (done) "Siguiente página" else "Mostrar texto completo"
+                ) {
+                    if (done) onAdvance?.invoke() else revealed = text.length
                 }
                 .padding(start = 12.dp, end = 12.dp, top = if (speaker == null) 12.dp else 16.dp,
                     bottom = 12.dp)
@@ -146,9 +157,18 @@ private class DialogueMarker(lexicon: Lexicon) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(marker.render(text, matches, revealed), style = BodyText, color = Ink,
                     modifier = Modifier.weight(1f).clearAndSetSemantics {})
-                // The arrow blinks while typing, and keeps blinking when there is a next page.
-                Box(Modifier.width(20.dp).padding(start = 6.dp)) {
-                    if (!done || onAdvance != null) MoreTextArrow()
+                if (showTapHint) {
+                    Box(Modifier.width(32.dp), contentAlignment = Alignment.BottomEnd) {
+                        if (canTap) {
+                            val motion = rememberClickMotion()
+                            val hand = ImageBitmap.imageResource(R.drawable.pointer_hand)
+                            Canvas(Modifier.size(30.dp).semantics {
+                                contentDescription = if (done) "Toca para avanzar" else "Toca para revelar el texto"
+                            }) {
+                                drawClickHand(hand, Offset(size.width * .15f, size.height * .84f), 19.dp.toPx(), motion.value)
+                            }
+                        }
+                    }
                 }
             }
         }

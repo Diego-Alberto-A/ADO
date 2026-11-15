@@ -96,7 +96,6 @@ class Session(val repo: GameRepository): ViewModel() {
     var dialog by mutableStateOf("")
     var tab by mutableStateOf("skill")
     var planningPanelOpen by mutableStateOf(false)
-    var budgetWarning by mutableStateOf(false)
     var introIndex by mutableIntStateOf(0)
     val mechanicGuide: Tool?
         get() {
@@ -111,9 +110,14 @@ class Session(val repo: GameRepository): ViewModel() {
     val tutorialActive: Boolean get() = level.tutorial && !repo.tutorialDone
     fun enter(l: Level) { transition(ScreenMotion.FORWARD) { sound?.playSfx(R.raw.sfx_enter_level); level=l; reset(); screen="game" } }
     var attempt by mutableIntStateOf(0)
-    fun resumePlanning() { sound?.stopOneShots(); musicSuspended=false; showResultDialog=false; simulation=null; planningPanelOpen=false; budgetWarning=false; attempt++ }
+    fun resumePlanning() { sound?.stopOneShots(); musicSuspended=false; showResultDialog=false; simulation=null; planningPanelOpen=false; attempt++ }
     fun reset() { resumePlanning(); plan=initialPlan(); selected=level.walkers.first().id; tab="skill"; simulation=null; paused=false; dialog=""; introIndex=0; showResultDialog=false; frame++ }
     private fun initialPlan(): Plan {
+        if (level.initialCrossings.isNotEmpty()) {
+            return Plan(level.walkers.zip(level.initialCrossings).associate { (walker, crossing) ->
+                walker.id to Assignment(crossing)
+            }.toMutableMap())
+        }
         val available = listOf(1, 0, 2).filter { it != level.blockedCrossing }.toMutableList()
         val assignments = level.walkers.sortedBy { it.kind != "wheelchair" }.associate { walker ->
             val accessible = if (walker.kind == "wheelchair") available.firstOrNull { it in level.accessible } else null
@@ -122,6 +126,12 @@ class Session(val repo: GameRepository): ViewModel() {
             walker.id to Assignment(crossing)
         }
         return Plan(assignments.toMutableMap())
+    }
+
+    fun selectWalker(id: String) {
+        if (id == selected) return
+        selected = id
+        tab = "skill"
     }
 
     fun chooseCrossing(crossing: Int) {
@@ -135,8 +145,11 @@ class Session(val repo: GameRepository): ViewModel() {
         val next=plan.copyPlan()
         val target=if(t.category=="street") next.street else next.people.getValue(selected).skills
         if(!target.remove(t.id)) target.add(t.id)
-        budgetWarning = next.cost(repo.tools) > level.budget
-        if (!budgetWarning) plan = next
+        if (next.cost(repo.tools) > level.budget) {
+            dialog = "budget"
+            return
+        }
+        plan = next
     }
 }
 class MainActivity: ComponentActivity() {
@@ -183,8 +196,10 @@ class MainActivity: ComponentActivity() {
     BackHandler(enabled=s.screen!="home" || s.dialog.isNotEmpty()) {
         if(s.dialog.isNotEmpty()) s.dialog="" else if(s.screen=="game") s.paused=true else s.navigate("home")
     }
-    Box(Modifier.fillMaxSize().background(Cream).systemBarsPadding()) {
-        PaperGrain()
+    val home = s.screen == "home"
+    val screenBackdrop = if (home) InkShadow else Cream
+    Box(Modifier.fillMaxSize().background(screenBackdrop).systemBarsPadding()) {
+        if (!home) PaperGrain()
         CompositionLocalProvider(LocalVoice provides { t -> if(s.repo.sound) tone.startTone(t,18) }) {
         ScreenTransitions(s) {
             when(s.screen) {
@@ -218,6 +233,15 @@ class MainActivity: ComponentActivity() {
             Text("Todo listo para tu primer cruce. Tus estrellas y logros vuelven a empezar.", style=BodyText, color=Ink)
             PaperButton("▶  JUGAR DESDE EL INICIO") { s.dialog=""; s.enter(s.repo.levels.first()) }
             PaperButton("VOLVER AL MENÚ", Neutral) { s.dialog="" }
+        }
+        if (s.dialog == "budget") {
+            val remaining = s.level.budget - s.plan.cost(s.repo.tools)
+            val title = if (remaining == 0) "NO TE QUEDAN FICHAS" else "NO TE ALCANZAN LAS FICHAS"
+            PaperDialog(title, { s.dialog = "" }, accent = Taxi) {
+                Text("Fichas disponibles: $remaining de ${s.level.budget}", style = HudStrong, color = Ink)
+                Text("Quita alguna habilidad o mejora de la calle para recuperar fichas e intenta de nuevo.", style = BodyText, color = Ink)
+                PaperButton("VOLVER AL PLAN") { s.dialog = "" }
+            }
         }
         if(s.dialog.startsWith("tool:")) s.repo.tools.firstOrNull { it.id==s.dialog.substringAfter(":") }?.let { tool ->
             PaperDialog(tool.label.uppercase(), {s.dialog=""}, accent=Sky) {
@@ -258,19 +282,6 @@ class MainActivity: ComponentActivity() {
 @Composable fun PaperGrain() {
     // Flat cream with a 2x2 dither so the ground has texture without noise.
     Box(Modifier.fillMaxSize().background(Cream).ditherVeil(rememberDitherShader(CreamDark), scale=4f))
-}
-@Composable fun Logo(letterSize: androidx.compose.ui.unit.TextUnit = 29.sp) {
-    Row(horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically,modifier=Modifier.fillMaxWidth()) {
-        val accents=listOf(Brick,Tree,Sky,Taxi)
-        "CROSSWALKER".forEachIndexed { i,c ->
-            val accent=accents[i%4]
-            Box(Modifier.rotate(if(i%2==0)-4f else 3f)
-                .pixelPanel(fill=accent.base,highlight=accent.light,shade=accent.dark,corner=2.dp)
-                .padding(horizontal=4.dp,vertical=4.dp)) {
-                Text(c.toString(),fontSize=letterSize,color=textOn(accent.base),fontFamily=Jersey10)
-            }
-        }
-    }
 }
 @Composable fun PaperButton(text:String,accent:Accent=Tree,enabled:Boolean=true,onClick:()->Unit) {
     PixelButton(text,accent,enabled,onClick=onClick)
@@ -392,15 +403,6 @@ class MainActivity: ComponentActivity() {
             }
             if (planning) {
                 PlanningGuide(s, selectedWalker)
-                if (s.budgetWarning) {
-                    Text(
-                        "No quedan fichas. Quita una para probar otra.",
-                        style = HudLabel,
-                        color = Brick.dark,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .pixelPanel(fill = Cream, corner = 4.dp).padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
                 Column(
                     Modifier.weight(1f).fillMaxWidth().padding(horizontal = 14.dp).padding(bottom = 8.dp),
                     verticalArrangement = Arrangement.Bottom,
@@ -529,7 +531,7 @@ private fun PlanningControls(s: Session, click: () -> Unit) {
             Row(
                 Modifier.heightIn(min = 44.dp)
                     .pixelPanel(fill = if (selected) Cream else Asphalt, corner = 5.dp)
-                    .selectable(selected = selected, role = Role.Tab, onClick = { s.selected = walker.id; click() })
+                    .selectable(selected = selected, role = Role.Tab, onClick = { s.selectWalker(walker.id); click() })
                     .padding(horizontal = 8.dp, vertical = 3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -588,10 +590,7 @@ private fun PlanningControls(s: Session, click: () -> Unit) {
                     .tutorialTarget("tab_$category", s.tutorialController, choose)
                     .mechanicHint(guide?.category == category && s.tab != category),
                 leading = {
-                    if (category == "skill") {
-                        val walker = s.level.walkers.first { it.id == s.selected }
-                        WalkerArtwork(walker, 21.dp, assignment.skills, child = s.level.showsChildBadge(walker))
-                    } else PixelImage(R.drawable.house, null, Modifier.size(20.dp))
+                    if (category == "street") PixelImage(R.drawable.house, null, Modifier.size(18.dp))
                 },
                 onClick = choose
             )
@@ -638,7 +637,7 @@ private fun PlanningSegment(
         verticalAlignment = Alignment.CenterVertically
     ) {
         leading?.invoke()
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.weight(1f, fill = false), horizontalAlignment = Alignment.CenterHorizontally) {
             val color = if (selected) Ink else CreamLight
             Text(label, style = HudStrong, color = color, textAlign = TextAlign.Center)
             if (subtitle != null) Text(subtitle, style = HudLabel, color = color, textAlign = TextAlign.Center)
@@ -651,7 +650,7 @@ private fun PlanningCard(s: Session, tool: Tool, active: Boolean, guided: Boolea
     val choose = { s.toggle(tool); click() }
     val explain = { s.dialog = "tool:${tool.id}"; click() }
     Column(
-        Modifier.width(108.dp)
+        Modifier.width(124.dp)
             .mechanicHint(guided)
             .pixelPanel(fill = if (active) Tree.light else CreamLight, shade = if (active) Tree.dark else CreamDark, corner = 6.dp)
             .padding(5.dp),
@@ -677,7 +676,7 @@ private fun PlanningCard(s: Session, tool: Tool, active: Boolean, guided: Boolea
                         .padding(horizontal = 5.dp, vertical = 2.dp)
                 )
             }
-            Text(tool.label.uppercase(), style = HudLabel, color = Ink, minLines = 2, maxLines = 2, textAlign = TextAlign.Center)
+            Text(tool.label.uppercase(), style = HudLabel, color = Ink, minLines = 2, textAlign = TextAlign.Center)
         }
         Box(
             Modifier.fillMaxWidth().heightIn(min = 48.dp)
@@ -724,7 +723,8 @@ private fun PlanningGuide(s: Session, selectedWalker: Walker) {
                 displayMessage, guideWalker.name, walkerAccent(guideWalker.sprite),
                 remember(s.level, s.repo.tools) { Lexicon.of(s.level, s.repo.tools) },
                 modifier = Modifier.weight(1f),
-                blip = blip(guideWalker.id), onAdvance = onAdvance, voice = s.sound
+                blip = blip(guideWalker.id), onAdvance = onAdvance, voice = s.sound,
+                showTapHint = !s.tutorialActive
             )
         }
     }

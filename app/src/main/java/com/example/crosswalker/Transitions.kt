@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Rect
@@ -22,6 +23,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.crosswalker.ui.theme.Cream
+import com.example.crosswalker.ui.theme.InkShadow
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -35,6 +37,12 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE
     val scope = rememberCoroutineScope()
     val layer = rememberGraphicsLayer()
     val progress = remember { Animatable(0f) }
+    var introSeen by rememberSaveable { mutableStateOf(false) }
+    val intro = remember { Animatable(if (introSeen || s.screen != "home") 1f else 0f) }
+    LaunchedEffect(Unit) {
+        intro.animateTo(1f, tween(820, easing = FastOutSlowInEasing))
+        introSeen = true
+    }
     var previous by remember { mutableStateOf<ImageBitmap?>(null) }
     var backwards by remember { mutableStateOf(false) }
     var sliding by remember { mutableStateOf(false) }
@@ -67,6 +75,18 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE
     BackHandler(enabled = s.transitioning) { }
     Box(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize()
+            .drawWithContent {
+                if (intro.value >= 1f) {
+                    drawContent()
+                } else {
+                    drawRect(InkShadow)
+                    val radius = hypot(size.width, size.height) * .5f * intro.value
+                    val opening = Path().apply {
+                        addOval(Rect(center.x - radius, center.y - radius, center.x + radius, center.y + radius))
+                    }
+                    clipPath(opening) { this@drawWithContent.drawContent() }
+                }
+            }
             .then(if (s.transitioning) Modifier.clearAndSetSemantics {} else Modifier)
             .drawWithContent {
                 val snapshot = previous
@@ -93,13 +113,14 @@ enum class ScreenMotion { FORWARD, BACKWARD, WORLD_FORWARD, WORLD_BACKWARD, FADE
                             }
                         }
                     } else {
-                    val fraction = if (backwards) 1f - progress.value else progress.value
+                    val closing = backwards && s.screen != "home"
+                    val fraction = if (closing) 1f - progress.value else progress.value
                     val radius = hypot(size.width, size.height) * .5f * fraction
                     val opening = Path().apply {
                         addOval(Rect(center.x - radius, center.y - radius,
                             center.x + radius, center.y + radius))
                     }
-                    if (backwards) {
+                    if (closing) {
                         drawContent()
                         if (radius > 0f) {
                             drawCircle(Cream, radius + 9.dp.toPx())

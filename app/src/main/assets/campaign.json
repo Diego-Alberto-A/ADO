@@ -47,10 +47,10 @@
     },
     {
       "id": "speed_zone",
-      "label": "Zona lenta",
+      "label": "Bajar velocidad",
       "icon": "●",
       "cost": 3,
-      "description": "Reduce la velocidad al 55 % y acorta la distancia de frenado. De noche, combínala con Encender luces para que el juego compruebe el hueco sin gastar una ficha Mirar por persona.",
+      "description": "Hace que todos los coches vayan más despacio. Al activarla, un aura morada y un reloj animado aparecen junto a cada coche. De noche, combínala con Encender luces para dar más tiempo de reacción.",
       "category": "street"
     },
     {
@@ -74,13 +74,14 @@
       "label": "Encender luces",
       "icon": "●",
       "cost": 2,
-      "description": "De noche, los faros permiten que los conductores detecten antes a los peatones, incluso sin Reflector. Combínalos con Zona lenta para que el juego compruebe el hueco antes de cruzar.",
+      "description": "De noche, los faros permiten que los conductores detecten antes a los peatones, incluso sin Reflector. Combínalos con Bajar velocidad para que el juego compruebe el hueco antes de cruzar.",
       "category": "street"
     }
   ],
   "levels": [
     {
       "id": 1,
+      "initialCrossings": [0],
       "world": 0,
       "title": "Mi primer cruce",
       "lesson": "Toca MIRAR: cuesta 1 ficha y me hace esperar un hueco seguro antes de entrar a cada carril.",
@@ -127,6 +128,7 @@
     },
     {
       "id": 2,
+      "initialCrossings": [0],
       "world": 0,
       "title": "Un mensaje puede esperar",
       "lesson": "Soy Tomás. El celular me distrae. Abre el plan y, en Habilidades, elige Guardar celular.",
@@ -169,12 +171,13 @@
     },
     {
       "id": 3,
+      "initialCrossings": [2],
       "world": 0,
       "title": "Un cruce para Mateo",
       "lesson": "Mi silla necesita una Rampa. Abre el plan, entra en La calle y activa Rampa.",
       "introLines": [
         "Mi silla necesita una Rampa. Abre el plan, entra en La calle y activa Rampa.",
-        "Elige Izquierda o Centro para mí. Ahí están las rampas. En la Derecha, la banqueta sigue siendo un obstáculo.",
+        "Elige Izquierda o Centro para mí. Busca las rampas junto a la banqueta. ¿Qué me impide cruzar por donde estoy?",
         "En Habilidades, ponme Mirar. Después pon el plan en marcha para ver cómo cruzo."
       ],
       "guideTools": ["crosswalk", "", "look"],
@@ -221,6 +224,7 @@
     },
     {
       "id": 4,
+      "initialCrossings": [2],
       "world": 0,
       "title": "La música no deja oír",
       "lesson": "Soy Leo. Con los audífonos puestos no oigo bien el tráfico. Abre el plan y ponme Quitar audífonos en Habilidades.",
@@ -269,13 +273,14 @@
     },
     {
       "id": 5,
+      "initialCrossings": [2, 1],
       "world": 1,
       "title": "Dos sentidos, dos comprobaciones",
       "lesson": "Soy Ana. La señal escolar junto a mi mochila amarilla indica que soy niña. Seleccióname y usa Acompañar en Habilidades.",
       "introLines": [
         "Soy Ana. La señal escolar junto a mi mochila amarilla indica que soy niña. Seleccióname y usa Acompañar en Habilidades.",
         "Selecciona a Tomás y ponle Guardar celular. Luego pon Mirar a los dos. Las habilidades se asignan a cada persona.",
-        "Pon a Ana en Izquierda y a Tomás en Centro. Cada peatón debe tener su propio cruce. Si eliges uno ocupado, intercambian lugares. En este plan también puedes probar Zona lenta en lugar de Acompañar."
+        "Pon a Ana en Izquierda y a Tomás en Centro. Cada peatón debe tener su propio cruce. Si eliges uno ocupado, intercambian lugares. En este plan también puedes probar Bajar velocidad en lugar de Acompañar."
       ],
       "guideTools": ["escort", "phone_away", "speed_zone"],
       "budget": 6,
@@ -330,12 +335,13 @@
     },
     {
       "id": 6,
+      "initialCrossings": [2, 0],
       "world": 1,
       "title": "Un hueco entre tres carriles",
-      "lesson": "En estos tres carriles los coches siguen circulando. Elige Centro y activa Rampa en La calle para que Mateo pueda bajar de la banqueta.",
+      "lesson": "En estos tres carriles los coches siguen circulando. Activa Rampa en La calle y busca por dónde puede bajar Mateo de la banqueta.",
       "introLines": [
-        "En estos tres carriles los coches siguen circulando. Elige Centro y activa Rampa en La calle para que Mateo pueda bajar de la banqueta.",
-        "Deja a Mateo en Centro y pon a Ana en Izquierda. Asigna Mirar a los dos para que esperen un hueco con tiempo suficiente.",
+        "En estos tres carriles los coches siguen circulando. Activa Rampa en La calle y busca por dónde puede bajar Mateo de la banqueta.",
+        "Coloca a Mateo donde veas la rampa. Asigna Mirar a los dos para que esperen un hueco con tiempo suficiente.",
         "Pon el plan en marcha y fíjate en cómo esperan en la banqueta mientras pasan los coches."
       ],
       "guideTools": ["crosswalk", "look"],
@@ -389,12 +395,13 @@
     },
     {
       "id": 7,
+      "initialCrossings": [0, 1],
       "world": 1,
       "title": "La lluvia alarga el frenado",
       "lesson": "Soy Luz. Camino despacio y, con lluvia, los coches necesitan más espacio para frenar.",
       "introLines": [
         "Soy Luz. Camino despacio y, con lluvia, los coches necesitan más espacio para frenar.",
-        "Pon a Luz en Centro y a Ana en Izquierda. Activa Zona lenta en La calle y asigna Mirar a las dos.",
+        "Pon a Luz en Centro y a Ana en Izquierda. Activa Bajar velocidad en La calle y asigna Mirar a las dos.",
         "Prueba el plan. Si quieres usar las 2 fichas restantes, puedes asignar Acompañar a Ana."
       ],
       "guideTools": ["", "speed_zone", "escort"],
@@ -417,6 +424,8 @@
         }
       ],
       "trafficPace": 1.35,
+      "trafficYields": false,
+      "rainBrakingLesson": true,
       "lanes": [
         {
           "y": 0.35,
@@ -427,28 +436,28 @@
         {
           "y": 0.68,
           "speed": -0.16,
-          "offset": 0.97,
+          "offset": 1.48,
           "car": "car_blue"
         }
       ],
       "tools": [
         "look",
         "speed_zone",
-        "crosswalk",
         "escort"
       ],
       "newTools": [],
       "weather": "rain",
-      "parCost": 4
+      "parCost": 5
     },
     {
       "id": 8,
+      "initialCrossings": [2, 0],
       "world": 1,
       "title": "Cruces distintos",
-      "lesson": "Pon a Mateo en Centro y a Luz en Izquierda. Activa Rampa para Mateo.",
+      "lesson": "Activa Rampa y fíjate en qué cruce puede bajar Mateo de la banqueta. Elige otro cruce para Luz.",
       "introLines": [
-        "Pon a Mateo en Centro y a Luz en Izquierda. Activa Rampa para Mateo.",
-        "Asigna Mirar a los dos. En La calle puedes añadir Zona lenta para darle más margen a Luz.",
+        "Activa Rampa y fíjate en qué cruce puede bajar Mateo de la banqueta. Elige otro cruce para Luz.",
+        "Asigna Mirar a los dos. En La calle puedes añadir Bajar velocidad para darle más margen a Luz.",
         "Pon el plan en marcha y observa cómo cada peatón espera un hueco en su cruce."
       ],
       "guideTools": ["crosswalk", "look", "speed_zone"],
@@ -498,12 +507,13 @@
     },
     {
       "id": 9,
+      "initialCrossings": [0],
       "world": 2,
       "title": "Faros en la oscuridad",
-      "lesson": "De noche, cruza por las franjas blancas. Pon a Ana en Centro: fuera del paso los conductores siguen de largo, aunque Ana mire antes de cruzar.",
+      "lesson": "De noche, busca las franjas blancas antes de elegir el cruce de Ana. Fuera del paso, los conductores siguen de largo aunque ella mire antes de cruzar.",
       "introLines": [
-        "De noche, cruza por las franjas blancas. Pon a Ana en Centro: fuera del paso los conductores siguen de largo, aunque Ana mire antes de cruzar.",
-        "Abre La calle y activa Encender luces y Zona lenta. Los faros dan visibilidad y la velocidad baja da tiempo para reaccionar.",
+        "De noche, busca las franjas blancas antes de elegir el cruce de Ana. Fuera del paso, los conductores siguen de largo aunque ella mire antes de cruzar.",
+        "Abre La calle y activa Encender luces y Bajar velocidad. Los faros dan visibilidad y la velocidad baja da tiempo para reaccionar.",
         "Pon el plan en marcha. Con las dos mejoras y el paso peatonal, el juego comprueba el hueco. La Derecha está cerrada por obras."
       ],
       "guideTools": ["car_lights", "speed_zone"],
@@ -546,12 +556,13 @@
     },
     {
       "id": 10,
+      "initialCrossings": [1, 2],
       "world": 2,
       "title": "El camión no te ve",
-      "lesson": "Activa Encender luces y Zona lenta. Aunque lleve faros, un camión tiene puntos ciegos y necesita margen para reaccionar.",
+      "lesson": "Activa Encender luces y Bajar velocidad. Aunque lleve faros, un camión tiene puntos ciegos y necesita margen para reaccionar.",
       "introLines": [
-        "Activa Encender luces y Zona lenta. Aunque lleve faros, un camión tiene puntos ciegos y necesita margen para reaccionar.",
-        "Pon a Tomás en Izquierda y a Ana en Derecha, donde hay franjas blancas. El Centro no tiene paso. Asígnale Guardar celular a Tomás.",
+        "Activa Encender luces y Bajar velocidad. Aunque lleve faros, un camión tiene puntos ciegos y necesita margen para reaccionar.",
+        "Busca dos cruces con franjas blancas, uno para cada peatón. Asígnale Guardar celular a Tomás.",
         "Pon el plan en marcha y observa el tráfico en ambos sentidos. El juego comprueba el hueco con las dos mejoras de la calle."
       ],
       "guideTools": ["car_lights", "phone_away", "speed_zone"],
@@ -608,12 +619,13 @@
     },
     {
       "id": 11,
+      "initialCrossings": [2, 1],
       "world": 2,
       "title": "Niebla y pasos cortos",
-      "lesson": "Pon a Luz en Centro y a Ana en Izquierda, los dos pasos peatonales. Activa Encender luces para que los conductores puedan verlas.",
+      "lesson": "Con niebla cuesta ver. Busca dos cruces con franjas blancas, uno para Luz y otro para Ana. Activa Encender luces para que los conductores puedan verlas.",
       "introLines": [
-        "Pon a Luz en Centro y a Ana en Izquierda, los dos pasos peatonales. Activa Encender luces para que los conductores puedan verlas.",
-        "Activa Zona lenta para dar más tiempo de reacción. En Centro también puedes probar Iluminar cruce.",
+        "Con niebla cuesta ver. Busca dos cruces con franjas blancas, uno para Luz y otro para Ana. Activa Encender luces para que los conductores puedan verlas.",
+        "Activa Bajar velocidad para dar más tiempo de reacción. En Centro también puedes probar Iluminar cruce.",
         "Observa cómo esperan un hueco. Con niebla, sigue siendo importante dejar margen para cruzar."
       ],
       "guideTools": ["car_lights", "speed_zone", "lighting"],
@@ -661,17 +673,17 @@
       ],
       "weather": "fog",
       "sight": [1.0, 0.85, 0.95],
-      "parCost": 5,
-      "blockedCrossing": 2
+      "parCost": 5
     },
     {
       "id": 12,
+      "initialCrossings": [0, 1, 2],
       "world": 2,
       "title": "La ciudad de todos",
-      "lesson": "Aquí hay tres pasos peatonales. Pon a Mateo en Centro y activa Rampa en La calle. Pon a Tomás en Izquierda y a Luz en Derecha.",
+      "lesson": "Aquí hay tres pasos peatonales, pero Mateo necesita bajar de la banqueta. Activa Rampa en La calle y busca el cruce que puede usar. Si está ocupado, los peatones intercambian lugares.",
       "introLines": [
-        "Aquí hay tres pasos peatonales. Pon a Mateo en Centro y activa Rampa en La calle. Pon a Tomás en Izquierda y a Luz en Derecha.",
-        "Asigna Guardar celular a Tomás. En La calle, activa Encender luces y Zona lenta.",
+        "Aquí hay tres pasos peatonales, pero Mateo necesita bajar de la banqueta. Activa Rampa en La calle y busca el cruce que puede usar. Si está ocupado, los peatones intercambian lugares.",
+        "Asigna Guardar celular a Tomás. En La calle, activa Encender luces y Bajar velocidad.",
         "En lluvia, los coches tardan más en frenar. Observa cómo la combinación permite ver a los peatones y les da tiempo para cruzar."
       ],
       "guideTools": ["crosswalk", "phone_away", "car_lights"],

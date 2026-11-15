@@ -52,6 +52,35 @@ class SimulationTest {
         assertEquals(faster.carX(lane), faster.carX(lane, lap), .0001f)
     }
 
+    @Test fun level7TrafficCollidesWithoutSlowZoneEvenAfterLooking() {
+        val level = levels.first { it.id == 7 }
+        val skills = mapOf("luz" to setOf("look"), "ana" to setOf("look", "escort"))
+        for (crossings in distinctCrossingOrders(level)) {
+            val plan = planFor(level, crossings.first(), skills, crossings = crossings)
+            val sim = Simulation(level, plan)
+            val brakingLanes = mutableSetOf<Lane>()
+            while (sim.phase == Phase.RUNNING && sim.time < 30f) {
+                sim.tick()
+                level.lanes.forEach { lane ->
+                    assertTrue("Car stopped at ${sim.time}s", sim.carSpeed(lane) > 0f)
+                    if (sim.isBraking(lane)) brakingLanes.add(lane)
+                }
+            }
+            assertEquals("Crossings $crossings: ${sim.reason}", Phase.RETRY, sim.phase)
+            assertNotNull("Expected a collision at crossings $crossings", sim.collapsedWalkerId)
+            assertEquals(HitCarRole.MAIN, sim.collapsedCarRole)
+            assertTrue(sim.impactSpeed > 0f)
+            assertTrue(sim.reason.contains("lluvia"))
+            assertTrue(sim.reason.contains("Bajar velocidad"))
+            if (crossings == listOf(1, 0)) {
+                assertTrue("The approaching car should brake before impact", sim.collapsedLane in brakingLanes)
+            }
+        }
+
+        val plan = planFor(level, 1, skills, setOf("speed_zone"))
+        assertEquals(Phase.WON, finish(Simulation(level, plan)).phase)
+    }
+
     @Test fun plansSuggestedByTheLevelGuidesWinWithinBudget() {
         val allLook = setOf("look")
         val suggested = listOf(
@@ -420,7 +449,7 @@ class SimulationTest {
             val both = run("car_lights", "speed_zone")
             assertEquals("Nivel ${level.id}: ${both.reason}", Phase.WON, both.phase)
             assertEquals("Nivel ${level.id}: solo luces", Phase.RETRY, run("car_lights").phase)
-            assertEquals("Nivel ${level.id}: solo zona lenta", Phase.RETRY, run("speed_zone").phase)
+            assertEquals("Nivel ${level.id}: solo Bajar velocidad", Phase.RETRY, run("speed_zone").phase)
         }
     }
 }

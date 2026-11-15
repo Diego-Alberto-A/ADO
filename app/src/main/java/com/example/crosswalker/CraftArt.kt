@@ -204,14 +204,32 @@ private fun SchoolCrossingBadge(size: Dp) {
     }
 }
 
+@Composable private fun SlowMotionArtwork() {
+    Canvas(Modifier.size(30.dp)) {
+        val px = size.width / 30f
+        val violet = Color(0xFF9333EA)
+        val center = Offset(13f * px, 17f * px)
+        drawOval(violet.copy(alpha = .22f), topLeft = Offset(1f * px, 8f * px), size = Size(25f * px, 15f * px))
+        drawRect(Color(0xFF7E22CE), Offset(3f * px, 15f * px), Size(19f * px, 7f * px))
+        drawRect(Color(0xFFD8B4FE), Offset(8f * px, 11f * px), Size(9f * px, 5f * px))
+        drawCircle(Color(0xFF35204A), 2.5f * px, Offset(8f * px, 23f * px))
+        drawCircle(Color(0xFF35204A), 2.5f * px, Offset(19f * px, 23f * px))
+        val clock = Offset(24f * px, 8f * px)
+        drawCircle(Color(0xFFF3E8FF), 6f * px, clock)
+        drawCircle(violet, 6f * px, clock, style = androidx.compose.ui.graphics.drawscope.Stroke(1.7f * px))
+        drawLine(violet, clock, Offset(24f * px, 4f * px), 1.5f * px)
+        drawLine(violet, clock, Offset(27f * px, 9f * px), 1.5f * px)
+    }
+}
+
 @Composable fun ToolArtwork(id: String) {
+    if (id == "speed_zone") { SlowMotionArtwork(); return }
     val resource = when (id) {
         "look" -> R.drawable.icon_look
         "visible" -> R.drawable.icon_reflector
         "lighting" -> R.drawable.icon_streetlamp
         "car_lights" -> R.drawable.icon_headlights
         "escort" -> R.drawable.icon_escort
-        "speed_zone" -> R.drawable.icon_bump
         "phone_away" -> R.drawable.icon_phone_away
         "headphones_off" -> R.drawable.icon_headphones_off
         "crosswalk" -> R.drawable.icon_crosswalk

@@ -37,11 +37,14 @@ class CampaignUiTest {
 
         ui.onNodeWithContentDescription("con audífonos", substring = true).assertIsDisplayed()
         ui.onNodeWithText("ABRIR PLAN").performClick()
+        val portraits = ui.onAllNodesWithContentDescription("con audífonos", substring = true)
+        portraits.onFirst().assertIsDisplayed()
+        val initialPortraits = portraits.fetchSemanticsNodes().size
         val tool = ui.onNodeWithText("QUITAR AUDÍFONOS")
         tool.performClick()
-        ui.onAllNodesWithContentDescription("con audífonos", substring = true).assertCountEquals(0)
+        portraits.assertCountEquals(0)
         tool.performClick()
-        ui.onAllNodesWithContentDescription("con audífonos", substring = true).assertCountEquals(3)
+        portraits.assertCountEquals(initialPortraits)
     }
 
     @Test fun mateoExplainsRampaBeforeThePanelOpens() {
@@ -52,6 +55,8 @@ class CampaignUiTest {
             session.screen = "game"
         }
 
+        val tapHint = hasContentDescription("Toca para revelar el texto") or hasContentDescription("Toca para avanzar")
+        ui.onNode(tapHint, useUnmergedTree = true).assertIsDisplayed()
         ui.onNodeWithContentDescription("Mi silla necesita una Rampa", substring = true).assertIsDisplayed()
         ui.onNodeWithText("ABRIR PLAN").performClick()
         ui.onNodeWithText("LA CALLE").performClick()
@@ -64,6 +69,7 @@ class CampaignUiTest {
         }
         val firstPage = ui.onNodeWithContentDescription("Mi silla necesita una Rampa", substring = true)
         firstPage.assertIsDisplayed()
+        ui.onNode(tapHint, useUnmergedTree = true).assertIsDisplayed()
         firstPage.performClick()
         if (session.introIndex == 0) firstPage.performClick()
         ui.onNodeWithContentDescription("Elige Izquierda o Centro para mí", substring = true).assertIsDisplayed()

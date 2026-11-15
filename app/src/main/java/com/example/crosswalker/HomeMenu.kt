@@ -1,89 +1,156 @@
 package com.example.crosswalker
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import kotlin.math.roundToInt
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.StrokeCap
 import com.example.crosswalker.ui.theme.*
+import kotlin.math.roundToInt
 
-@Composable private fun PlayButton(enabled: Boolean, onClick: () -> Unit) {
-    PixelButton("JUGAR", Tree, enabled, onClickLabel = "Elegir nivel",
+
+@Composable
+private fun HomeButton(
+    text: String,
+    icon: String,
+    accent: Accent,
+    iconColor: Color,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClickLabel: String? = null,
+    onClick: () -> Unit
+) {
+    PixelButton(
+        text = text,
+        accent = accent,
+        enabled = enabled,
+        modifier = modifier,
+        onClickLabel = onClickLabel,
+        keepColorsWhenDisabled = true,
         leading = {
-            Box(Modifier.size(28.dp).pixelSlot(), contentAlignment = Alignment.Center) {
-                Text("▶", color = Tree.dark, style = HudStrong)
+            Box(
+                Modifier.size(28.dp)
+                    .pixelPanel(fill = iconColor, highlight = CreamLight, shade = null, shadow = null),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(icon, color = Ink, style = TitleSmall.copy(fontSize = 18.sp, lineHeight = 20.sp))
             }
-        }, onClick = onClick)
+        },
+        onClick = onClick
+    )
 }
 
 @Composable fun Home(s: Session, enabled: Boolean, click: () -> Unit) {
     val play = { if (enabled) { click(); s.navigate("map") } }
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState(), enabled = enabled)
-            .padding(horizontal = 24.dp, vertical = 30.dp)
-            .then(if (!enabled) Modifier.clearAndSetSemantics {} else Modifier),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
-            BoxWithConstraints(Modifier.widthIn(max = 440.dp).fillMaxWidth().aspectRatio(.8f)
-                .clickable(enabled = enabled, role = Role.Button,
-                    onClickLabel = "Jugar: elegir nivel", onClick = play)) {
-                PixelImage(R.drawable.home_diorama,
-                    "Una calle con su paso de peatones, vista desde arriba",
-                    Modifier.fillMaxSize())
-                Box(Modifier.align(Alignment.TopCenter).padding(top = maxHeight * .12f)
-                    .fillMaxWidth(.82f)) {
-                    Logo(21.sp)
-                }
-            }
-            Box(Modifier.widthIn(max = 360.dp).fillMaxWidth()) {
-                PlayButton(enabled = enabled, onClick = play)
-            }
-            Row(Modifier.widthIn(max = 440.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(Modifier.weight(1f)) {
-                    PaperButton("⚙  AJUSTES", Neutral, enabled = enabled) { click(); s.dialog = "settings" }
-                }
-                Box(Modifier.weight(1f)) {
-                    PaperButton("★  LOGROS", Neutral, enabled = enabled) { click(); s.dialog = "achievements" }
-                }
-            }
-            Box(Modifier.widthIn(max = 360.dp).fillMaxWidth()) {
-                PaperButton("↻  REINICIAR PROGRESO", Neutral, enabled = enabled) {
-                    click(); s.dialog = "resetProgress"
+    Box(Modifier.fillMaxSize().background(Color(0xFF327B69))) {
+        HomeStreet(Modifier.matchParentSize())
+        Box(Modifier.matchParentSize().background(Brush.verticalGradient(
+            0f to InkShadow.copy(alpha = .30f),
+            .28f to Color.Transparent,
+            .68f to Color.Transparent,
+            1f to InkShadow.copy(alpha = .84f)
+        )))
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState(), enabled = enabled)
+                    .heightIn(min = maxHeight)
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
+                    .then(if (enabled) Modifier else Modifier.clearAndSetSemantics {}),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                HomeLogo()
+                Spacer(Modifier.weight(1f).heightIn(min = 125.dp))
+                Column(Modifier.widthIn(max = 400.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    HomeButton(
+                        "JUGAR", "▶", Taxi, CreamLight, enabled,
+                        modifier = Modifier.heightIn(min = 62.dp),
+                        onClickLabel = "Elegir nivel",
+                        onClick = play
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        HomeButton("AJUSTES", "⚙", Neutral, Sky.light, enabled, Modifier.weight(1f)) {
+                            click()
+                            s.dialog = "settings"
+                        }
+                        HomeButton("LOGROS", "★", Neutral, Taxi.light, enabled, Modifier.weight(1f)) {
+                            click()
+                            s.dialog = "achievements"
+                        }
+                    }
+                    HomeButton("REINICIAR PROGRESO", "↻", Neutral, Brick.light, enabled) {
+                        click()
+                        s.dialog = "resetProgress"
+                    }
                 }
             }
         }
+    }
+}
 
+@Composable
+private fun HomeLogo() {
+    BoxWithConstraints(Modifier.widthIn(max = 340.dp).fillMaxWidth()) {
+        val letterSize = (maxWidth.value * .205f).coerceAtMost(66f).sp
+        Column(
+            Modifier.fillMaxWidth()
+                .clearAndSetSemantics { contentDescription = "Crosswalker" }
+                .pixelPanel(fill = Ink, highlight = AsphaltEdge, shade = InkShadow,
+                    innerBorder = Asphalt, corner = 8.dp)
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                ZebraMotif(Modifier.weight(1f).height(22.dp))
+                Text("CROSS", color = CreamLight, style = TitleText.copy(
+                    fontSize = letterSize, lineHeight = letterSize * .80f), textAlign = TextAlign.Center, maxLines = 1)
+                ZebraMotif(Modifier.weight(1f).height(22.dp))
+            }
+            Text("WALKER", color = Taxi.light, style = TitleText.copy(
+                fontSize = letterSize, lineHeight = letterSize * .84f), textAlign = TextAlign.Center, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+private fun ZebraMotif(modifier: Modifier) {
+    Canvas(modifier) {
+        val width = minOf(24.dp.toPx(), size.width)
+        val left = (size.width - width) / 2f
+        repeat(3) { stripe ->
+            drawRect(CreamLight, Offset(left, stripe * 8.dp.toPx()), Size(width, 4.dp.toPx()))
+        }
     }
 }
 

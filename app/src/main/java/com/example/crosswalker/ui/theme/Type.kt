@@ -26,19 +26,17 @@ val Silkscreen = FontFamily(
 val Jersey25 = FontFamily(Font(R.font.jersey_25))
 
 /** Dialogue and general copy. */
-val BodyText = TextStyle(fontFamily = PixelifySans, fontSize = 16.sp, lineHeight = 20.sp)
+val BodyText = TextStyle(fontFamily = PixelifySans, fontSize = 18.sp, lineHeight = 23.sp)
 val BodyStrong = BodyText.copy(fontWeight = FontWeight.SemiBold)
 
 /** Titles and the logo. */
 val TitleText = TextStyle(fontFamily = Jersey10, fontSize = 32.sp, lineHeight = 36.sp)
 val TitleSmall = TitleText.copy(fontSize = 24.sp, lineHeight = 28.sp)
 
-/** Numbers, HUD and labels — always upper case. */
-val HudText = TextStyle(fontFamily = Silkscreen, fontSize = 8.sp, lineHeight = 12.sp)
-val HudStrong = HudText.copy(fontWeight = FontWeight.Bold)
-
-/** Tabs and tool names: the HUD face, one step up so short words stay legible. */
-val HudLabel = HudText.copy(fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
+/** Compact UI labels use the same open pixel lettering as the dialogue. */
+val HudText = TextStyle(fontFamily = PixelifySans, fontSize = 14.sp, lineHeight = 17.sp)
+val HudStrong = HudText.copy(fontWeight = FontWeight.SemiBold)
+val HudLabel = HudStrong
 
 private val defaults = Typography()
 val Typography = Typography(

@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.nativeCanvas
@@ -167,32 +168,35 @@ fun Modifier.ditherVeil(shader: BitmapShader, scale: Float = 2f): Modifier = thi
     modifier: Modifier = Modifier,
     onClickLabel: String? = null,
     leading: @Composable (() -> Unit)? = null,
+    keepColorsWhenDisabled: Boolean = false,
     onClick: () -> Unit
 ) {
     val modalAction = LocalModalAction.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val face = if (enabled) accent.base else KerbLight
-    val base = if (enabled) accent.dark else Kerb
-    val lift = if (pressed || !enabled) 0.dp else 2.dp
-    val onFace = if (enabled) textOn(accent.base) else Ink.copy(alpha = .55f)
+    val showColors = enabled || keepColorsWhenDisabled
+    val face = if (showColors) accent.base else KerbLight
+    val base = if (showColors) accent.dark else Kerb
+    val lift = if (pressed || !showColors) 0.dp else 2.dp
+    val onFace = if (showColors) textOn(accent.base) else Ink.copy(alpha = .55f)
 
     Box(modifier.fillMaxWidth().heightIn(min = 54.dp)) {
         // The base is the full-height slab; the face rides 2 px above it.
         Box(Modifier.matchParentSize().padding(top = 2.dp).pixelPanel(
             fill = base, highlight = null, shade = null, shadow = InkShadow, corner = 3.dp))
         Box(
-            Modifier.matchParentSize().padding(bottom = 2.dp).absoluteOffset(y = -lift + 2.dp)
+            Modifier.fillMaxWidth().heightIn(min = 54.dp)
+                .padding(bottom = 2.dp).absoluteOffset(y = -lift + 2.dp)
                 .graphicsLayer {
                     scaleY = if (pressed && enabled) .96f else 1f
                     transformOrigin = TransformOrigin(.5f, 1f)
                 }
-                .pixelPanel(fill = face, highlight = accent.light.takeIf { enabled },
-                    shade = accent.dark.takeIf { enabled }, shadow = null, corner = 3.dp)
+                .pixelPanel(fill = face, highlight = accent.light.takeIf { showColors },
+                    shade = accent.dark.takeIf { showColors }, shadow = null, corner = 3.dp)
                 .clickable(interactionSource = interaction, indication = LocalIndication.current,
                     enabled = enabled, role = Role.Button, onClickLabel = onClickLabel,
                     onClick = { modalAction(onClick) })
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 10.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically,
@@ -206,7 +210,7 @@ fun Modifier.ditherVeil(shader: BitmapShader, scale: Float = 2f): Modifier = thi
 
 /** Cream faces take ink; the saturated accents take the light cream. */
 fun textOn(face: Color): Color =
-    if (face == Cream || face == CreamLight || face == CreamDark || face == Taxi.base) Ink else CreamLight
+    if (face.luminance() >= .36f) Ink else CreamLight
 
 /** A progress/budget bar: asphalt channel, accent fill with a lit top row. */
 @Composable fun PixelBar(progress: Float, accent: Accent, modifier: Modifier = Modifier) {

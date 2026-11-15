@@ -22,7 +22,9 @@ data class Level(
     val guideTools: List<String> = emptyList(),
     val trafficYields: Boolean = true,
     val trafficPace: Float = 1f,
-    val pedestrianCrossings: List<Int> = emptyList()
+    val pedestrianCrossings: List<Int> = emptyList(),
+    val rainBrakingLesson: Boolean = false,
+    val initialCrossings: List<Int> = emptyList() // One crossing per walker, in campaign order.
 )
 fun Level.hasMarkedCrossing(crossing: Int): Boolean = crossing in pedestrianCrossings
 
@@ -190,6 +192,8 @@ class Simulation(val level: Level, source: Plan, private val recklessSpeed: Floa
     private fun focused(p: PersonState) = p.walker.kind != "phone" || "phone_away" in skills(p)
     private val headlightsOn = level.night && "car_lights" in plan.street
     private val carefulNightTraffic = headlightsOn && "speed_zone" in plan.street
+    private val fastTrafficInRain = level.rainBrakingLesson && level.weather == "rain" &&
+        "speed_zone" !in plan.street
 
     private fun outsideNightCrossing(p: PersonState): Boolean =
         level.night && level.pedestrianCrossings.isNotEmpty() && !level.hasMarkedCrossing(crossing(p))
@@ -244,7 +248,7 @@ class Simulation(val level: Level, source: Plan, private val recklessSpeed: Floa
             return
         }
         val nominal = baseSpeed(lane) * if (reckless) recklessSpeed else 1f
-        if (reckless || !level.trafficYields) {
+        if (reckless || (!level.trafficYields && !fastTrafficInRain)) {
             car.braking = false; car.reaction = 0f
             car.speed = minOf(nominal, car.speed + .08f * dt)
             car.x = wrap(car.x + dir * car.speed * dt)
@@ -259,8 +263,13 @@ class Simulation(val level: Level, source: Plan, private val recklessSpeed: Floa
             } else {
                 ("crosswalk" in plan.street && crossing(p) in level.accessible) || headlightsOn
             }
-            !p.done && atRoad && distance > .10f && distance < detection &&
-                marked
+            // In the rain demonstration drivers react once somebody steps into the road.
+            val seesPedestrian = if (fastTrafficInRain) {
+                p.y <= lane.y + .10f && distance < minOf(detection, .23f)
+            } else {
+                marked && distance < detection
+            }
+            !p.done && atRoad && distance > .10f && seesPedestrian
         }
         val target = targets.minByOrNull { (it.x - car.x) * dir }
         val distance = target?.let { (it.x - car.x) * dir - .12f }
@@ -289,7 +298,8 @@ class Simulation(val level: Level, source: Plan, private val recklessSpeed: Floa
             !focused(p) && "phone_away" in level.tools -> "Asígnale Guardar celular en Habilidades."
             level.night && !headlightsOn && "car_lights" in level.tools -> "Activa Encender luces para mejorar la visibilidad."
             level.night && "speed_zone" in level.tools && "speed_zone" !in plan.street ->
-                "Activa Zona lenta para dar a los conductores más tiempo de reacción."
+                "Activa Bajar velocidad para dar a los conductores más tiempo de reacción."
+            fastTrafficInRain -> "Con lluvia, los coches necesitan más distancia para frenar. Activa Bajar velocidad en La calle."
             !checksTraffic(p) && "look" in level.tools -> "Asígnale Mirar para que espere un hueco."
             level.weather == "rain" -> "Con lluvia aumenta la distancia de frenado. Prueba otro cruce o deja más margen."
             else -> "Prueba otro cruce para que tenga más margen."
@@ -338,7 +348,10 @@ class Simulation(val level: Level, source: Plan, private val recklessSpeed: Floa
             val lanesAhead = level.lanes.filter { it.y < p.y - .05f }
             val checking = checksTraffic(p)
             var move = true
-            if (p.y >= curb && checking) {
+            if (p.y >= curb && checking && fastTrafficInRain) {
+                // The walker checks the immediate approach, but cannot count on a late stop.
+                move = carsFor(lanesAhead.maxBy { it.y }).none { (car, _, _) -> abs(car.x - p.x) < .12f }
+            } else if (p.y >= curb && checking) {
                 var limitedVisibility = false
                 move = lanesAhead.all { lane ->
                     val duration = (p.y - lane.y + .07f) / pace(p)
@@ -371,7 +384,7 @@ class Simulation(val level: Level, source: Plan, private val recklessSpeed: Floa
                         level.night && !headlightsOn && "car_lights" in level.tools ->
                             "no alcanzó a ver el tráfico desde su cruce. Activa Encender luces."
                         "speed_zone" in level.tools && "speed_zone" !in plan.street ->
-                            "necesita más margen para cruzar. Prueba Zona lenta u otro cruce."
+                            "necesita más margen para cruzar. Prueba Bajar velocidad u otro cruce."
                         else -> "no tuvo visibilidad suficiente para completar el cruce. Revisa su cruce y las mejoras disponibles."
                     }
                     val explanation = "${p.walker.name} se quedó esperando: $help"
@@ -505,6 +518,16 @@ fun parseLevel(json: JSONObject): Level {
     val walkers = json.getJSONArray("walkers").let { a -> List(a.length()) { i -> a.getJSONObject(i).let {
         Walker(it.getString("id"), it.getString("name"), it.getString("kind"), it.getDouble("speed").toFloat(), it.getString("sprite"))
     } } }
+    val blockedCrossing = if (json.has("blockedCrossing")) json.getInt("blockedCrossing") else null
+    val initialCrossings = if (json.has("initialCrossings")) {
+        val crossings = json.getJSONArray("initialCrossings")
+        List(crossings.length()) { crossings.getInt(it) }.also { positions ->
+            require(positions.size == walkers.size && positions.distinct().size == positions.size &&
+                positions.all { it in Simulation.crossings.indices && it != blockedCrossing }) {
+                "Nivel ${json.getInt("id")}: los cruces iniciales deben ser distintos y estar abiertos."
+            }
+        }
+    } else emptyList()
     return Level(
         json.getInt("id"), json.getInt("world"), json.getString("title"), json.getString("lesson"),
         json.getInt("budget"), json.getBoolean("night"), lanes, walkers,
@@ -514,12 +537,14 @@ fun parseLevel(json: JSONObject): Level {
         if(json.has("sight")) json.getJSONArray("sight").let { a -> List(a.length()) { a.getDouble(it).toFloat() } } else listOf(.95f,.95f,.95f),
         if(json.has("accessible")) json.getJSONArray("accessible").let { a -> List(a.length()) { a.getInt(it) } } else listOf(1),
         json.optInt("parCost", 0),
-        if(json.has("blockedCrossing")) json.getInt("blockedCrossing") else null,
+        blockedCrossing,
         json.stringList("guideTools"),
         json.optBoolean("trafficYields", true),
         json.optDouble("trafficPace", 1.0).toFloat(),
         json.optJSONArray("pedestrianCrossings")?.let { crossings ->
             List(crossings.length()) { crossings.getInt(it) }
-        }.orEmpty()
+        }.orEmpty(),
+        json.optBoolean("rainBrakingLesson", false),
+        initialCrossings
     )
 }

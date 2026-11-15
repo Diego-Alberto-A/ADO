@@ -75,9 +75,10 @@ private const val PIXEL = 1f
         }
     }
     val impactT=minOf(1f,impactTick/30f)
+    val slowMotion = "speed_zone" in plan.street && !level.tutorial && sim?.phase == Phase.RUNNING
     val scenery = remember(level.world, level.id) { boardScenery(level.world, level.id) }
     val context=androidx.compose.ui.platform.LocalContext.current
-    val typeface=remember(context) { androidx.core.content.res.ResourcesCompat.getFont(context,R.font.silkscreen) }
+    val typeface=remember(context) { androidx.core.content.res.ResourcesCompat.getFont(context,R.font.pixelify_sans)?.let { android.graphics.Typeface.create(it, android.graphics.Typeface.BOLD) } }
     val resources=LocalResources.current
     val sprites=remember(resources) {
         mapOf("car_green" to R.drawable.car_green,"car_coral" to R.drawable.car_coral,"car_yellow" to R.drawable.car_yellow,"car_blue" to R.drawable.car_blue,
@@ -125,11 +126,22 @@ private const val PIXEL = 1f
             it.setBounds(left.toInt(),(y+h-drawH).toInt(),(left+drawW).toInt(),(y+h).toInt());it.draw(c)
             if (fitted != null) fitted(RectF(it.bounds))
         }}
-        /** World text carries a 1 px ink outline so it reads over grass or asphalt. */
+        /** A contrasting outline keeps world labels legible over grass and asphalt. */
         fun label(text:String,x:Float,y:Float,size:Float,hex:String) {
             p.textSize=size;p.typeface=typeface;p.textAlign=Paint.Align.CENTER
-            color(INK);p.style=Paint.Style.STROKE;p.strokeWidth=2f;c.drawText(text,x,y,p)
+            color(if (hex == INK) WORLD_TEXT else INK);p.style=Paint.Style.STROKE;p.strokeWidth=2f;c.drawText(text,x,y,p)
             color(hex);c.drawText(text,x,y,p)
+        }
+        fun slowMotionMark(x:Float,y:Float,w:Float,h:Float) {
+            if(!slowMotion) return
+            val pulse = .82f + .18f * sin(frame * .12f)
+            color("#A855F7");p.alpha=(145*pulse).toInt();c.drawOval(x-w*.72f,y-h*.58f,x+w*.72f,y+h*.58f,p);p.alpha=255
+            val cx=x+w*.52f+8f;val cy=y-h*.28f;val radius=6f
+            color("#F3E8FF");c.drawCircle(cx,cy,radius,p)
+            color("#7E22CE");p.style=Paint.Style.STROKE;p.strokeWidth=1.6f;c.drawCircle(cx,cy,radius,p);p.style=Paint.Style.FILL
+            val angle=frame*.16f
+            c.drawLine(cx,cy,cx+3f*sin(angle),cy-3f*cos(angle),p)
+            c.drawLine(cx,cy,cx-2f*sin(angle*.55f),cy+2f*cos(angle*.55f),p)
         }
         /** Flat tiled ground: pixel tiles stay square, so no cut-paper silhouette here. */
         fun ground(x:Float,y:Float,w:Float,h:Float,name:String) {
@@ -211,7 +223,7 @@ private const val PIXEL = 1f
         scenery.signs.forEach { sign ->
             rect(sign.x, sign.y, sign.width, 10f, INK)
             rect(sign.x + 1f, sign.y + 1f, sign.width - 2f, 8f, "#FFE0A0")
-            label(sign.text, sign.x + sign.width / 2f, sign.y + 7.5f, 7f, WORLD_TEXT)
+            label(sign.text, sign.x + sign.width / 2f, sign.y + 8f, 9f, WORLD_TEXT)
         }
         ground(0f, 56f, 360f, 16f, "walk")
         rect(0f, 56f, 360f, PIXEL * 2, ASPHALT)
@@ -292,7 +304,6 @@ private const val PIXEL = 1f
             } else if (lane == level.lanes.first()) {
                 zebraCrossing(180f, y)
             }
-            if("speed_zone" in plan.street) for(i in 0..5) rect(272f+i%2*5,y-26+i*10,11f,6f,"#F5A94C")
             // A twoWay lane is really two sub-lanes sharing the strip: each direction
             // gets its own row, centred in its half of the road (between the kerb edge
             // at y-32/y+34 and the centre line at y), so the cars read as two separate
@@ -303,6 +314,7 @@ private const val PIXEL = 1f
             val x=preview.carX(lane)*360f; val carY=if(lane.twoWay) y-16f else y
             val direction = if (lane.speed < 0) -1f else 1f
             queueHeadlights(x, carY, carW, carH, direction)
+            slowMotionMark(x,carY,carW,carH)
             c.save();if(lane.speed<0)c.scale(-1f,1f,x,carY)
             sprite(lane.car,x-carW/2,carY-carH/2,carW,carH);c.restore()
             // A red brake light at the rear, not just text — a child sees the car itself
@@ -318,6 +330,7 @@ private const val PIXEL = 1f
             if(lane.twoWay) {
                 val ox=preview.oncomingCarX(lane)*360f; val oy=y+17f
                 queueHeadlights(ox, oy, carW, carH, -direction)
+                slowMotionMark(ox,oy,carW,carH)
                 c.save();if(lane.speed>=0)c.scale(-1f,1f,ox,oy)
                 sprite(lane.car,ox-carW/2,oy-carH/2,carW,carH);c.restore()
             }
@@ -327,6 +340,7 @@ private const val PIXEL = 1f
             preview.ambushCarsFor(lane).forEach { (ax,adir) ->
                 val axPx=ax*360f
                 queueHeadlights(axPx, ambushY, carW, carH, adir)
+                slowMotionMark(axPx,ambushY,carW,carH)
                 c.save();if(adir<0f)c.scale(-1f,1f,axPx,ambushY)
                 sprite(lane.car,axPx-carW/2,ambushY-carH/2,carW,carH);c.restore()
             }
@@ -345,8 +359,8 @@ private const val PIXEL = 1f
                 null -> {}
             }
             if(!level.tutorial && sim != null) {
-                if(sim.carSpeed(lane)<.002f) label("ALTO",x,carY-24f,8f,"#FFE07A")
-                else if(sim.isBraking(lane)) label("FRENA",x,carY-24f,8f,"#F27A6B")
+                if(sim.carSpeed(lane)<.002f) label("ALTO",x,carY-24f,11f,"#FFE07A")
+                else if(sim.isBraking(lane)) label("FRENA",x,carY-24f,11f,"#F27A6B")
             }
         }
         // Near side: the pavement the pedestrians wait on.
@@ -356,7 +370,7 @@ private const val PIXEL = 1f
         drawScenery(near = true)
         // A fixed obstacle (roadwork) blocks foot access to one crossing entirely — it
         // sits on the sidewalk, not the road, so traffic drives by untouched. Same
-        // caution orange as "ZONA LENTA"/the speed-zone cones, with its own label and an
+        // caution orange as roadwork, with its own label and an
         // X mark, so it reads as "this path is closed" and never gets mistaken for the
         // parked car that just blocks a sightline (that one's red, not orange).
         level.blockedCrossing?.let { bc ->
@@ -366,21 +380,20 @@ private const val PIXEL = 1f
             rect(bx-32f,336f,64f,13f,"#F5A94C")
             color(INK);p.style=Paint.Style.STROKE;p.strokeWidth=1.3f
             c.drawLine(bx-27f,339f,bx-21f,345f,p);c.drawLine(bx-21f,339f,bx-27f,345f,p)
-            label("CERRADO: OBRA",bx+3,345f,6f,INK)
+            label("CERRADO: OBRA",bx+3,345f,8f,INK)
         }
         if(!level.tutorial) {
-            if("speed_zone" in plan.street) { sprite("stop",12f,300f,24f,32f);label("ZONA LENTA",62f,326f,8f,WORLD_TEXT) }
             Simulation.crossings.forEachIndexed { i,x ->
                 if("crosswalk" in plan.street && i in level.accessible) {
                     sprite("ramp",x*360-18,311f,36f,30f)
-                    label("RAMPA",x*360,353f,7f,WORLD_TEXT)
+                    label("RAMPA",x*360,353f,10f,WORLD_TEXT)
                 }
             }
             if("lighting" in plan.street) {
                 nightGlows.add(floatArrayOf(180f,210f,90f,90f))
-                label("LUZ",180f,88f,8f,"#FFE07A")
+                label("LUZ",180f,88f,11f,"#FFE07A")
             }
-            label(when(level.weather) { "rain" -> "LLUVIA · FRENADO LARGO"; "fog" -> "NIEBLA · VISTA REDUCIDA"; else -> if(level.night) "NOCHE" else "DÍA" },180f,452f,9f,WORLD_TEXT)
+            label(when(level.weather) { "rain" -> "LLUVIA · FRENADO LARGO"; "fog" -> "NIEBLA · VISTA REDUCIDA"; else -> if(level.night) "NOCHE" else "DÍA" },180f,455f,11f,WORLD_TEXT)
             if(level.weather=="rain") {
                 color("#1B2440");p.alpha=35;c.drawRect(0f,0f,360f,330f,p);p.alpha=255
                 color("#CFE0ED");p.alpha=160
@@ -412,10 +425,10 @@ private const val PIXEL = 1f
             c.drawRoundRect(x*360-26,349f,x*360+26,414f,4f,4f,p)
             if(active) {c.drawLine(x*360,343f,x*360,72f,p);p.pathEffect=null;p.style=Paint.Style.FILL;c.drawPath(Path().apply {moveTo(x*360,69f);lineTo(x*360-5,79f);lineTo(x*360+5,79f);close()},p)}
             p.pathEffect=null
-            label(if(blocked) "CERRADO" else listOf("IZQ.","CENTRO","DER.")[i],x*360,431f,9f,if(blocked) "#F5A94C" else WORLD_TEXT)
+            label(if(blocked) "CERRADO" else listOf("IZQ.","CENTRO","DER.")[i],x*360,429f,11f,if(blocked) "#F5A94C" else WORLD_TEXT)
             if (level.night && !blocked && level.pedestrianCrossings.isNotEmpty()) {
                 val marked = level.hasMarkedCrossing(i)
-                label(if (marked) "PASO PEATONAL" else "SIN PASO", x * 360f, 443f, 6f,
+                label(if (marked) "PASO PEATONAL" else "SIN PASO", x * 360f, 442f, 9f,
                     if (marked) "#FFE07A" else "#F5A94C")
             }
         }
@@ -476,7 +489,7 @@ private const val PIXEL = 1f
                 color(if(short) "#F27A6B" else "#FFE07A");p.style=Paint.Style.FILL;p.alpha=55
                 c.drawRect(crossX-range,laneY-10f,crossX+range,laneY+10f,p)
                 p.alpha=255
-                if(short) label("¡OJO!",crossX,laneY-16f,8f,"#F27A6B")
+                if(short) label("¡OJO!",crossX,laneY-16f,11f,"#F27A6B")
             }
             if(w.id==selected && planning) {color("#FFE07A");c.drawOval(x-16,y-7,x+16,y+5,p)}
             val skills=plan.people[w.id]?.skills ?: emptySet()
