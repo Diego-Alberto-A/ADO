@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Copia y renombra el audio y el puntero de latestAssets/pointingHand a res/.
+"""Copia y renombra el audio y el puntero de assets/source/packs/latestAssets/pointingHand a res/.
 
-Source: latestAssets/pointingHand (sin procesar, fuera de git).
-Output: app/src/main/res/raw, app/src/main/res/drawable-nodpi,
-        app/src/main/assets/licenses/audio-credits.txt.
+Source: assets/source/packs/latestAssets/pointingHand (sin procesar, fuera de git).
+Output: assets/game/res/raw, assets/game/res/drawable-nodpi,
+        assets/game/files/licenses/audio-credits.txt.
 
 No se recomprime audio (ya viene comprimido); solo se copia y renombra.
 `audios/SFX.zip` se ignora a propósito: no corresponde a ninguna mecánica del juego.
@@ -14,10 +14,10 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "latestAssets/pointingHand"
-RAW = ROOT / "app/src/main/res/raw"
-DRAWABLE = ROOT / "app/src/main/res/drawable-nodpi"
-LICENSES = ROOT / "app/src/main/assets/licenses"
+SRC = ROOT / "assets/source/packs/latestAssets/pointingHand"
+RAW = ROOT / "assets/game/res/raw"
+DRAWABLE = ROOT / "assets/game/res/drawable-nodpi"
+LICENSES = ROOT / "assets/game/files/licenses"
 
 AUDIO = {
     "audios/menuSong/jump and run - tropics.ogg": "music_menu.ogg",
@@ -32,7 +32,7 @@ AUDIO = {
     "audios/characterSpeaking/talkingsynth.mp3": "voice_talking.mp3",
 }
 
-CREDITS = """Crédito de audio (pack latestAssets/pointingHand):
+CREDITS = """Crédito de audio (pack assets/source/packs/latestAssets/pointingHand):
 
 - music_menu.ogg: "Jump and Run - Tropics". Requiere enlazar a http://opengameart.org en créditos.
 - music_world2.mp3: "Talking Cute Chiptune" de Alex McCulloch. Atribución apreciada, no obligatoria.

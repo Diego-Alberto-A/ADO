@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Packages runtime WebP sprites from the Kenney RPG Urban tilemap.
 
-Source art: art/kenney-rpg-urban (Kenney.nl, CC0).
-Output:     app/src/main/res/drawable-nodpi
+Source art: assets/source/art/kenney-rpg-urban (Kenney.nl, CC0).
+Output:     assets/game/res/drawable-nodpi
 
 Pixel art is upscaled with nearest-neighbour only; the renderer disables
 bitmap filtering so the sprites stay crisp at any board size.
@@ -13,8 +13,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
-TILEMAP = ROOT / "art/kenney-rpg-urban/Tilemap/tilemap_packed.png"
-OUT = ROOT / "app/src/main/res/drawable-nodpi"
+TILEMAP = ROOT / "assets/source/art/kenney-rpg-urban/Tilemap/tilemap_packed.png"
+OUT = ROOT / "assets/game/res/drawable-nodpi"
 T = 16
 
 sheet = Image.open(TILEMAP).convert("RGBA")
@@ -279,7 +279,7 @@ for name, row in EXTRA_WALKERS.items():
 # sheet halved with nearest-neighbour so it sits at the tileset's 16 px scale.
 # Back view: the rider's head shows above the backrest. Front view: the rider's
 # upper body sits over the seat, legs hidden by the chair.
-LPC = ROOT / "art/lpc-elders/wheelchair_blue.png"
+LPC = ROOT / "assets/source/art/lpc-elders/wheelchair_blue.png"
 chair_sheet = Image.open(LPC).convert("RGBA")
 
 
@@ -314,7 +314,7 @@ for i, bob in enumerate((0, 1, 0)):
 # --- Phone marker ------------------------------------------------------------
 # A classic handset hovers over the teenager; the tool icon crosses it out.
 INK = (43, 37, 64, 255)
-PHONE = ROOT / "art/phones/nokia.png"
+PHONE = ROOT / "assets/source/art/phones/nokia.png"
 
 
 def ink_outline(img):

@@ -33,6 +33,17 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("main") {
+            res.directories.clear()
+            res.directories.add(rootProject.file("assets/game/res").absolutePath)
+            assets.directories.clear()
+            assets.directories.add(rootProject.file("assets/game/files").absolutePath)
+        }
+        getByName("test") {
+            resources.directories.add(rootProject.file("assets/game/files").absolutePath)
+        }
+    }
 }
 
 dependencies {

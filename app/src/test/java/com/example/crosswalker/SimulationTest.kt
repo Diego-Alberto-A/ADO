@@ -5,7 +5,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SimulationTest {
-    private val root = JSONObject(java.io.File("src/main/assets/campaign.json").readText())
+    private val root = JSONObject(requireNotNull(javaClass.getResource("/campaign.json")).readText())
     private val levels = root.getJSONArray("levels").let { a -> List(a.length()) { parseLevel(a.getJSONObject(it)) } }
     private val tools = root.getJSONArray("tools").let { a -> List(a.length()) { parseTool(a.getJSONObject(it)) } }
     private fun finish(s: Simulation): Simulation { repeat(1801) { if(s.phase == Phase.RUNNING) s.tick() }; return s }

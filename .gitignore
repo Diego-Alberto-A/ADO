@@ -14,8 +14,10 @@
 .cxx
 local.properties
 
-# Packs de arte completos (solo se copian a art/ los archivos usados)
-/NewAssets
+# Paquetes fuente completos que se conservan localmente.
+/assets/source/packs/
+/assets/source/local/
+/tmp/uat/
 
-# Pack de audio/puntero crudo (solo se copia a res/ lo que se usa)
-/latestAssets
+# Configuración local del editor y herramientas de desarrollo.
+/.*/settings.local.json
