@@ -1,6 +1,6 @@
 import subprocess, pathlib, xml.etree.ElementTree as ET, re, time
 adb=r'C:\Users\toast\AppData\Local\Android\Sdk\platform-tools\adb.exe'
-out=pathlib.Path('art/screenshots')
+out=pathlib.Path(__file__).resolve().parents[1] / 'assets/source/art/screenshots'
 def run(*a): return subprocess.check_output([adb,*a],text=True,encoding='utf-8')
 def dump():
  run('shell','uiautomator','dump','/sdcard/crosswalker-ui.xml')

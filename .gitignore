@@ -13,3 +13,11 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Paquetes fuente completos que se conservan localmente.
+/assets/source/packs/
+/assets/source/local/
+/tmp/uat/
+
+# Configuración local del editor y herramientas de desarrollo.
+/.*/settings.local.json

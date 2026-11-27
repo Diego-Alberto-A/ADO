@@ -1,0 +1,6 @@
+Silla de ruedas de Mateo
+Fuente: "[LPC Revised] Elders!" — https://github.com/ElizaWy/LPC
+Licencia: OGA-BY 3.0 (https://static.opengameart.org/OGA-BY-3.0.txt)
+Artistas: Eliza Wyatt (DeathsDarling), Stephen Challener (Redshrike), Durrani, BenCreating
+Arte original de Eliza Wyatt. En este juego se usa la hoja "Wheelchair, Blue",
+reducida a la escala del tileset y combinada con un personaje de Kenney RPG Urban (CC0).

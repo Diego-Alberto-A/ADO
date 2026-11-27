@@ -33,6 +33,17 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("main") {
+            res.directories.clear()
+            res.directories.add(rootProject.file("assets/game/res").absolutePath)
+            assets.directories.clear()
+            assets.directories.add(rootProject.file("assets/game/files").absolutePath)
+        }
+        getByName("test") {
+            resources.directories.add(rootProject.file("assets/game/files").absolutePath)
+        }
+    }
 }
 
 dependencies {
@@ -45,6 +56,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20231013")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

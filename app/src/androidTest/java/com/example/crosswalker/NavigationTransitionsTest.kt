@@ -25,11 +25,12 @@ class NavigationTransitionsTest {
         ui.onNodeWithText("A TU MANERA").assertDoesNotExist()
         tap("JUGAR")
         tap("MUNDO 2")
-        ui.onNodeWithText("Campus de innovación").assertIsDisplayed()
+        ui.onNodeWithText("La escuela").assertIsDisplayed()
         tap("MUNDO 1")
-        tap("Primeros pasos")
+        tap("Mi primer cruce")
         tap("PREPARAR EL PLAN")
         ui.runOnIdle { assertEquals("game", session.screen) }
+        tap("ABRIR PLAN")
         tap("LA CALLE")
         tap("HABILIDADES")
         tap("Ⅱ")
@@ -40,7 +41,7 @@ class NavigationTransitionsTest {
         ui.onNodeWithText("PAUSA").assertDoesNotExist()
         tap("Ⅱ")
         tap("VOLVER AL MAPA")
-        ui.onNodeWithText("ELIGE TU PRÓXIMA AVENTURA").assertIsDisplayed()
+        ui.onNodeWithText("Mi pequeño barrio").assertIsDisplayed()
         tap("INICIO")
         ui.onNodeWithText("JUGAR").assertIsDisplayed()
     }
@@ -64,7 +65,7 @@ class NavigationTransitionsTest {
 
     @Test fun resultsLeaveBeforeOpeningNextLevelAndRetryReturnsToPlanning() {
         tap("JUGAR")
-        tap("Primeros pasos")
+        tap("Mi primer cruce")
         tap("PREPARAR EL PLAN")
         ui.runOnIdle {
             // Finish deterministically; the test covers result navigation, not traffic timing.
@@ -74,6 +75,9 @@ class NavigationTransitionsTest {
             }
         }
         ui.waitForIdle()
+        // El modal de victoria espera a la mitad de la canción de victoria antes de aparecer
+        // (ver Game()): hay que esperar ese flag en vez de asumir que el modal ya está listo.
+        ui.waitUntil(10000) { session.showResultDialog }
         tap("SIGUIENTE CAMINO")
         ui.runOnIdle {
             assertEquals(2, session.level.id)
