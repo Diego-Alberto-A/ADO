@@ -16,14 +16,16 @@ class CampaignUiTest {
             session.level = session.repo.levels.first { it.id == 5 }
             session.reset()
             session.screen = "game"
-            org.junit.Assert.assertEquals(1, session.plan.people.getValue("ana").crossing)
-            org.junit.Assert.assertEquals(0, session.plan.people.getValue("tomas").crossing)
+            // El nivel 5 arranca con los cruces que fija initialCrossings.
+            org.junit.Assert.assertEquals(2, session.plan.people.getValue("ana").crossing)
+            org.junit.Assert.assertEquals(1, session.plan.people.getValue("tomas").crossing)
         }
         ui.onNodeWithText("ABRIR PLAN").performClick()
-        ui.onNodeWithText("Izq.").performClick()
+        // Ana esta seleccionada: tomar el Centro de Tomas lo manda al cruce que ella deja.
+        ui.onNodeWithText("Centro").performClick()
         ui.runOnIdle {
-            org.junit.Assert.assertEquals(0, session.plan.people.getValue("ana").crossing)
-            org.junit.Assert.assertEquals(1, session.plan.people.getValue("tomas").crossing)
+            org.junit.Assert.assertEquals(1, session.plan.people.getValue("ana").crossing)
+            org.junit.Assert.assertEquals(2, session.plan.people.getValue("tomas").crossing)
         }
     }
 

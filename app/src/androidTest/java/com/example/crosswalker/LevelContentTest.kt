@@ -16,12 +16,36 @@ class LevelContentTest {
         ui.waitUntil(5000) { !session.transitioning }
     }
 
-    @Test fun finalLevelCanBePlayedWithoutCompletingPreviousLevels() {
+    // Fija el progreso que la prueba necesita y restaura el anterior al terminar.
+    // Sin esto cada prueba depende de las estrellas que quedaron en el dispositivo.
+    private fun withStars(vararg stars: Pair<Int, Int?>, body: () -> Unit) {
         val prefs = ui.activity.getSharedPreferences("crosswalker", android.content.Context.MODE_PRIVATE)
-        val previous = prefs.getInt("stars_11", 0)
-        val hadPrevious = prefs.contains("stars_11")
+        val wanted = stars.associate { (level, value) -> "stars_$level" to value }
+        val previous = wanted.keys.associateWith { if (prefs.contains(it)) prefs.getInt(it, 0) else null }
+        fun write(values: Map<String, Int?>) = ui.runOnIdle {
+            prefs.edit().apply {
+                values.forEach { (key, value) -> if (value == null) remove(key) else putInt(key, value) }
+            }.apply()
+        }
         try {
-            ui.runOnIdle { prefs.edit().remove("stars_11").apply() }
+            write(wanted)
+            body()
+        } finally {
+            write(previous)
+        }
+    }
+
+    @Test fun finalLevelStaysLockedUntilTheEleventhIsCleared() {
+        withStars(11 to null) {
+            tap("JUGAR")
+            tap("MUNDO 3")
+            ui.onNodeWithContentDescription("Nivel 12, La ciudad de todos, no disponible").assertExists()
+            ui.onNodeWithText("La ciudad de todos").assertDoesNotExist()
+        }
+    }
+
+    @Test fun finalLevelCanBePlayedOnceTheEleventhIsCleared() {
+        withStars(11 to 1) {
             tap("JUGAR")
             tap("MUNDO 3")
             ui.onNode(hasScrollAction()).performScrollToNode(hasText("La ciudad de todos"))
@@ -29,22 +53,19 @@ class LevelContentTest {
             tap("La ciudad de todos")
             tap("PREPARAR EL PLAN")
             ui.onNodeWithContentDescription("Nivel 12", substring = true).assertIsDisplayed()
-        } finally {
-            ui.runOnIdle {
-                val edit = prefs.edit()
-                if (hadPrevious) edit.putInt("stars_11", previous) else edit.remove("stars_11")
-                edit.apply()
-            }
         }
     }
 
     @Test fun levelDialogIsLimitedToTitleStarsAndPlayButton() {
-        tap("JUGAR")
-        tap("La música no deja oír")
-        ui.onAllNodesWithText("La música no deja oír").onLast().assertIsDisplayed()
-        ui.onNodeWithText("Llega al otro lado", substring = true).assertIsDisplayed()
-        ui.onNodeWithText("PREPARAR EL PLAN", substring = true).assertIsDisplayed()
-        ui.onNodeWithText("FICHA NUEVA", substring = true).assertDoesNotExist()
+        // El nivel 4 solo se abre con el 3 superado.
+        withStars(1 to 1, 2 to 1, 3 to 1) {
+            tap("JUGAR")
+            tap("La música no deja oír")
+            ui.onAllNodesWithText("La música no deja oír").onLast().assertIsDisplayed()
+            ui.onNodeWithText("Llega al otro lado", substring = true).assertIsDisplayed()
+            ui.onNodeWithText("PREPARAR EL PLAN", substring = true).assertIsDisplayed()
+            ui.onNodeWithText("FICHA NUEVA", substring = true).assertDoesNotExist()
+        }
     }
 
     @Test fun toolPaletteOnlyShowsFichasAvailableForThisLevel() {
