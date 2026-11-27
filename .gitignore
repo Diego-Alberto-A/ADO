@@ -21,3 +21,11 @@ local.properties
 
 # Configuración local del editor y herramientas de desarrollo.
 /.*/settings.local.json
+
+# Firma de release: nunca versionar el keystore ni sus contraseñas.
+/keystore.properties
+*.jks
+*.keystore
+
+# Configuración local del destino de despliegue de Android Studio.
+/.idea/deploymentTargetSelector.xml

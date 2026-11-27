@@ -4,6 +4,12 @@ An offline Android puzzle game about helping pedestrians cross the street safely
 
 The game has 12 levels across three worlds and Spanish text.
 
+## Publicar
+
+Para generar el artefacto firmado y subirlo a Google Play, sigue
+[`docs/RELEASE.md`](docs/RELEASE.md): explica cómo crear el keystore, cómo
+configurar `keystore.properties` (que no se versiona) y qué pide Play Console.
+
 ## Artwork
 
 The game's assets are grouped under `assets/`:
