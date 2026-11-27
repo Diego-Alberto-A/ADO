@@ -1,5 +1,8 @@
 {
   "id": 1,
+  "initialCrossings": [
+    0
+  ],
   "world": 0,
   "title": "Mi primer cruce",
   "lesson": "Toca MIRAR: cuesta 1 ficha y me hace esperar un hueco seguro antes de entrar a cada carril.",
